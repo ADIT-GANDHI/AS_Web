@@ -1,0 +1,333 @@
+@import "tailwindcss";
+@import "tw-animate-css";
+
+html, body {
+  overflow-x: hidden;
+}
+
+@font-face {
+  font-family: "Merriweather Sans";
+  src: url("/fonts/MerriweatherSans/MerriweatherSans-Light.ttf")
+    format("truetype");
+  font-weight: 300;
+  font-style: normal;
+}
+
+@font-face {
+  font-family: "Merriweather Sans";
+  src: url("/fonts/MerriweatherSans/MerriweatherSans-LightItalic.ttf")
+    format("truetype");
+  font-weight: 300;
+  font-style: italic;
+}
+
+@font-face {
+  font-family: "Merriweather Sans";
+  src: url("/fonts/MerriweatherSans/MerriweatherSans-Regular.ttf")
+    format("truetype");
+  font-weight: 400;
+  font-style: normal;
+}
+
+@font-face {
+  font-family: "Merriweather Sans";
+  src: url("/fonts/MerriweatherSans/MerriweatherSans-Italic.ttf")
+    format("truetype");
+  font-weight: 400;
+  font-style: italic;
+}
+
+@font-face {
+  font-family: "Merriweather Sans";
+  src: url("/fonts/MerriweatherSans/MerriweatherSans-Medium.ttf")
+    format("truetype");
+  font-weight: 500;
+  font-style: normal;
+}
+
+@font-face {
+  font-family: "Merriweather Sans";
+  src: url("/fonts/MerriweatherSans/MerriweatherSans-SemiBold.ttf")
+    format("truetype");
+  font-weight: 600;
+  font-style: normal;
+}
+
+@font-face {
+  font-family: "Merriweather Sans";
+  src: url("/fonts/MerriweatherSans/MerriweatherSans-Bold.ttf")
+    format("truetype");
+  font-weight: 700;
+  font-style: normal;
+}
+
+@font-face {
+  font-family: "Lora";
+  src: url("/fonts/lora/Lora-Regular.ttf") format("truetype");
+  font-weight: 300;
+}
+@font-face {
+  font-family: "Lora";
+  src: url("/fonts/lora/Lora-Regular.ttf") format("truetype");
+  font-weight: 400;
+  font-style: normal;
+}
+@font-face {
+  font-family: "Lora";
+  src: url("/fonts/lora/Lora-Italic.ttf") format("truetype");
+  font-weight: 400;
+  font-style: italic;
+}
+@font-face {
+  font-family: "Lora";
+  src: url("/fonts/lora/Lora-MediumItalic.ttf") format("truetype");
+  font-weight: 500;
+  font-style: italic;
+}
+@font-face {
+  font-family: "LoraMedium";
+  src: url("/fonts/lora/Lora-MediumItalic.ttf") format("truetype");
+  font-weight: 400;
+}
+@font-face {
+  font-family: "lora-italic";
+  src: url("/fonts/lora/Lora-Italic.ttf") format("truetype");
+  font-weight: 400;
+}
+
+/* body {
+  font-family: 'Inter', sans-serif;
+} */
+
+h1,
+h2,
+h3 {
+  font-family: "Lora", serif;
+  font-weight: 400;
+}
+div,
+p {
+  font-family: "Merriweather Sans", sans-serif;
+  font-weight: 300;
+}
+.lora-italic {
+  font-family: "lora-italic";
+}
+
+@custom-variant dark (&:is(.dark *));
+
+/* ─────────────────────────────────────────────────────────────────────
+   AJAB SHAHAR DESIGN TOKENS (single source of truth, mirrored in
+   lib/design-tokens.ts). All new CSS should reference these instead of
+   hard-coding hex / px values. See TOKENS_RESEARCH.md.
+   ─────────────────────────────────────────────────────────────────── */
+:root {
+  /* ── Brand colour palette ── */
+  --ajab-pink-primary: #E31E79;   /* Songs/About headings, active state         */
+  --ajab-pink-card:    #E6287A;   /* Reflection card title, slightly redder     */
+  --ajab-pink-related: #ED1E79;   /* Related-item active, "see more"            */
+
+  --ajab-ink-950:      #333333;   /* Deepest body text (Home poem translation)  */
+  --ajab-ink-900:      #3C3C3B;   /* Body text, primary dark                    */
+  --ajab-ink-800:      #4D4D4D;   /* Section titles                             */
+  --ajab-ink-700:      #4F4F4F;   /* Card title default                         */
+  --ajab-ink-600:      #828282;   /* Glossary body, intro italics               */
+  --ajab-ink-500:      #6D6E71;   /* Card meta default                          */
+  --ajab-ink-400:      #6F6F72;   /* Card description, related subtitle         */
+  --ajab-ink-300:      #828282;   /* Subtitle (italic), pipe separator          */
+  --ajab-ink-200:      #9C9B9B;   /* Inactive pipe (poems)                      */
+  --ajab-ink-100:      #B1B1B1;   /* Media-type tag                             */
+
+  --ajab-surface:      #FFFFFF;
+  --ajab-page-bg:      #F8F8F8;
+
+  /* ── Type system (font-family) ── */
+  --ajab-font-serif:    'Lora', serif;
+  --ajab-font-sans:     'Merriweather Sans', sans-serif;
+
+  /* ── Type scale (Figma-derived, px values, line-height 1.3 unless noted) ── */
+  --ajab-fs-display:   34px;   /* Series titles, /films listing                 */
+  --ajab-fs-h1:        32px;   /* Home card title, mode-tab active              */
+  --ajab-fs-h2:        30px;   /* Related-section header                        */
+  --ajab-fs-h3:        28px;   /* People/Films section names                    */
+  --ajab-fs-h4:        26px;   /* Related item title                            */
+  --ajab-fs-h5:        24px;   /* Card title (Songs/Reflections)                */
+  --ajab-fs-h6:        22px;   /* Filter "All", related subtitle, tab labels    */
+  --ajab-fs-button:    21px;   /* "Filters | All", about-toggle, page-menu      */
+  --ajab-fs-body-lg:   20px;   /* Subtitle italic, intro italic                 */
+  --ajab-fs-body:      18px;   /* Body, related-item desc, section labels      */
+  --ajab-fs-body-sm:   16px;   /* Card meta, glossary, CTAs                     */
+  --ajab-fs-caption:   15px;   /* Related tab count                             */
+  --ajab-fs-tag:       14px;   /* Media-type tag                                */
+  --ajab-fs-micro:     12px;   /* Small captions, footer hints                  */
+  --ajab-fs-nano:      11px;   /* Tiny labels                                   */
+
+  --ajab-lh-tight:     1.2;
+  --ajab-lh-base:      1.3;
+  --ajab-lh-relaxed:   1.5;
+
+  /* ── Songs card geometry (Figma 361:692) ── */
+  /* [Claude] these changes have been recommended by claude —
+     Card width reduced: 280px → 220px max so the card grid occupies ~41% of the
+     1920px artboard (was 52%), matching the AI design where the marble background
+     is clearly visible on both sides. 14.5vw hits 220px at 1517px viewport. */
+  --ajab-card-w:           clamp(180px, 14.5vw, 220px);
+  --ajab-card-h-min:       287px;   /* reference only; height is now content-driven  */
+  --ajab-card-thumb-h:     156px;   /* Figma 156.17                             */
+  --ajab-card-thumb-pad:   4px;     /* thumb is 4px inset from card edge        */
+  --ajab-card-body-pad-x:  16px;
+  --ajab-card-body-pad-t:  0px;     /* title sits flush with thumb              */
+  --ajab-card-body-pad-b:  24px;
+  --ajab-card-title-mb:    0px;     /* subtitle abuts title (no gap in Figma)   */
+  --ajab-card-subtitle-mb: 7px;     /* Figma title-row→meta-row gap             */
+  --ajab-card-radius:      4px;
+  --ajab-card-shadow:      0 4px 14px rgba(0, 0, 0, 0.10);
+
+  /* ── Grid spacing (PDF-proportional, 3-col layout) ── */
+  /* [Claude] these changes have been recommended by claude —
+     col-gap cap reduced 81px → 60px to stay proportional to smaller 220px cards.
+     grid-max-w updated: 3×220 + 2×60 = 780px → 800px with breathing room. */
+  --ajab-grid-col-gap:     clamp(24px, 4.2vw, 60px);
+  --ajab-grid-row-gap:     clamp(32px, 4.3vw, 83px);
+  --ajab-grid-max-w:       800px;
+  /* Filter + A–Z row: slightly wider than the 3-card column so letters breathe,
+     without spanning the full Figma 920:67 artboard (~1324px). */
+  --ajab-songs-filter-rail-max-w: 1200px;
+  /* Inner needs room for rail + horizontal padding (50+50 on .cl-songs-inner) */
+  --ajab-songs-inner-max-w: calc(var(--ajab-songs-filter-rail-max-w) + 100px);
+
+  /* ── Page chrome (marble / "white side bars") ── */
+  --ajab-page-marble-w:    80vw;    /* width of marble background               */
+  --ajab-page-side-w:      10vw;    /* visible white gutter on each side        */
+  --ajab-page-max-w:       1320px;  /* clamp at this width on large monitors    */
+  --ajab-page-min-w:       980px;
+  --ajab-page-pad-x:       40px;
+
+  /* ── Marble PNG slice geometry (Songs/Songs-Detail bg layers).
+     These mirror the exact pixel dims of the assets so we never duplicate
+     magic numbers in component CSS. ── */
+  --ajab-marble-w:         1568px;  /* Rectangle.png native width   */
+  --ajab-marble-h:         2850px;  /* tall — natural tile height   */
+  --ajab-marble-deco-l-w:  223px;   /* Vector.png   left deco strip */
+  --ajab-marble-deco-r-w:  205px;   /* Vector-1.png right deco strip*/
+  --ajab-header-h:         213px;   /* Header.png native height     */
+  --ajab-footer-h:         666px;   /* Footer.png native height     */
+
+  --background: oklch(1 0 0);
+  --foreground: oklch(0.145 0 0);
+  --card: oklch(1 0 0);
+  --card-foreground: oklch(0.145 0 0);
+  --popover: oklch(1 0 0);
+  --popover-foreground: oklch(0.145 0 0);
+  --primary: oklch(0.205 0 0);
+  --primary-foreground: oklch(0.985 0 0);
+  --secondary: oklch(0.97 0 0);
+  --secondary-foreground: oklch(0.205 0 0);
+  --muted: oklch(0.97 0 0);
+  --muted-foreground: oklch(0.556 0 0);
+  --accent: oklch(0.97 0 0);
+  --accent-foreground: oklch(0.205 0 0);
+  --destructive: oklch(0.577 0.245 27.325);
+  --destructive-foreground: oklch(0.577 0.245 27.325);
+  --border: oklch(0.922 0 0);
+  --input: oklch(0.922 0 0);
+  --ring: oklch(0.708 0 0);
+  --chart-1: oklch(0.646 0.222 41.116);
+  --chart-2: oklch(0.6 0.118 184.704);
+  --chart-3: oklch(0.398 0.07 227.392);
+  --chart-4: oklch(0.828 0.189 84.429);
+  --chart-5: oklch(0.769 0.188 70.08);
+  --radius: 0.625rem;
+  --sidebar: oklch(0.985 0 0);
+  --sidebar-foreground: oklch(0.145 0 0);
+  --sidebar-primary: oklch(0.205 0 0);
+  --sidebar-primary-foreground: oklch(0.985 0 0);
+  --sidebar-accent: oklch(0.97 0 0);
+  --sidebar-accent-foreground: oklch(0.205 0 0);
+  --sidebar-border: oklch(0.922 0 0);
+  --sidebar-ring: oklch(0.708 0 0);
+}
+
+.dark {
+  --background: oklch(0.145 0 0);
+  --foreground: oklch(0.985 0 0);
+  --card: oklch(0.145 0 0);
+  --card-foreground: oklch(0.985 0 0);
+  --popover: oklch(0.145 0 0);
+  --popover-foreground: oklch(0.985 0 0);
+  --primary: oklch(0.985 0 0);
+  --primary-foreground: oklch(0.205 0 0);
+  --secondary: oklch(0.269 0 0);
+  --secondary-foreground: oklch(0.985 0 0);
+  --muted: oklch(0.269 0 0);
+  --muted-foreground: oklch(0.708 0 0);
+  --accent: oklch(0.269 0 0);
+  --accent-foreground: oklch(0.985 0 0);
+  --destructive: oklch(0.396 0.141 25.723);
+  --destructive-foreground: oklch(0.637 0.237 25.331);
+  --border: oklch(0.269 0 0);
+  --input: oklch(0.269 0 0);
+  --ring: oklch(0.439 0 0);
+  --chart-1: oklch(0.488 0.243 264.376);
+  --chart-2: oklch(0.696 0.17 162.48);
+  --chart-3: oklch(0.769 0.188 70.08);
+  --chart-4: oklch(0.627 0.265 303.9);
+  --chart-5: oklch(0.645 0.246 16.439);
+  --sidebar: oklch(0.205 0 0);
+  --sidebar-foreground: oklch(0.985 0 0);
+  --sidebar-primary: oklch(0.488 0.243 264.376);
+  --sidebar-primary-foreground: oklch(0.985 0 0);
+  --sidebar-accent: oklch(0.269 0 0);
+  --sidebar-accent-foreground: oklch(0.985 0 0);
+  --sidebar-border: oklch(0.269 0 0);
+  --sidebar-ring: oklch(0.439 0 0);
+}
+
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-destructive: var(--destructive);
+  --color-destructive-foreground: var(--destructive-foreground);
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-ring: var(--ring);
+  --color-chart-1: var(--chart-1);
+  --color-chart-2: var(--chart-2);
+  --color-chart-3: var(--chart-3);
+  --color-chart-4: var(--chart-4);
+  --color-chart-5: var(--chart-5);
+  --radius-sm: calc(var(--radius) - 4px);
+  --radius-md: calc(var(--radius) - 2px);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) + 4px);
+  --color-sidebar: var(--sidebar);
+  --color-sidebar-foreground: var(--sidebar-foreground);
+  --color-sidebar-primary: var(--sidebar-primary);
+  --color-sidebar-primary-foreground: var(--sidebar-primary-foreground);
+  --color-sidebar-accent: var(--sidebar-accent);
+  --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
+  --color-sidebar-border: var(--sidebar-border);
+  --color-sidebar-ring: var(--sidebar-ring);
+  /* Fonts */
+}
+
+@layer base {
+  * {
+    @apply border-border outline-ring/50;
+  }
+  body {
+    @apply bg-background text-foreground;
+  }
+}

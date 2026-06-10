@@ -1,0 +1,618 @@
+/* ─────────────────────────────────────────────
+   CL Films — listing + detail
+   Full-width film plate; content aligned to shared grid column.
+───────────────────────────────────────────── */
+
+/* [Claude] these changes have been recommended by claude —
+   Listing: film-page-bg.png (1920×3320) from Figma — green ornamental borders + railway watermark.
+   Detail: film_detail.png (1926×4032) from Images/ folder — dedicated detail composition. */
+
+.cl-songs-page-root:has(.clf-page),
+.cl-songs-page-root:has(.clfd-page) {
+  --clf-artboard-w: 1950;
+  /* Figma 366:7839 / 366:7840 — same count + rule rhythm as Poems listing */
+  --clf-listing-inset: calc(100vw * 314.89 / var(--clf-artboard-w));
+  --clf-listing-rule-inset: calc(100vw * 297.79 / var(--clf-artboard-w));
+  --clf-listing-rule-width: calc(100vw * 1339.5 / var(--clf-artboard-w));
+  /* Figma 366:7854 — film row content column */
+  --clf-content-inset: calc(100vw * 396.72 / var(--clf-artboard-w));
+  --clf-content-width: min(
+    calc(100vw * 1134.36 / var(--clf-artboard-w)),
+    calc(100vw - var(--clf-content-inset) - 24px)
+  );
+  /* Figma 366:7864 outer frame, scaled down ~10% for PDF text-column balance (padding unchanged) */
+  --clf-thumb-scale: 0.9;
+  --clf-thumb-w: min(
+    calc(100vw * 532.56 * var(--clf-thumb-scale) / var(--clf-artboard-w)),
+    calc(532px * var(--clf-thumb-scale))
+  );
+  --clf-thumb-h: min(
+    calc(100vw * 308.4 * var(--clf-thumb-scale) / var(--clf-artboard-w)),
+    calc(308px * var(--clf-thumb-scale))
+  );
+  /* Figma 366:7864 outer frame; PDF inner image ≈502×278 → ~15px white mat per side */
+  --clf-thumb-border: clamp(6px, calc(100vw * 15 / var(--clf-artboard-w)), 15px);
+  --clf-fs-title: clamp(24px, calc(100vw * 28 / var(--clf-artboard-w)), 28px);
+  --clf-fs-subtitle: clamp(16px, calc(100vw * 18 / var(--clf-artboard-w)), 18px);
+  --clf-fs-body: clamp(16px, calc(100vw * 18 / var(--clf-artboard-w)), 18px);
+  --clf-fs-meta: clamp(15px, calc(100vw * 17 / var(--clf-artboard-w)), 17px);
+  --clf-fs-links: clamp(15px, calc(100vw * 17 / var(--clf-artboard-w)), 17px);
+  --clf-pad-page-top: calc(100vw * 71 / var(--clf-artboard-w));
+  /* Figma 366:7922 bottom (2622) → footer wave 366:8096 (2656) ≈ 34px, plus footer overlap */
+  --clf-pad-page-bottom: calc(
+    clamp(80px, 8.333vw, 160px) + clamp(24px, calc(100vw * 34 / var(--clf-artboard-w)), 34px)
+  );
+  position: relative;
+  overflow-x: hidden;
+  background-color: #ffffff;
+  background-image: none;
+}
+
+body:has(.clf-page) footer.footer-bg,
+body:has(.clfd-page) footer.footer-bg {
+  position: relative;
+  z-index: 10;
+}
+
+/* Listing */
+.clf-page.cl-songs-page {
+  width: 100%;
+  max-width: none;
+  padding: var(--clf-pad-page-top) 0 var(--clf-pad-page-bottom);
+  box-sizing: border-box;
+}
+
+.clf-count-row {
+  position: relative;
+  width: 100%;
+  max-width: none;
+  margin: 0 0 12px;
+  padding: 0 24px 14px var(--clf-listing-inset);
+  box-sizing: border-box;
+  border-bottom: none;
+}
+
+.clf-count-row::after {
+  content: '';
+  position: absolute;
+  left: var(--clf-listing-rule-inset);
+  bottom: 0;
+  width: min(var(--clf-listing-rule-width), calc(100% - var(--clf-listing-rule-inset) - 24px));
+  height: 1px;
+  background: var(--ajab-ink-100);
+}
+
+.clf-count {
+  color: #3c3c3b;
+  font-family: var(--ajab-font-serif);
+  font-weight: 400;
+  font-size: 27px;
+  line-height: 100%;
+  margin: 0;
+}
+
+.clf-series {
+  width: var(--clf-content-width);
+  margin: 48px 0 24px var(--clf-content-inset);
+  padding: 0;
+  box-sizing: border-box;
+}
+
+.clf-series:last-child {
+  margin-bottom: 0;
+}
+
+.clf-series-title {
+  font-family: var(--ajab-font-serif);
+  font-weight: 400;
+  font-size: clamp(28px, calc(100vw * 34 / var(--clf-artboard-w)), 34px);
+  color: var(--ajab-ink-800);
+  text-align: center;
+  margin: 0 0 14px;
+}
+
+.clf-series-intro {
+  font-family: var(--ajab-font-serif);
+  font-style: italic;
+  font-weight: 400;
+  font-size: var(--ajab-fs-body-lg);
+  line-height: 1.4;
+  color: var(--ajab-ink-300);
+  text-align: center;
+  max-width: min(calc(100vw * 1031.29 / var(--clf-artboard-w)), 100%);
+  margin: 0 auto 36px;
+}
+
+.clf-list {
+  display: flex;
+  flex-direction: column;
+  gap: 36px;
+}
+
+.clf-entry {
+  display: flex;
+  gap: 22px;
+  align-items: flex-start;
+  padding-bottom: 28px;
+  border-bottom: 1px solid #e0e0e0;
+  cursor: pointer;
+  margin-left: calc(100vw * 42.06 / var(--clf-artboard-w));
+  padding-right: 0;
+  box-sizing: border-box;
+}
+
+.clf-entry:last-child {
+  border-bottom: 0;
+  padding-bottom: 0;
+}
+
+.clf-entry-thumb {
+  width: var(--clf-thumb-w);
+  height: var(--clf-thumb-h);
+  aspect-ratio: auto;
+  flex-shrink: 0;
+  padding: var(--clf-thumb-border);
+  background: #ffffff;
+  border: 1px solid #d8d8d8;
+  border-radius: 2px;
+  box-sizing: border-box;
+  overflow: hidden;
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.12);
+}
+
+.clf-entry-thumb img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+  border-radius: 1px;
+}
+
+.clf-entry-body {
+  flex: 1;
+  min-width: 0;
+  padding-top: 0;
+  align-self: flex-start;
+}
+
+.clf-entry-titlerow {
+  display: flex;
+  align-items: baseline;
+  gap: 12px;
+  flex-wrap: nowrap;
+  min-width: 0;
+  overflow: hidden;
+  margin-bottom: 4px;
+}
+
+.clf-entry-title {
+  font-family: var(--ajab-font-serif);
+  font-weight: 400;
+  font-size: var(--clf-fs-title);
+  color: var(--ajab-ink-600);
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  flex-shrink: 1;
+}
+
+.clf-entry-subtitle {
+  font-family: var(--ajab-font-serif);
+  font-style: italic;
+  font-weight: 400;
+  font-size: var(--clf-fs-subtitle);
+  color: var(--ajab-ink-400);
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  flex-shrink: 1;
+}
+
+.clf-entry-director {
+  font-family: var(--ajab-font-sans);
+  font-weight: 300;
+  font-size: var(--clf-fs-body);
+  color: var(--ajab-ink-400);
+  margin-bottom: 4px;
+}
+
+.clf-entry-director-name {
+  color: var(--ajab-pink-primary);
+  font-weight: 300;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+}
+
+.clf-entry-meta {
+  font-family: var(--ajab-font-sans);
+  font-weight: 300;
+  font-size: var(--clf-fs-meta);
+  color: #6f6f72;
+  margin-bottom: 10px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.clf-entry-desc {
+  font-family: var(--ajab-font-sans);
+  font-weight: 300;
+  font-size: var(--clf-fs-body);
+  line-height: 1.5;
+  color: #6f6f72;
+  margin-bottom: 12px;
+  display: -webkit-box;
+  -webkit-line-clamp: 3;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.clf-entry-links {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+  font-family: var(--ajab-font-sans);
+  font-weight: 300;
+  font-size: var(--clf-fs-links);
+}
+
+.clf-entry-link {
+  color: var(--ajab-pink-primary);
+  cursor: pointer;
+}
+
+.clf-entry-link--muted {
+  color: #575756;
+  cursor: default;
+}
+
+.clf-entry-link-sep {
+  color: var(--ajab-ink-400);
+}
+
+body:has(.clf-page) .nav-link--films,
+body:has(.clfd-page) .nav-link--films {
+  color: var(--ajab-pink-primary) !important;
+  align-items: baseline;
+}
+
+body:has(.clf-page) .nav-link--films::after,
+body:has(.clfd-page) .nav-link--films::after {
+  content: '(' var(--clf-nav-count, '24') ')';
+  font: inherit;
+  font-size: 0.55em;
+  margin-left: 1px;
+  color: var(--ajab-pink-primary);
+}
+
+/* ── Detail page ── */
+.clfd-page {
+  position: relative;
+  width: 100%;
+  max-width: none;
+  margin: 0;
+  padding: var(--clf-pad-page-top) 0 clamp(48px, 5vw, 80px);
+  font-weight: 300;
+  box-sizing: border-box;
+}
+
+.clfd-content {
+  width: var(--clf-content-width);
+  margin: 0 0 0 var(--clf-content-inset);
+  padding: 0;
+  box-sizing: border-box;
+}
+
+/* [Claude] these changes have been recommended by claude —
+   Centered (PDF: "Film | Episodes" is centered in the column).
+   Font reduced h1(32px)→h5(24px) to match design.
+   COLOUR LOGIC REVERSED vs original: inactive tab = pink (clickable CTA),
+   active tab = dark ink (you are here — no need to highlight). */
+.clfd-mode-row {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+  justify-content: center;
+  margin: 0 0 28px;
+  font-family: var(--ajab-font-serif);
+  font-weight: 400;
+  font-size: clamp(26px, calc(100vw * 32 / var(--clf-artboard-w)), 32px);
+  color: var(--ajab-pink-primary);
+}
+
+.clfd-mode-tab {
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 0;
+  font: inherit;
+  color: inherit;
+}
+
+/* Active tab = dark ink (currently viewing) */
+.clfd-mode-tab.active {
+  color: var(--ajab-ink-700);
+  cursor: default;
+}
+
+.clfd-mode-sep {
+  color: var(--ajab-ink-200);
+}
+
+.clfd-header {
+  margin-bottom: 24px;
+}
+
+.clfd-header-titlerow {
+  display: flex;
+  align-items: baseline;
+  gap: 12px;
+  flex-wrap: wrap;
+  margin-bottom: 4px;
+}
+
+.clfd-header-title {
+  font-family: var(--ajab-font-serif);
+  font-weight: 400;
+  font-size: var(--ajab-fs-h3);
+  color: var(--ajab-ink-700);
+  margin: 0;
+}
+
+.clfd-header-subtitle {
+  font-family: var(--ajab-font-serif);
+  font-style: italic;
+  font-weight: 400;
+  font-size: var(--ajab-fs-body);
+  color: var(--ajab-ink-400);
+}
+
+.clfd-header-byline {
+  font-family: var(--ajab-font-sans);
+  font-weight: 300;
+  font-size: var(--ajab-fs-body);
+  color: var(--ajab-ink-400);
+  margin-top: 2px;
+  margin-bottom: 8px;
+}
+
+/* [Claude] these changes have been recommended by claude — uppercase to match PDF "SHABNAM VIRMANI" */
+.clfd-header-byline .caps {
+  color: var(--ajab-pink-primary);
+  font-weight: 300;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+}
+
+.clfd-header-meta {
+  font-family: var(--ajab-font-sans);
+  font-weight: 300;
+  font-size: var(--ajab-fs-body);
+  color: var(--ajab-ink-400);
+}
+
+/* [Claude] these changes have been recommended by claude —
+   Figma design shows: video full-width, language pills below, then description as a block.
+   The old "side popup" overlay is NOT in the Figma — description is below the video. */
+.clfd-media-stage {
+  position: relative;
+  margin-bottom: 20px;
+}
+
+.clfd-video-wrap {
+  position: relative;
+  z-index: 1;
+  width: 100%;
+  margin: 0;
+  aspect-ratio: 16 / 9;
+  background: #000;
+  border-radius: 4px;
+  overflow: hidden;
+}
+
+.clfd-video-wrap img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+.clfd-video-wrap iframe {
+  width: 100% !important;
+  height: 100% !important;
+  border: 0;
+}
+
+.clfd-video-placeholder {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #888;
+  background: #2a2a2a;
+  font-family: var(--ajab-font-sans);
+}
+
+/* Description is a block BELOW the video — not an absolute popup overlay */
+.clfd-about-popup {
+  position: static;
+  width: 100%;
+  max-height: none;
+  min-height: 0;
+  transform: none;
+  margin-top: 20px;
+}
+
+.clfd-about-text {
+  font-family: var(--ajab-font-sans);
+  font-weight: 300;
+  font-size: var(--ajab-fs-body);
+  line-height: 1.6;
+  color: var(--ajab-ink-700);
+  margin: 0;
+  text-align: left;
+}
+
+.clfd-description-more {
+  color: var(--ajab-pink-primary);
+  cursor: pointer;
+  font-weight: 300;
+  background: none;
+  border: none;
+  padding: 0;
+  font: inherit;
+  font-size: inherit;
+}
+
+.clfd-lang-toggle {
+  margin-bottom: 32px;
+}
+
+/* Episodes tab — same full bg; list aligned to content column */
+.clfd-episodes-panel {
+  margin-bottom: 40px;
+}
+
+.clfd-episodes-list {
+  display: flex;
+  flex-direction: column;
+  gap: 28px;
+}
+
+.clfd-episode-entry {
+  display: flex;
+  gap: 24px;
+  align-items: flex-start;
+  padding-bottom: 24px;
+  border-bottom: 1px solid #e0e0e0;
+  cursor: pointer;
+}
+
+.clfd-episode-entry:last-child {
+  border-bottom: 0;
+  padding-bottom: 0;
+}
+
+.clfd-episode-thumb {
+  width: clamp(180px, 28vw, 240px);
+  aspect-ratio: 16 / 9;
+  flex-shrink: 0;
+  background: #000;
+  border-radius: 3px;
+  overflow: hidden;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+.clfd-episode-thumb img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+.clfd-episode-title {
+  font-family: var(--ajab-font-serif);
+  font-weight: 400;
+  font-size: var(--ajab-fs-h4);
+  color: var(--ajab-ink-700);
+  margin-bottom: 4px;
+}
+
+.clfd-episode-subtitle {
+  font-family: var(--ajab-font-serif);
+  font-style: italic;
+  font-weight: 400;
+  font-size: var(--ajab-fs-body);
+  color: var(--ajab-ink-400);
+  margin-bottom: 6px;
+}
+
+.clfd-episode-meta {
+  font-family: var(--ajab-font-sans);
+  font-weight: 300;
+  font-size: var(--ajab-fs-body-sm);
+  color: var(--ajab-ink-400);
+}
+
+.clfd-episodes-empty {
+  font-family: var(--ajab-font-sans);
+  font-weight: 300;
+  font-size: var(--ajab-fs-body);
+  color: var(--ajab-ink-400);
+  text-align: center;
+  padding: 32px 0;
+}
+
+.clfd-page .cld-related {
+  max-width: 100%;
+  margin-left: calc(100vw * 42.06 / var(--clf-artboard-w));
+  padding-left: 0;
+  padding-right: 0;
+}
+
+.clfd-glossary-align {
+  margin-left: calc(100vw * 42.06 / var(--clf-artboard-w));
+  padding-right: 0;
+}
+
+.cl-songs-page-root:has(.clfd-page) .gs-strip {
+  max-width: min(1015px, calc(100vw * 1015 / var(--clf-artboard-w)));
+  margin-top: 24px;
+  margin-bottom: 24px;
+  padding: 28px 32px;
+}
+
+@media screen and (max-width: 1024px) {
+  .clfd-glossary-align {
+    margin-left: 0;
+  }
+}
+
+/* clfd-about-popup is now always static/block — no responsive override needed */
+
+@media screen and (max-width: 1024px) {
+  .clf-count-row {
+    padding-left: max(24px, var(--clf-listing-inset));
+  }
+
+  .clf-count-row::after {
+    left: max(24px, var(--clf-listing-rule-inset));
+    width: min(var(--clf-listing-rule-width), calc(100% - max(24px, var(--clf-listing-rule-inset)) - 24px));
+  }
+
+  .clf-series,
+  .clfd-content {
+    width: auto;
+    margin-left: max(24px, var(--clf-content-inset));
+    margin-right: 24px;
+  }
+
+  .clf-entry {
+    margin-left: 0;
+  }
+
+  .clfd-page .cld-related {
+    margin-left: 0;
+  }
+}
+
+@media screen and (max-width: 767px) {
+  .clf-entry,
+  .clfd-episode-entry {
+    flex-direction: column;
+    gap: 16px;
+  }
+
+  .clf-entry-thumb,
+  .clfd-episode-thumb {
+    width: 100%;
+    max-width: 340px;
+  }
+
+  .clfd-mode-row {
+    flex-wrap: wrap;
+  }
+}

@@ -1,0 +1,714 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Songs Listing — PDF vs Implementation Comparison</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: 'Segoe UI', sans-serif; background: #1a1a2e; color: #fff; }
+
+  .page-header {
+    background: #16213e;
+    padding: 20px 40px;
+    border-bottom: 2px solid #e31e79;
+    display: flex;
+    align-items: center;
+    gap: 16px;
+  }
+  .page-header h1 { font-size: 20px; font-weight: 600; color: #fff; }
+  .page-header p { font-size: 13px; color: #aaa; margin-top: 4px; }
+  .badge { background: #e31e79; color: #fff; font-size: 11px; padding: 3px 10px; border-radius: 20px; font-weight: 600; }
+
+  .compare-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 0;
+    min-height: 100vh;
+  }
+
+  .panel {
+    padding: 0;
+    border-right: 3px solid #0f3460;
+  }
+  .panel:last-child { border-right: none; }
+
+  .panel-header {
+    padding: 14px 24px;
+    font-size: 13px;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    position: sticky;
+    top: 0;
+    z-index: 10;
+  }
+  .panel-header.pdf { background: #0f3460; color: #7ec8e3; }
+  .panel-header.live { background: #1a1a2e; color: #e31e79; border-bottom: 2px solid #e31e79; }
+
+  .panel-body { padding: 20px 24px; }
+
+  /* ── Section blocks ── */
+  .section {
+    margin-bottom: 28px;
+    border: 1px solid #2a2a4a;
+    border-radius: 8px;
+    overflow: hidden;
+  }
+  .section-label {
+    background: #2a2a4a;
+    padding: 8px 14px;
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: #aaa;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .section-label .dot { width: 8px; height: 8px; border-radius: 50%; }
+  .dot-ok { background: #4caf50; }
+  .dot-warn { background: #ff9800; }
+  .dot-bad { background: #f44336; }
+
+  .section-content { padding: 14px; }
+
+  /* ── Mock UI elements ── */
+  .mock-header {
+    background: #fff;
+    height: 70px;
+    border-radius: 6px;
+    display: flex;
+    align-items: center;
+    padding: 0 20px;
+    gap: 24px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.3);
+  }
+  .mock-logo { width: 44px; height: 44px; background: #222; border-radius: 50%; }
+  .mock-nav { display: flex; gap: 18px; }
+  .mock-nav-item {
+    font-family: serif;
+    font-size: 13px;
+    color: #555;
+    font-weight: 500;
+  }
+  .mock-nav-item.active { color: #e31e79; font-weight: 700; }
+  .mock-nav-about { margin-left: auto; }
+
+  .mock-marble {
+    background: linear-gradient(180deg, #f5f0eb 0%, #ede8e0 100%);
+    border-radius: 6px;
+    padding: 20px;
+    text-align: center;
+    position: relative;
+    overflow: hidden;
+  }
+  .mock-marble::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: url("data:image/svg+xml,%3Csvg width='200' height='200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3C/filter%3E%3Crect width='200' height='200' filter='url(%23n)' opacity='0.08'/%3E%3C/svg%3E");
+    opacity: 0.5;
+  }
+  .mock-marble-text {
+    font-family: Georgia, serif;
+    font-style: italic;
+    font-size: 12px;
+    color: #555;
+    line-height: 1.6;
+    position: relative;
+  }
+
+  .mock-count {
+    font-family: Georgia, serif;
+    font-size: 20px;
+    color: #333;
+    padding: 8px 0 4px;
+    font-weight: 400;
+  }
+
+  .mock-filter-bar {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    flex-wrap: wrap;
+    padding: 6px 0;
+    border-bottom: 1px solid #ddd;
+  }
+  .mock-filter-label { color: #e31e79; font-size: 12px; font-weight: 700; }
+  .mock-filter-sep { color: #999; font-size: 12px; }
+  .mock-az-btn {
+    font-size: 11px;
+    color: #888;
+    background: none;
+    border: none;
+    cursor: pointer;
+    padding: 2px 3px;
+    font-family: serif;
+  }
+  .mock-az-btn.active { color: #e31e79; font-weight: 700; }
+
+  .mock-card-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr;
+    gap: 12px;
+    margin-top: 12px;
+  }
+  .mock-card {
+    background: #fff;
+    border-radius: 6px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.12);
+    overflow: hidden;
+  }
+  .mock-card-thumb {
+    width: 100%;
+    aspect-ratio: 4/3;
+    background: linear-gradient(135deg, #8b5a5a, #4a4a6a);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: rgba(255,255,255,0.3);
+    font-size: 10px;
+  }
+  .mock-card-thumb img { width: 100%; height: 100%; object-fit: cover; }
+  .mock-card-body { padding: 10px 10px 12px; }
+  .mock-card-title {
+    font-family: Georgia, serif;
+    font-size: 13px;
+    color: #e31e79;
+    font-weight: 600;
+    line-height: 1.3;
+    margin-bottom: 2px;
+  }
+  .mock-card-subtitle {
+    font-family: Georgia, serif;
+    font-style: italic;
+    font-size: 10px;
+    color: #888;
+    margin-bottom: 6px;
+  }
+  .mock-card-meta {
+    font-family: 'Segoe UI', sans-serif;
+    font-size: 9.5px;
+    color: #555;
+    line-height: 1.6;
+  }
+  .mock-card-meta span { font-weight: 600; color: #333; }
+
+  /* ── Annotations ── */
+  .annotation {
+    margin-top: 8px;
+    padding: 8px 12px;
+    border-radius: 6px;
+    font-size: 12px;
+    line-height: 1.5;
+  }
+  .annotation.ok { background: rgba(76, 175, 80, 0.15); border-left: 3px solid #4caf50; color: #a5d6a7; }
+  .annotation.warn { background: rgba(255, 152, 0, 0.15); border-left: 3px solid #ff9800; color: #ffcc80; }
+  .annotation.bad { background: rgba(244, 67, 54, 0.15); border-left: 3px solid #f44336; color: #ef9a9a; }
+  .annotation strong { font-weight: 700; display: block; margin-bottom: 3px; }
+
+  /* ── Diff callout pills ── */
+  .diff-pill {
+    display: inline-block;
+    font-size: 10px;
+    font-weight: 700;
+    padding: 2px 8px;
+    border-radius: 20px;
+    margin: 2px 2px 0 0;
+  }
+  .pill-ok { background: #4caf50; color: #fff; }
+  .pill-warn { background: #ff9800; color: #fff; }
+  .pill-bad { background: #f44336; color: #fff; }
+
+  /* ── Measurement boxes ── */
+  .measure-row {
+    display: flex;
+    gap: 12px;
+    margin-top: 10px;
+    flex-wrap: wrap;
+  }
+  .measure-box {
+    flex: 1;
+    min-width: 120px;
+    background: #16213e;
+    border: 1px solid #2a2a4a;
+    border-radius: 6px;
+    padding: 10px 12px;
+  }
+  .measure-box .label { font-size: 10px; color: #aaa; text-transform: uppercase; letter-spacing: 0.08em; margin-bottom: 4px; }
+  .measure-box .value-pdf { font-size: 13px; color: #7ec8e3; font-weight: 600; }
+  .measure-box .value-live { font-size: 13px; color: #e31e79; font-weight: 600; }
+  .measure-box .match { font-size: 10px; margin-top: 4px; }
+  .match.ok { color: #4caf50; }
+  .match.warn { color: #ff9800; }
+  .match.bad { color: #f44336; }
+
+  /* ── Spacing ruler ── */
+  .spacer-vis {
+    display: flex;
+    align-items: stretch;
+    gap: 4px;
+    margin: 8px 0;
+    height: 40px;
+  }
+  .spacer-vis .block {
+    border-radius: 3px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 9px;
+    font-weight: 600;
+    color: #fff;
+    min-width: 30px;
+  }
+
+  .divider { border: none; border-top: 1px solid #2a2a4a; margin: 20px 0; }
+
+  /* ── Summary table ── */
+  .summary-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 12px;
+    margin-top: 12px;
+  }
+  .summary-table th {
+    background: #16213e;
+    padding: 8px 12px;
+    text-align: left;
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: #aaa;
+  }
+  .summary-table td { padding: 8px 12px; border-bottom: 1px solid #2a2a4a; vertical-align: top; }
+  .summary-table tr:last-child td { border-bottom: none; }
+  .status-badge {
+    display: inline-block;
+    font-size: 10px;
+    font-weight: 700;
+    padding: 2px 8px;
+    border-radius: 20px;
+  }
+  .sb-ok { background: rgba(76,175,80,0.2); color: #4caf50; border: 1px solid #4caf50; }
+  .sb-warn { background: rgba(255,152,0,0.2); color: #ff9800; border: 1px solid #ff9800; }
+  .sb-bad { background: rgba(244,67,54,0.2); color: #f44336; border: 1px solid #f44336; }
+
+  .iframe-wrapper {
+    width: 100%;
+    background: #fff;
+    border-radius: 6px;
+    overflow: hidden;
+    position: relative;
+  }
+  .iframe-wrapper iframe {
+    width: 1280px;
+    height: 900px;
+    transform-origin: top left;
+    transform: scale(0.42);
+    border: none;
+    display: block;
+  }
+  .iframe-overlay {
+    position: absolute;
+    pointer-events: none;
+  }
+</style>
+</head>
+<body>
+
+<div class="page-header">
+  <div>
+    <h1>🎵 Songs Listing Page — Design Comparison</h1>
+    <p>PDF Spec (Page 1 of 2.SongsAll_Detailpg_01.05.2025.pdf) &nbsp;vs&nbsp; Current Implementation (localhost:3000/songs)</p>
+  </div>
+  <span class="badge">AUDIT</span>
+</div>
+
+<!-- ══════════════════════════════ FULL SUMMARY ══════════════════════════════ -->
+<div style="background:#16213e; padding: 16px 40px; border-bottom: 1px solid #2a2a4a;">
+  <table class="summary-table">
+    <tr>
+      <th>Element</th>
+      <th>PDF Spec</th>
+      <th>Current Implementation</th>
+      <th>Status</th>
+      <th>Priority</th>
+    </tr>
+    <tr>
+      <td><strong>Header</strong></td>
+      <td>SONGS(201) pink + nav items, ABOUT right, search + radio icon</td>
+      <td>SONGS(211) pink + nav, ABOUT, search + radio icon</td>
+      <td><span class="status-badge sb-ok">✓ MATCH</span></td>
+      <td>—</td>
+    </tr>
+    <tr>
+      <td><strong>Intro text</strong></td>
+      <td>Italic serif, centered, on marble texture, ~14px, moderate top padding</td>
+      <td>Italic serif, centered, on marble — but marble section is <strong>too tall</strong>, pushes content far down</td>
+      <td><span class="status-badge sb-warn">⚠ CLOSE</span></td>
+      <td>Medium</td>
+    </tr>
+    <tr>
+      <td><strong>"N Songs" heading</strong></td>
+      <td>~24px, Lora serif regular weight, dark #333, left-aligned below texture area</td>
+      <td>Rendered correctly — Lora, dark, left-aligned</td>
+      <td><span class="status-badge sb-ok">✓ MATCH</span></td>
+      <td>—</td>
+    </tr>
+    <tr>
+      <td><strong>Filter bar</strong></td>
+      <td>"Filters" pink | All — then A B C D ... Z, evenly spaced, horizontal rule below</td>
+      <td>Implemented but A–Z overflows — Y and Z get cut off on standard screens</td>
+      <td><span class="status-badge sb-warn">⚠ OVERFLOW</span></td>
+      <td>Medium</td>
+    </tr>
+    <tr>
+      <td><strong>Card thumbnail</strong></td>
+      <td>Full-width top section, 4:3-ish ratio, no border-radius on image itself</td>
+      <td>Full-width, correct ratio</td>
+      <td><span class="status-badge sb-ok">✓ MATCH</span></td>
+      <td>—</td>
+    </tr>
+    <tr>
+      <td><strong>Card title</strong></td>
+      <td>Pink/coral, Lora serif, ~15–16px, regular or semi-bold, 2-line clamp</td>
+      <td>Pink, Lora serif — but size may be slightly larger than PDF</td>
+      <td><span class="status-badge sb-warn">⚠ SIZE</span></td>
+      <td>Low</td>
+    </tr>
+    <tr>
+      <td><strong>Card subtitle</strong></td>
+      <td>Italic gray, smaller than title (~12px), Lora</td>
+      <td>Present and styled correctly</td>
+      <td><span class="status-badge sb-ok">✓ MATCH</span></td>
+      <td>—</td>
+    </tr>
+    <tr>
+      <td><strong>"sings" / "poet" labels</strong></td>
+      <td>"sings" lowercase light gray (~10px), NAME in uppercase heavier weight</td>
+      <td>Implemented — but check if name is truly uppercase vs just text</td>
+      <td><span class="status-badge sb-ok">✓ MATCH</span></td>
+      <td>—</td>
+    </tr>
+    <tr>
+      <td><strong>Card container</strong></td>
+      <td>White rounded card, subtle drop shadow, ~6px radius</td>
+      <td>White card with shadow</td>
+      <td><span class="status-badge sb-ok">✓ MATCH</span></td>
+      <td>—</td>
+    </tr>
+    <tr>
+      <td><strong>Card spacing / grid gap</strong></td>
+      <td>Moderate gap between cards (~20px), cards feel compact</td>
+      <td>Gap appears larger than PDF — cards feel more spread out</td>
+      <td><span class="status-badge sb-warn">⚠ GAP</span></td>
+      <td>Low</td>
+    </tr>
+    <tr>
+      <td><strong>Marble texture height</strong></td>
+      <td>Texture takes ~25% of viewport height — cards are visible immediately</td>
+      <td>Marble section takes ~55–60% of viewport — cards pushed way below fold</td>
+      <td><span class="status-badge sb-bad">✗ TOO TALL</span></td>
+      <td><strong>High</strong></td>
+    </tr>
+    <tr>
+      <td><strong>Background below cards</strong></td>
+      <td>Clean white/very light gray — no texture behind card grid</td>
+      <td>Marble texture bleeds into the card grid area</td>
+      <td><span class="status-badge sb-bad">✗ WRONG</span></td>
+      <td><strong>High</strong></td>
+    </tr>
+    <tr>
+      <td><strong>Footer</strong></td>
+      <td>Black, About + Stay Connected + nav links columns, Kabir Project logo</td>
+      <td>Implemented and matches</td>
+      <td><span class="status-badge sb-ok">✓ MATCH</span></td>
+      <td>—</td>
+    </tr>
+  </table>
+</div>
+
+<!-- ══════════════════════════════ SIDE BY SIDE ══════════════════════════════ -->
+<div class="compare-grid">
+
+  <!-- ── LEFT: PDF ── -->
+  <div class="panel">
+    <div class="panel-header pdf">📄 PDF Design Spec</div>
+    <div class="panel-body">
+
+      <!-- HEADER -->
+      <div class="section">
+        <div class="section-label"><span class="dot dot-ok"></span> Header</div>
+        <div class="section-content">
+          <div class="mock-header">
+            <div class="mock-logo"></div>
+            <div class="mock-nav">
+              <div class="mock-nav-item active">SONGS(201)</div>
+              <div class="mock-nav-item">POEMS</div>
+              <div class="mock-nav-item">REFLECTIONS</div>
+              <div class="mock-nav-item">PEOPLE</div>
+              <div class="mock-nav-item">FILMS</div>
+            </div>
+            <div class="mock-nav" style="margin-left:auto; gap:16px;">
+              <div class="mock-nav-item mock-nav-about">ABOUT</div>
+              <div style="font-size:18px; color:#555;">🔍</div>
+              <div style="font-size:18px; color:#555;">📻</div>
+            </div>
+          </div>
+          <div class="annotation ok"><strong>PDF spec</strong> SONGS(201) active in pink. Header sits close to top with no excessive padding below it.</div>
+        </div>
+      </div>
+
+      <!-- MARBLE + INTRO -->
+      <div class="section">
+        <div class="section-label"><span class="dot dot-bad"></span> Marble Texture + Intro (KEY GAP)</div>
+        <div class="section-content">
+          <div class="mock-marble" style="padding: 18px 30px; min-height: 90px;">
+            <div class="mock-marble-text" style="font-size:11px; max-width: 500px; margin: 0 auto;">
+              The utterances of Bhakti, Sufi and Baul poets have been kept alive over centuries through song, and that is what you find here - live recordings of oral poetry all the way from Pakistan in the west to Bengal in the east, pulsating to rhythm and melody...
+            </div>
+          </div>
+          <div class="annotation bad">
+            <strong>PDF: Texture section is SHORT (~90–100px tall)</strong>
+            Intro text sits inside the marble texture. Below it, the page immediately transitions to white with the "N Songs" count and cards. Texture does NOT bleed behind the card grid.
+          </div>
+          <div class="measure-row">
+            <div class="measure-box">
+              <div class="label">Texture height</div>
+              <div class="value-pdf">~25% viewport</div>
+              <div class="match warn">Cards visible immediately</div>
+            </div>
+            <div class="measure-box">
+              <div class="label">Cards below fold?</div>
+              <div class="value-pdf">NO — visible on load</div>
+              <div class="match ok">✓ Good UX</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- COUNT + FILTER -->
+      <div class="section">
+        <div class="section-label"><span class="dot dot-ok"></span> Count + Filter Bar</div>
+        <div class="section-content">
+          <div style="background:#f5f0eb; padding: 12px 16px; border-radius:6px;">
+            <div class="mock-count">201 Songs</div>
+            <div class="mock-filter-bar">
+              <span class="mock-filter-label">Filters</span>
+              <span class="mock-filter-sep">|</span>
+              <button class="mock-az-btn active">All</button>
+              <span class="mock-filter-sep" style="font-size:10px; color:#ccc;">A B C D E F G H I J K L M N O P Q R S T U V W X Y Z</span>
+            </div>
+            <div style="height:1px; background:#ddd; margin-top:8px;"></div>
+          </div>
+          <div class="annotation ok"><strong>PDF spec:</strong> "Filters" in pink, pipe separator, "All" active, then A–Z all visible in one line with a horizontal rule below the bar.</div>
+        </div>
+      </div>
+
+      <!-- CARDS -->
+      <div class="section">
+        <div class="section-label"><span class="dot dot-ok"></span> 3-Column Card Grid</div>
+        <div class="section-content">
+          <div class="mock-card-grid">
+            <div class="mock-card">
+              <div class="mock-card-thumb" style="background: linear-gradient(135deg, #5a3838, #3a3a5a);">
+                <img src="https://picsum.photos/seed/a1/200/150" alt="" onerror="this.style.display='none'" />
+              </div>
+              <div class="mock-card-body">
+                <div class="mock-card-title">Aarshi Nogor</div>
+                <div class="mock-card-subtitle">City Of Mirrors</div>
+                <div class="mock-card-meta">sings <span>PARVATY BAUL</span></div>
+                <div class="mock-card-meta">poet <span>LALON FAKIR</span></div>
+              </div>
+            </div>
+            <div class="mock-card">
+              <div class="mock-card-thumb" style="background: linear-gradient(135deg, #3a5a3a, #5a3a5a);">
+                <img src="https://picsum.photos/seed/a2/200/150" alt="" onerror="this.style.display='none'" />
+              </div>
+              <div class="mock-card-body">
+                <div class="mock-card-title">Ab Thaara Laal Samandada Ra</div>
+                <div class="mock-card-subtitle">City Of Mirrors</div>
+                <div class="mock-card-meta">sings <span>PARVATY BAUL</span></div>
+                <div class="mock-card-meta">poet <span>LALON FAKIR</span></div>
+              </div>
+            </div>
+            <div class="mock-card">
+              <div class="mock-card-thumb" style="background: linear-gradient(135deg, #3a3a5a, #5a5a3a);">
+                <img src="https://picsum.photos/seed/a3/200/150" alt="" onerror="this.style.display='none'" />
+              </div>
+              <div class="mock-card-body">
+                <div class="mock-card-title">Aarshi Nogor</div>
+                <div class="mock-card-subtitle">City Of Mirrors</div>
+                <div class="mock-card-meta">sings <span>PARVATY BAUL</span></div>
+                <div class="mock-card-meta">poet <span>LALON FAKIR</span></div>
+              </div>
+            </div>
+          </div>
+          <div class="annotation ok">
+            <strong>PDF card anatomy:</strong>
+            White card • rounded corners ~6px • subtle shadow • thumbnail fills top (4:3 ratio) • title: Lora ~15px pink #E31E79 • subtitle: Lora italic ~11px gray • "sings"/"poet": sans-serif ~10px light gray label + UPPERCASE name dark.
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- ── RIGHT: LIVE ── -->
+  <div class="panel">
+    <div class="panel-header live">💻 Current Implementation (localhost:3000/songs)</div>
+    <div class="panel-body">
+
+      <!-- HEADER -->
+      <div class="section">
+        <div class="section-label"><span class="dot dot-ok"></span> Header</div>
+        <div class="section-content">
+          <div class="mock-header">
+            <div class="mock-logo"></div>
+            <div class="mock-nav">
+              <div class="mock-nav-item active">SONGS(211)</div>
+              <div class="mock-nav-item">POEMS</div>
+              <div class="mock-nav-item">REFLECTIONS</div>
+              <div class="mock-nav-item">PEOPLE</div>
+              <div class="mock-nav-item">FILMS</div>
+            </div>
+            <div class="mock-nav" style="margin-left:auto; gap:16px;">
+              <div class="mock-nav-item mock-nav-about">ABOUT</div>
+              <div style="font-size:18px; color:#555;">🔍</div>
+              <div style="font-size:18px; color:#555;">📻</div>
+            </div>
+          </div>
+          <div class="annotation ok"><strong>✓ Matches PDF.</strong> Count is 211 (live data) vs 201 (PDF mock). Structure identical.</div>
+        </div>
+      </div>
+
+      <!-- MARBLE + INTRO -->
+      <div class="section">
+        <div class="section-label"><span class="dot dot-bad"></span> Marble Texture + Intro (KEY GAP)</div>
+        <div class="section-content">
+          <div class="mock-marble" style="min-height: 220px; display:flex; flex-direction:column; justify-content: center; align-items:center;">
+            <div class="mock-marble-text" style="font-size:11px; max-width:500px; margin: 0 auto; text-align:center; padding: 0 20px;">
+              The utterances of Bhakti, Sufi and Baul poets have been kept alive over centuries through song...
+            </div>
+          </div>
+          <div style="background:#f5f0eb; padding:8px 16px 4px; border-top: 1px solid rgba(0,0,0,0.05);">
+            <div class="mock-count">211 Songs</div>
+          </div>
+          <div class="annotation bad">
+            <strong>✗ Marble section is ~2× too tall (220px+ vs ~90px in PDF)</strong>
+            The wavy marble texture extends far below the intro text, eating into the viewport. Cards are pushed BELOW THE FOLD on first load — user must scroll to see any songs.
+          </div>
+          <div class="annotation warn">
+            <strong>⚠ Texture bleeds behind card area</strong>
+            The marble background continues into the card grid zone. PDF shows a clean white background behind cards.
+          </div>
+          <div class="measure-row">
+            <div class="measure-box">
+              <div class="label">Texture height</div>
+              <div class="value-live">~55% viewport</div>
+              <div class="match bad">✗ Too tall</div>
+            </div>
+            <div class="measure-box">
+              <div class="label">Cards below fold?</div>
+              <div class="value-live">YES — must scroll</div>
+              <div class="match bad">✗ Bad UX</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- COUNT + FILTER -->
+      <div class="section">
+        <div class="section-label"><span class="dot dot-warn"></span> Count + Filter Bar</div>
+        <div class="section-content">
+          <div style="background:#f5f0eb; padding:12px 16px; border-radius:6px;">
+            <div class="mock-count">211 Songs</div>
+            <div class="mock-filter-bar" style="gap:3px;">
+              <span class="mock-filter-label">Filters</span>
+              <span class="mock-filter-sep">|</span>
+              <button class="mock-az-btn active">All</button>
+              <span class="mock-filter-sep" style="font-size:9px; color:#aaa; letter-spacing:-0.02em; white-space:nowrap;">A B C D E F G H I J K L M N O P Q R S T U V W X Y</span>
+              <span style="color:#f44336; font-size:9px; font-weight:700;">Z ✗</span>
+            </div>
+          </div>
+          <div class="annotation warn">
+            <strong>⚠ A–Z row overflows on standard screens</strong>
+            At 1280px viewport width, the Z button gets clipped or wraps to a second line. The letters need tighter spacing or smaller font to fit. PDF shows all 26 letters in a single clean row.
+          </div>
+        </div>
+      </div>
+
+      <!-- CARDS -->
+      <div class="section">
+        <div class="section-label"><span class="dot dot-warn"></span> 3-Column Card Grid</div>
+        <div class="section-content">
+          <!-- Live embed at reduced scale -->
+          <div class="iframe-wrapper" style="height: 250px;">
+            <iframe src="http://localhost:3000/songs" title="Live songs page" scrolling="no"
+              onload="this.contentWindow.scrollTo(0,700)">
+            </iframe>
+          </div>
+          <div class="annotation warn">
+            <strong>⚠ Card title font size appears larger than PDF</strong>
+            PDF cards show ~15px title. Current implementation may render at 18–20px making cards taller and reducing how many fit in the viewport.
+          </div>
+          <div class="annotation warn">
+            <strong>⚠ Gap between cards is wider than PDF</strong>
+            PDF shows tighter grid (gap ~16–18px). Current grid gap appears to be ~24px, spreading cards further apart.
+          </div>
+          <div class="annotation bad">
+            <strong>✗ Marble texture bleeds into card area</strong>
+            The marble texture background starts high and extends down into the card grid area. PDF shows plain white/very light gray behind cards.
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════ BOTTOM: PRIORITY ACTION LIST ══════════════════════════════ -->
+<div style="background:#16213e; padding: 24px 40px; border-top: 2px solid #e31e79;">
+  <h2 style="font-size:15px; font-weight:700; color:#e31e79; margin-bottom:16px; text-transform:uppercase; letter-spacing:0.08em;">
+    🎯 Priority Fix List — Songs Listing Page
+  </h2>
+  <div style="display:grid; grid-template-columns: repeat(3, 1fr); gap: 16px;">
+
+    <div style="background:#1a1a2e; border:1px solid #f44336; border-radius:8px; padding:16px;">
+      <div style="color:#f44336; font-size:11px; font-weight:700; text-transform:uppercase; margin-bottom:8px;">🔴 High Priority</div>
+      <div style="font-size:13px; line-height:1.7; color:#ddd;">
+        <strong style="color:#fff;">1. Reduce marble texture height</strong><br/>
+        The top section (wavy marble bg) is ~2× too tall. Cards must be visible above the fold on a standard 1080p monitor without scrolling.<br/><br/>
+        <strong style="color:#fff;">2. Stop texture bleeding into card grid</strong><br/>
+        Card grid background should be plain white/very light. The marble only belongs in the header/intro zone.
+      </div>
+    </div>
+
+    <div style="background:#1a1a2e; border:1px solid #ff9800; border-radius:8px; padding:16px;">
+      <div style="color:#ff9800; font-size:11px; font-weight:700; text-transform:uppercase; margin-bottom:8px;">🟡 Medium Priority</div>
+      <div style="font-size:13px; line-height:1.7; color:#ddd;">
+        <strong style="color:#fff;">3. Fix A–Z filter overflow</strong><br/>
+        All 26 letters + "All" must fit in one horizontal row at 1280px. Reduce letter size/spacing or use a tighter font-size.<br/><br/>
+        <strong style="color:#fff;">4. Card grid gap</strong><br/>
+        Tighten the gap between cards to match the PDF's compact feel (~16px vs current ~24px).
+      </div>
+    </div>
+
+    <div style="background:#1a1a2e; border:1px solid #4caf50; border-radius:8px; padding:16px;">
+      <div style="color:#4caf50; font-size:11px; font-weight:700; text-transform:uppercase; margin-bottom:8px;">🟢 Low Priority / Already Good</div>
+      <div style="font-size:13px; line-height:1.7; color:#ddd;">
+        <strong style="color:#fff;">✓ Card structure</strong> — thumbnail, title, subtitle, sings/poet all correct<br/><br/>
+        <strong style="color:#fff;">✓ Card title color</strong> — pink/coral Lora serif matches<br/><br/>
+        <strong style="color:#fff;">✓ Header</strong> — layout, active state, count all match<br/><br/>
+        <strong style="color:#fff;">✓ Footer</strong> — black, correct columns<br/><br/>
+        <strong style="color:#fff;">5. Card title font size</strong> — may need ~1–2px reduction
+      </div>
+    </div>
+
+  </div>
+</div>
+
+</body>
+</html>

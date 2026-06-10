@@ -1,0 +1,736 @@
+/* ─────────────────────────────────────────────
+   CL Poems Page — pixel-matched to Figma 362:3254
+   PNG artboard 1929×4080 (Couplet_JungEgg) — circles baked in, text only
+───────────────────────────────────────────── */
+
+html:has(.clp-page-root-wrap),
+body:has(.clp-page-root-wrap) {
+  background-color: #f0f2ff !important;
+}
+
+.cl-songs-page-root.clp-page-root-wrap {
+  --clp-artboard-w: 1929;
+  --clp-artboard-h: calc(100vw * 4080 / 1929);
+  --clp-pad-page-top: calc(var(--clp-artboard-h) * 0.008);
+  --clp-halo-size: min(calc(100vw * 0.679), calc(var(--clp-artboard-h) * 0.321));
+  --clp-halo-pad-top: calc(var(--clp-halo-size) * var(--clp-inner-audio-top, 0.246));
+  --clp-slider-pull-up: calc(var(--clp-artboard-h) * -0.038);
+  --clp-intro-margin-bottom: calc(var(--clp-artboard-h) * 0.008);
+  --clp-count-margin-bottom: calc(var(--clp-artboard-h) * 0.002);
+  --clp-related-offset: calc(var(--clp-artboard-h) * 0.043);
+  /* PDF inner-circle vertical anchors (outer glow 1309×1309) */
+  --clp-inner-audio-top: 0.246;
+  --clp-inner-controls-top: 0.724;
+  /* Figma 362:3344 — chevrons at ~48.5% halo height, ~37.2% halo width from centre */
+  --clp-nav-y: 0.485;
+  --clp-nav-x: 0.372;
+  /* Figma 362:3332 — count / see-all / divider share listing left inset */
+  --clp-listing-inset: calc(100vw * 314.88 / var(--clp-artboard-w));
+  --clp-listing-rule-inset: calc(100vw * 297.79 / var(--clp-artboard-w));
+  position: relative;
+  width: 100%;
+  max-width: none;
+  overflow-x: hidden;
+  /* Content height only — artboard min-height was painting ~574px of plate below footer. */
+  background-color: #f0f2ff !important;
+  background-image: none;
+  height: auto;
+  min-height: 100dvh;
+}
+
+/* Couplet plate — clipped to content shell (header → footer), not full 4080px artboard. */
+.cl-songs-page-root.clp-page-root-wrap::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 100%;
+  z-index: 0;
+  pointer-events: none;
+  background:
+    url(/poems-bg.png) center top / 100% auto no-repeat,
+    #f0f2ff;
+}
+
+.clp-page-root {
+  position: relative;
+  width: 100%;
+  z-index: 1;
+}
+
+body:has(.clp-page) footer.footer-bg {
+  margin-top: 0;
+  position: relative;
+  z-index: 10;
+}
+
+/* Floating actions — vertically centered (CustomStyle uses bottom: 80px). */
+html body:has(.clp-page-root-wrap) .floating-actions {
+  top: 50% !important;
+  bottom: auto !important;
+  transform: translateY(-50%) !important;
+}
+
+@media (max-width: 640px) {
+  html body:has(.clp-page-root-wrap) .floating-actions {
+    top: 50% !important;
+    bottom: auto !important;
+    transform: translateY(-50%) !important;
+    right: 12px !important;
+  }
+}
+
+/* Listing + detail share one Couplet_JungEgg plate via .clp-page-root-wrap */
+
+/* PDF / Figma 362:3254 — inner content positions within outer glow circle (1309×1309).
+   Audio y≈24.6%, poem body y≈42%, poet y≈60%, lang y≈72.4%, notes y≈79.6% of halo height. */
+
+/* Detail — same artboard plate as listing; back link/title float over mandala (PDF)
+   so they do not push the white circle down. */
+.clp-page--detail {
+  padding-top: var(--clp-pad-page-top);
+  position: relative;
+}
+
+.clp-detail-header {
+  position: absolute;
+  z-index: 3;
+  top: calc(var(--clp-artboard-h) * 0.048);
+  left: 50%;
+  transform: translateX(-50%);
+  width: min(1290px, 100%);
+  padding: 0 24px;
+  box-sizing: border-box;
+  pointer-events: none;
+}
+
+.clp-detail-back {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  color: rgba(255, 255, 255, 0.85);
+  font-family: var(--ajab-font-sans);
+  font-weight: 300;
+  font-size: var(--ajab-fs-body);
+  text-decoration: none;
+  pointer-events: auto;
+}
+
+.clp-page--detail .clp-detail-header .clp-count-row {
+  margin-top: 10px;
+  margin-bottom: 0;
+  padding: 0;
+  pointer-events: auto;
+}
+
+.clp-page--detail .clp-slider-wrap {
+  /* Align baked halo with listing/PDF (~7.3% artboard) */
+  margin-top: calc(var(--clp-artboard-h) * 0.017);
+}
+
+/* Detail circle — transparent; compact PDF typography inside baked white disc. */
+.clp-page--detail .clp-halo-circle {
+  background: transparent;
+  box-shadow: none;
+  width: var(--clp-halo-size);
+  height: var(--clp-halo-size);
+  padding:
+    calc(var(--clp-halo-size) * 0.22)
+    calc(var(--clp-halo-size) * 0.1)
+    calc(var(--clp-halo-size) * 0.14);
+  justify-content: flex-start;
+  margin-bottom: calc(var(--clp-artboard-h) * 0.004);
+}
+
+.clp-page--detail .clp-count-row,
+.clp-page--detail .clp-count {
+  color: rgba(255, 255, 255, 0.92);
+}
+
+/* Title — PDF detail: lighter/smaller than listing count */
+.clp-page--detail .clp-count {
+  font-size: 20px;
+  font-weight: 300;
+  font-style: italic;
+}
+
+/* Drop the divider line on the detail view — it reads as clutter over the mandala */
+.clp-page--detail .clp-seeall-row {
+  display: none;
+}
+
+/* Audio button — PDF detail uses ~56px (listing/PDF main view ~113px) */
+.clp-page--detail .clp-audio-btn {
+  width: 56px;
+  height: 56px;
+  margin-bottom: calc(var(--clp-halo-size) * 0.038);
+}
+.clp-page--detail .clp-audio-btn svg {
+  width: 20px;
+  height: 20px;
+}
+
+/* Poem text — small + compact like the PDF couplet, no harsh scrollbar.
+   Taller max-height so typical poems fit without scrolling; long ones scroll subtly. */
+.clp-page--detail .clp-poem-text {
+  color: #5a5a5a;
+  font-size: 19px;
+  line-height: 1.7;
+  max-width: 440px;
+  max-height: 360px;
+  margin-bottom: 22px;
+  scrollbar-width: none;
+}
+.clp-page--detail .clp-poem-text::-webkit-scrollbar {
+  width: 0;
+  background: transparent;
+}
+
+.clp-page--detail .clp-poem-poet {
+  color: #6d6e71;
+  font-size: 16px;
+  margin-bottom: calc(var(--clp-halo-size) * 0.02);
+}
+
+.clp-page--detail .clp-halo-controls {
+  top: calc(var(--clp-halo-size) * 0.7);
+}
+
+/* Related section in detail page — reads over the faded mandala reflection area */
+.clp-page--detail .clp-related {
+  background: rgba(255, 255, 255, 0.55);
+  border-radius: 8px;
+  padding: 24px 32px;
+  backdrop-filter: blur(2px);
+}
+
+/* ── Inner page wrapper ── */
+.clp-page {
+  position: relative;
+  width: 100%;
+  max-width: none;
+  margin: 0 auto;
+  /* Bottom spacing lives on .gs-strip — avoid stacking 4% artboard pad + 80px strip margin. */
+  padding: var(--clp-pad-page-top) 0 0;
+  font-weight: 300;
+  min-height: 0;
+  box-sizing: border-box;
+}
+
+/* ── Intro paragraph ── */
+.clp-intro {
+  color: var(--ajab-ink-800);
+  font-family: var(--ajab-font-serif);
+  font-style: italic;
+  font-weight: 400;
+  font-size: var(--ajab-fs-body-lg);
+  line-height: 140%;
+  letter-spacing: 0.01em;
+  text-align: center;
+  max-width: 997px;
+  width: 100%;
+  margin: 0 auto var(--clp-intro-margin-bottom);
+  padding: 0 clamp(16px, 2vw, 24px);
+  box-sizing: border-box;
+}
+
+/* ── Count + See All — centred content column (not Songs listing inset) ── */
+.clp-count-row {
+  position: relative;
+  z-index: 3;
+  width: 100%;
+  max-width: none;
+  margin: 0 0 var(--clp-count-margin-bottom);
+  text-align: left;
+  padding: 0 24px 0 var(--clp-listing-inset);
+  box-sizing: border-box;
+}
+
+.clp-count {
+  color: #3c3c3b;
+  font-family: var(--ajab-font-serif);
+  font-weight: 400;
+  font-size: 27px;
+  line-height: 1.3;
+  margin: 0;
+}
+
+.clp-seeall-row {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  border-top: none;
+  padding: 10px 24px 12px var(--clp-listing-inset);
+  margin: 0 0 calc(var(--clp-artboard-h) * 0.002);
+  width: 100%;
+  max-width: none;
+  position: relative;
+  z-index: 3;
+  box-sizing: border-box;
+}
+
+.clp-seeall-row::before {
+  content: '';
+  position: absolute;
+  top: -1px;
+  left: var(--clp-listing-rule-inset);
+  right: 24px;
+  height: 1px;
+  background: var(--ajab-ink-100);
+  pointer-events: none;
+}
+
+.clp-seeall {
+  color: var(--ajab-pink-primary);
+  font-family: var(--ajab-font-sans);
+  font-weight: 400;
+  font-size: var(--ajab-fs-button);
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 0;
+  letter-spacing: 0.04em;
+}
+
+/* ── Poem slider area (centered single poem) ──
+   Soft halos are baked into `poems-bg.png` (full-width plate). Content
+   sits in a transparent circular region — no extra bordered disc on top. */
+.clp-slider-wrap {
+  position: relative;
+  display: flex;
+  justify-content: center;
+  align-items: flex-start;
+  margin: var(--clp-slider-pull-up) auto 0;
+  max-width: 1340px;
+  padding: 0 16px;
+  box-sizing: border-box;
+}
+
+.clp-slider-wrap > * {
+  position: relative;
+  z-index: 1;
+}
+
+.clp-slider-nav {
+  position: absolute;
+  top: calc(var(--clp-halo-size) * var(--clp-nav-y));
+  transform: translate(-50%, -50%);
+  width: 44px;
+  height: 44px;
+  padding: 0;
+  border: none;
+  border-radius: 0;
+  background: transparent;
+  box-shadow: none;
+  cursor: pointer;
+  color: var(--ajab-ink-400);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  transition: color 0.15s ease;
+  z-index: 2;
+}
+.clp-slider-nav:hover {
+  color: var(--ajab-pink-primary);
+}
+
+.clp-slider-nav.left {
+  left: calc(50% - var(--clp-halo-size) * var(--clp-nav-x));
+}
+
+.clp-slider-nav.right {
+  left: calc(50% + var(--clp-halo-size) * var(--clp-nav-x));
+}
+
+/* ── Centered poem container — column stack: BIG circle, gap, toggle, links ── */
+.clp-poem-center {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-start;
+  text-align: center;
+  width: min(1000px, 100%);
+  max-width: 100%;
+  padding: 0;
+}
+
+/* Halo is baked into poems-bg.png — no extra circle border/shadow on top. */
+.clp-halo-circle {
+  width: var(--clp-halo-size);
+  height: var(--clp-halo-size);
+  aspect-ratio: 1 / 1;
+  border-radius: 50%;
+  background: transparent;
+  box-shadow: none;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-start;
+  padding:
+    var(--clp-halo-pad-top)
+    calc(var(--clp-halo-size) * 0.09)
+    calc(var(--clp-halo-size) * 0.12);
+  margin-bottom: 0;
+  position: relative;
+  box-sizing: border-box;
+}
+
+/* Lang toggle + notes sit inside the baked circle (Figma y≈1248–1339). */
+.clp-halo-controls {
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: calc(var(--clp-halo-size) * var(--clp-inner-controls-top, 0.724));
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: calc(var(--clp-halo-size) * 0.033);
+  pointer-events: auto;
+}
+
+/* Audio button — listing halo uses a smaller control than the legacy 113px circle. */
+.clp-page:not(.clp-page--detail) .clp-audio-btn {
+  width: min(88px, calc(var(--clp-halo-size) * 0.08));
+  height: min(88px, calc(var(--clp-halo-size) * 0.08));
+}
+
+.clp-page:not(.clp-page--detail) .clp-audio-btn svg {
+  width: 28px;
+  height: 28px;
+}
+
+/* Audio button — sits at the top inside the white circle. */
+.clp-audio-btn {
+  width: min(113px, calc(var(--clp-halo-size) * 0.103));
+  height: min(113px, calc(var(--clp-halo-size) * 0.103));
+  border-radius: 50%;
+  background: transparent;
+  border: 2px solid var(--ajab-pink-primary);
+  color: var(--ajab-pink-primary);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: calc(var(--clp-halo-size) * 0.042);
+  cursor: pointer;
+  transition: all 0.15s;
+  flex-shrink: 0;
+}
+.clp-audio-btn:hover { background: var(--ajab-pink-primary); color: #fff; }
+
+/* Poem text — Figma 362:3338: Lora Italic 28 #6d6e71 */
+.clp-poem-text {
+  font-family: var(--ajab-font-serif);
+  font-style: italic;
+  font-weight: 400;
+  font-size: 28px;
+  line-height: 1.55;
+  color: #6d6e71;
+  margin: 0 0 calc(var(--clp-halo-size) * 0.032);
+  white-space: pre-line;
+  text-align: center;
+  max-width: 520px;
+  max-height: 320px;
+  overflow-y: auto;
+  scrollbar-width: thin;
+  scrollbar-color: #6d6e71 transparent;
+}
+
+/* Poet attribution — Figma 362:3343: Mwthr Sans Light 18 #6d6e71 */
+.clp-poem-poet {
+  font-family: var(--ajab-font-sans);
+  font-weight: 300;
+  font-size: 18px;
+  color: #6d6e71;
+  letter-spacing: 0.02em;
+  margin-bottom: calc(var(--clp-halo-size) * 0.028);
+  text-transform: none;
+}
+.clp-poem-poet .name {
+  color: #6d6e71;
+  font-weight: 300;
+  text-transform: uppercase;
+}
+
+/* Language toggle — Figma 362:3352: 55px circles, ~29px gap */
+.clp-lang-toggle {
+  display: flex;
+  gap: 29px;
+  margin-bottom: 0;
+}
+
+.clp-lang-btn {
+  width: 55px;
+  height: 55px;
+  border-radius: 50%;
+  border: 1px solid #d8d8d8;
+  background: #fff;
+  color: var(--ajab-ink-400);
+  font-family: var(--ajab-font-serif);
+  font-size: var(--ajab-fs-h5);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+  transition: all 0.15s;
+}
+.clp-lang-btn:hover { color: var(--ajab-pink-primary); border-color: var(--ajab-pink-primary); }
+.clp-lang-btn.active { color: var(--ajab-pink-primary); border-color: var(--ajab-pink-primary); }
+
+/* NOTES | GLOSSARY — Figma 362:3350: Merriweather Sans Light 18,
+   ORIGINAL case, 0% letter-spacing. Pink var(--ajab-pink-primary) with grey var(--ajab-ink-200) pipe. */
+.clp-notes-glossary {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+  font-family: var(--ajab-font-sans);
+  font-weight: 300;
+  font-size: var(--ajab-fs-body);
+  letter-spacing: 0;
+}
+
+.clp-notes-glossary button {
+  color: var(--ajab-pink-primary);
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 0;
+  font: inherit;
+}
+
+.clp-notes-glossary button.is-active {
+  font-weight: 400;
+}
+
+.clp-notes-glossary .sep { color: var(--ajab-ink-200); }
+
+/* Down chevron (>>) - "next poem" indicator */
+.clp-next-chevron {
+  display: flex;
+  justify-content: center;
+  margin-top: calc(var(--clp-artboard-h) * -0.018);
+  margin-bottom: calc(var(--clp-artboard-h) * 0.008);
+  cursor: pointer;
+  color: var(--ajab-pink-primary);
+  transition: transform 0.2s;
+}
+.clp-next-chevron:hover { transform: translateY(4px); }
+
+/* ── Related Section ── */
+.clp-related {
+  max-width: 1100px;
+  margin: var(--clp-related-offset) auto calc(var(--clp-artboard-h) * 0.03);
+}
+
+.clp-related-title {
+  font-family: var(--ajab-font-serif);
+  font-weight: 400;
+  font-size: 30px;
+  color: #4d4d4d;
+  margin: 0 0 14px;
+}
+
+/* Tabs — Figma 362:3318: Merriweather Sans Light 22 base / 15 count,
+   pipes #999999, active pink var(--ajab-pink-primary), neutral dark #282828, ALL grey var(--ajab-ink-400). */
+.clp-related-tabs {
+  display: flex;
+  gap: 16px;
+  border-bottom: 1px solid var(--ajab-ink-100);
+  padding-bottom: 12px;
+  margin-bottom: 28px;
+  font-family: var(--ajab-font-sans);
+  font-weight: 300;
+  font-size: var(--ajab-fs-h6);
+}
+
+.clp-related-tab {
+  color: #282828;
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 0;
+  letter-spacing: 0;
+  text-transform: uppercase;
+  font: inherit;
+}
+.clp-related-tab.active { color: var(--ajab-pink-primary); }
+.clp-related-tab-sep { color: #999999; }
+.clp-related-tab-count {
+  font-size: var(--ajab-fs-caption);
+  margin-left: 2px;
+  color: inherit;
+}
+
+.clp-related-list {
+  display: flex;
+  flex-direction: column;
+  gap: 28px;
+}
+
+/* Related item — Figma 362:3269 thumb 283×158, content right of it. */
+.clp-related-item {
+  display: flex;
+  gap: 32px;
+  align-items: flex-start;
+  padding-bottom: 24px;
+  border-bottom: 1px solid #E0E0E0;
+}
+.clp-related-item:last-child { border-bottom: 0; }
+
+.clp-related-thumb {
+  width: 280px;
+  height: 158px;
+  flex-shrink: 0;
+  background: #f0f0f0;
+  border-radius: 3px;
+  overflow: hidden;
+}
+.clp-related-thumb img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+.clp-related-body {
+  flex: 1;
+  min-width: 0;
+}
+
+.clp-related-titlerow {
+  display: flex;
+  align-items: baseline;
+  gap: 10px;
+  flex-wrap: wrap;
+  margin-bottom: 8px;
+}
+
+/* Figma 362:3300 styled segments: title Lora Regular 26 var(--ajab-pink-related),
+   subtitle Lora Italic 22 var(--ajab-ink-500). */
+.clp-related-itemtitle {
+  font-family: var(--ajab-font-serif);
+  font-weight: 400;
+  font-size: var(--ajab-fs-h4);
+  color: var(--ajab-pink-related);
+  margin: 0;
+}
+.clp-related-itemsubtitle {
+  font-family: var(--ajab-font-serif);
+  font-style: italic;
+  font-weight: 400;
+  font-size: var(--ajab-fs-h6);
+  color: var(--ajab-ink-500);
+  margin: 0;
+}
+/* Figma 362:3296-3299 — Merriweather Sans Light 18 var(--ajab-ink-500) */
+.clp-related-itemdesc {
+  font-family: var(--ajab-font-sans);
+  font-weight: 300;
+  font-size: var(--ajab-fs-body);
+  color: var(--ajab-ink-500);
+  line-height: 1.4;
+}
+
+/* Figma 362:3260 — Merriweather Sans Regular 20 var(--ajab-pink-related), ORIGINAL case,
+   0% letter-spacing. Chars are already uppercase in source. */
+.clp-related-seemore {
+  display: inline-block;
+  margin-top: 20px;
+  color: var(--ajab-pink-related);
+  font-family: var(--ajab-font-sans);
+  font-weight: 400;
+  font-size: var(--ajab-fs-body-lg);
+  text-transform: none;
+  letter-spacing: 0;
+  cursor: pointer;
+}
+
+/* ── Glossary strip — Figma 361:1569 wavy pill; PDF sits close to footer wave. */
+body:has(.clp-page) .gs-strip {
+  max-width: min(1015px, calc(100vw * 1015 / var(--clp-artboard-w)));
+  margin-top: min(32px, calc(var(--clp-artboard-h) * 0.008));
+  margin-bottom: min(24px, calc(var(--clp-artboard-h) * 0.006));
+  padding: min(36px, calc(var(--clp-artboard-h) * 0.009))
+    min(40px, calc(100vw * 40 / var(--clp-artboard-w)));
+}
+
+/* ── Active POEMS nav count (dynamic via --clp-nav-count on .clp-page) ── */
+body:has(.clp-page) .nav-link--poems {
+  color: var(--ajab-pink-primary) !important;
+  align-items: baseline;
+}
+/* [Claude] these changes have been recommended by claude —
+   Count is now driven by PoemsNavCountContext React span in Header.tsx — no CSS ::after needed. */
+
+/* ── Responsive ── */
+@media (min-width: 1240px) and (max-width: 1439px) {
+  .cl-songs-page-root.clp-page-root-wrap {
+    --clp-pad-page-top: calc(var(--clp-artboard-h) * 0.004);
+    --clp-intro-margin-bottom: calc(var(--clp-artboard-h) * 0.004);
+    --clp-slider-pull-up: calc(var(--clp-artboard-h) * -0.083);
+  }
+}
+
+@media (min-width: 1440px) and (max-width: 1619px) {
+  .cl-songs-page-root.clp-page-root-wrap {
+    --clp-pad-page-top: calc(var(--clp-artboard-h) * 0.005);
+    --clp-intro-margin-bottom: calc(var(--clp-artboard-h) * 0.006);
+    --clp-slider-pull-up: calc(var(--clp-artboard-h) * -0.063);
+  }
+}
+
+@media (min-width: 1620px) and (max-width: 1799px) {
+  .cl-songs-page-root.clp-page-root-wrap {
+    --clp-pad-page-top: calc(var(--clp-artboard-h) * 0.009);
+    --clp-slider-pull-up: calc(var(--clp-artboard-h) * -0.055);
+  }
+}
+
+@media (min-width: 1800px) and (max-width: 1979px) {
+  .cl-songs-page-root.clp-page-root-wrap {
+    --clp-pad-page-top: calc(var(--clp-artboard-h) * 0.009);
+    --clp-slider-pull-up: calc(var(--clp-artboard-h) * -0.038);
+  }
+}
+
+@media (min-width: 1980px) {
+  .cl-songs-page-root.clp-page-root-wrap {
+    --clp-pad-page-top: calc(var(--clp-artboard-h) * 0.01);
+    --clp-slider-pull-up: calc(var(--clp-artboard-h) * -0.037);
+  }
+}
+
+/* Short laptop viewports — shrink halo so lang toggle fits above the fold */
+@media (max-height: 860px) and (min-width: 1024px) {
+  .cl-songs-page-root.clp-page-root-wrap {
+    --clp-halo-size: min(calc(100vw * 0.62), calc(var(--clp-artboard-h) * 0.295));
+    --clp-halo-pad-top: calc(var(--clp-halo-size) * 0.22);
+  }
+
+  .clp-halo-controls {
+    top: calc(var(--clp-halo-size) * 0.7);
+  }
+}
+
+@media screen and (max-width: 1024px) {
+  .clp-page { padding: calc(var(--clp-artboard-h) * 0.01) 24px 0; }
+  .clp-count-row,
+  .clp-seeall-row {
+    padding-left: max(24px, var(--clp-listing-inset));
+  }
+  .clp-seeall-row::before {
+    left: max(24px, var(--clp-listing-rule-inset));
+  }
+  .clp-seeall-row { width: 100%; }
+  .clp-slider-nav {
+    width: 36px;
+    height: 36px;
+  }
+}
+
+@media screen and (max-width: 767px) {
+  .clp-poem-text { font-size: var(--ajab-fs-h6); }
+  .clp-related-title { font-size: var(--ajab-fs-h5); }
+}

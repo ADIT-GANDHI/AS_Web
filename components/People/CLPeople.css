@@ -1,0 +1,306 @@
+/* ─────────────────────────────────────────────
+   CL People — listing + detail
+   Background, filter bar, and content column follow Songs/Reflections.
+───────────────────────────────────────────── */
+
+/* Listing — original plate (Images/people_mainpage.png → public/people_mainpage.png) */
+.cl-songs-page-root:has(.clpe-page) {
+  position: relative;
+  overflow-x: hidden;
+  background-color: #ffffff;
+  background-image: none;
+}
+
+/* Detail — repeat-y layer via RepeatingPageBackground */
+.cl-songs-page-root:has(.clped-page) {
+  position: relative;
+  overflow-x: hidden;
+  background-color: #ffffff;
+  background-image: none;
+}
+
+body:has(.clpe-page) footer.footer-bg,
+body:has(.clped-page) footer.footer-bg {
+  margin-top: 0;
+  position: relative;
+  z-index: 10;
+}
+
+.clpe-page.cl-songs-page {
+  width: 100%;
+  max-width: none;
+  padding: 0;
+}
+
+/* [Claude] these changes have been recommended by claude — intro narrowed + smaller */
+.clpe-intro {
+  color: var(--ajab-ink-300);
+  font-family: var(--ajab-font-serif);
+  font-style: italic;
+  font-weight: 400;
+  font-size: var(--ajab-fs-body-sm);
+  line-height: 1.4;
+  text-align: center;
+  max-width: 700px;
+  width: 100%;
+  margin: 0 auto 40px;
+  padding: 0 clamp(24px, 5vw, 60px);
+  box-sizing: border-box;
+}
+
+/* [Claude] these changes have been recommended by claude —
+   Measured from design artboard (1921px): content spans 443px–1471px = 1028px wide (53.5%).
+   1000px max-width matches this proportion. Was wrongly using --ajab-grid-max-w (800px). */
+.clpe-list {
+  max-width: 1000px;
+  margin: 30px auto 48px;
+  padding: 0 clamp(24px, 2vw, 40px);
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+}
+
+.clpe-list-status {
+  text-align: center;
+  font-family: var(--ajab-font-sans);
+  font-weight: 300;
+  font-size: var(--ajab-fs-body);
+  color: var(--ajab-ink-400);
+  padding: 48px 0;
+}
+
+/* [Claude] these changes have been recommended by claude —
+   Divider lines between entries (matches design horizontal rules).
+   Padding replaces gap so border-bottom lines up correctly. */
+.clpe-entry {
+  display: flex;
+  gap: 32px;
+  align-items: flex-start;
+  cursor: pointer;
+  padding: 36px 0;
+  border-bottom: none;
+  background: transparent;
+}
+
+.clpe-entry:first-child { padding-top: 0; }
+.clpe-entry:last-child  { border-bottom: none; }
+
+/* [Claude] these changes have been recommended by claude —
+   White outline around thumbnail — 2px white box-shadow matches the reflection cards. */
+.clpe-entry-thumb {
+  width: clamp(220px, 28vw, 320px);
+  aspect-ratio: 454 / 244;
+  height: auto;
+  flex-shrink: 0;
+  background: #f0f0f0;
+  border-radius: 2px;
+  overflow: hidden;
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.12), 0 0 0 2px #ffffff;
+}
+
+.clpe-entry-thumb img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+.clpe-entry-body {
+  flex: 1;
+  min-width: 0;
+  padding-top: 4px;
+}
+
+.clpe-entry-name {
+  font-family: var(--ajab-font-serif);
+  font-weight: 400;
+  font-size: var(--ajab-fs-h4);
+  color: var(--ajab-ink-700);
+  display: inline;
+  margin-right: 10px;
+}
+
+/* [Claude] these changes have been recommended by claude — pink uppercase small tag */
+.clpe-entry-role {
+  font-family: var(--ajab-font-sans);
+  font-weight: 300;
+  font-size: var(--ajab-fs-tag);
+  color: var(--ajab-pink-primary);
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  display: inline;
+}
+
+/* [Claude] these changes have been recommended by claude —
+   Clamp to 3 lines so all entries have consistent description height.
+   EXPLORE moved outside <p> in TSX so it always shows below the clamped text. */
+.clpe-entry-desc {
+  font-family: var(--ajab-font-sans);
+  font-weight: 300;
+  font-size: var(--ajab-fs-body-sm);
+  line-height: 1.6;
+  color: var(--ajab-ink-400);
+  margin-top: 10px;
+  margin-bottom: 8px;
+  display: -webkit-box;
+  -webkit-line-clamp: 3;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+/* [Claude] these changes have been recommended by claude — uppercase small pink CTA */
+.clpe-entry-explore {
+  display: inline-block;
+  color: var(--ajab-pink-primary);
+  font-family: var(--ajab-font-sans);
+  font-weight: 400;
+  font-size: var(--ajab-fs-tag);
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  text-decoration: none;
+  margin-top: 4px;
+}
+
+body:has(.clpe-page) .nav-link--people,
+body:has(.clped-page) .nav-link--people {
+  color: var(--ajab-pink-primary) !important;
+  align-items: baseline;
+}
+
+body:has(.clpe-page) .nav-link--people::after,
+body:has(.clped-page) .nav-link--people::after {
+  content: '(' var(--clpe-nav-count, '183') ')';
+  font: inherit;
+  font-size: 0.55em;
+  margin-left: 1px;
+  color: var(--ajab-pink-primary);
+}
+
+/* ── Detail page ── */
+.clped-page {
+  position: relative;
+  width: 100%;
+  max-width: none;
+  margin: 0 auto;
+  padding: clamp(32px, 3vw, 48px) 0 clamp(80px, 8vw, 120px);
+  font-weight: 300;
+}
+
+/* [Claude] these changes have been recommended by claude — widened to 1000px */
+.clped-content {
+  max-width: 1000px;
+  margin: 0 auto;
+  padding: 0 clamp(24px, 2.5vw, 48px);
+  box-sizing: border-box;
+}
+
+.clped-back {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  margin-bottom: 20px;
+  color: var(--ajab-ink-400);
+  font-family: var(--ajab-font-sans);
+  font-weight: 300;
+  font-size: var(--ajab-fs-body);
+  text-decoration: none;
+}
+
+.clped-back:hover {
+  color: var(--ajab-pink-primary);
+}
+
+.clped-titlebar {
+  display: flex;
+  align-items: baseline;
+  flex-wrap: wrap;
+  gap: 12px 16px;
+  margin: 0 0 28px;
+}
+
+.clped-titlebar-name {
+  font-family: var(--ajab-font-serif);
+  font-weight: 400;
+  font-size: var(--ajab-fs-h3);
+  color: var(--ajab-ink-700);
+  margin: 0;
+}
+
+/* [Claude] these changes have been recommended by claude — matches listing role style */
+.clped-titlebar-role {
+  font-family: var(--ajab-font-sans);
+  font-weight: 300;
+  font-size: var(--ajab-fs-tag);
+  color: var(--ajab-pink-primary);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.clped-bio {
+  margin-bottom: 48px;
+}
+
+.clped-bio-gallery--left {
+  float: left;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin: 4px 20px 12px 0;
+}
+
+.clped-bio-photo {
+  width: clamp(160px, 22vw, 200px);
+  aspect-ratio: 230 / 156;
+  height: auto;
+  object-fit: cover;
+  border-radius: 2px;
+  display: block;
+  background: #f0f0f0;
+}
+
+.clped-bio-paragraph {
+  font-family: var(--ajab-font-sans);
+  font-weight: 300;
+  font-size: var(--ajab-fs-body);
+  line-height: 1.6;
+  color: var(--ajab-ink-400);
+  margin: 0 0 16px;
+  text-align: justify;
+}
+
+.clped-bio::after {
+  content: '';
+  display: block;
+  clear: both;
+}
+
+.clped-page .cld-related {
+  max-width: 100%;
+  margin-left: 0;
+  padding-left: 0;
+}
+
+@media screen and (max-width: 767px) {
+  .clpe-entry {
+    flex-direction: column;
+    gap: 16px;
+  }
+
+  .clpe-entry-thumb {
+    width: 100%;
+    max-width: 340px;
+  }
+
+  .clped-bio-gallery--left {
+    float: none;
+    flex-direction: row;
+    flex-wrap: wrap;
+    margin: 0 0 16px;
+  }
+
+  .clped-bio-photo {
+    width: calc(50% - 5px);
+    max-width: 200px;
+  }
+}

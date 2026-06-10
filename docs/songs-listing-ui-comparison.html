@@ -1,0 +1,453 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Songs listing — UI comparison (reference vs app)</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Lora:ital,wght@0,400;1,400&family=Merriweather+Sans:wght@300;400&display=swap" rel="stylesheet" />
+  <style>
+    /* ── Doc chrome (not part of app UI) ── */
+    :root {
+      --ajab-pink-primary: #E31E79;
+      --ajab-pink-related: #ED1E79;
+      --ajab-ink-950: #333333;
+      --ajab-ink-900: #3C3C3B;
+      --ajab-ink-700: #4F4F4F;
+      --ajab-ink-600: #575756;
+      --ajab-ink-300: #828282;
+      --ajab-ink-100: #B1B1B1;
+      --ajab-font-serif: 'Lora', serif;
+      --ajab-font-sans: 'Merriweather Sans', sans-serif;
+      --ajab-fs-display: 34px;
+      --ajab-fs-h5: 24px;
+      --ajab-fs-body-lg: 20px;
+      --ajab-fs-body: 18px;
+      --ajab-fs-body-sm: 16px;
+      --ajab-fs-button: 21px;
+      --ajab-lh-base: 1.3;
+      --ajab-card-w: 288px;
+      --ajab-card-thumb-h: 156px;
+      --ajab-card-radius: 4px;
+      --ajab-card-shadow: 0 4px 14px rgba(0, 0, 0, 0.10);
+      --ajab-grid-col-gap: 88px;
+      --ajab-grid-row-gap: 53px;
+      --ajab-grid-max-w: 1140px;
+      --ajab-card-title-mb: 0px;
+      --ajab-card-subtitle-mb: 7px;
+      --doc-bg: #0f172a;
+      --doc-panel: #1e293b;
+      --doc-muted: #94a3b8;
+    }
+
+    * { box-sizing: border-box; }
+    body.doc {
+      margin: 0;
+      font-family: system-ui, sans-serif;
+      background: var(--doc-bg);
+      color: #e2e8f0;
+      line-height: 1.5;
+    }
+
+    .doc-header {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 28px 24px 12px;
+    }
+    .doc-header h1 {
+      font-size: 1.35rem;
+      font-weight: 600;
+      margin: 0 0 8px;
+    }
+    .doc-header p, .doc-header li {
+      color: var(--doc-muted);
+      font-size: 0.9rem;
+      margin: 0.35em 0;
+    }
+    .doc-header code {
+      background: #334155;
+      padding: 2px 6px;
+      border-radius: 4px;
+      font-size: 0.85em;
+    }
+
+    .compare-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 16px;
+      max-width: 1600px;
+      margin: 0 auto;
+      padding: 0 16px 32px;
+    }
+    @media (max-width: 1100px) {
+      .compare-grid { grid-template-columns: 1fr; }
+    }
+
+    .pane-label {
+      font-size: 0.75rem;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      color: var(--doc-muted);
+      margin-bottom: 8px;
+    }
+
+    .pane {
+      background: var(--doc-panel);
+      border-radius: 12px;
+      padding: 12px;
+      min-height: 200px;
+    }
+
+    .pane iframe {
+      width: 100%;
+      height: min(900px, 85vh);
+      border: 1px solid #334155;
+      border-radius: 8px;
+      background: #fff;
+    }
+
+    .pane-note {
+      font-size: 0.8rem;
+      color: var(--doc-muted);
+      margin-top: 8px;
+    }
+
+    /* ═══ Embedded reference: mirrors CLSongs.css + CLindex structure (step 1) ═══ */
+    .ref-wrap {
+      background: #0b1220;
+      border-radius: 8px;
+      overflow: auto;
+      max-height: min(920px, 88vh);
+    }
+
+    .ref-root {
+      /* Same idea as .cl-songs-page-root — use repo asset when opened from disk */
+      background:
+        url('../public/songs-assets/songs_main_page.png') center top / 100% auto no-repeat,
+        #ede8df;
+      min-height: 1200px;
+      overflow-x: hidden;
+      padding-bottom: 48px;
+    }
+
+    .ref-page {
+      position: relative;
+      width: 100%;
+      max-width: 1280px;
+      margin: 0 auto;
+      padding: clamp(20px, 3vw, 40px) 0 80px;
+      font-weight: 300;
+    }
+
+    .ref-inner {
+      max-width: 1100px;
+      margin: 0 auto;
+      padding: 0 50px;
+    }
+
+    .ref-intro {
+      color: var(--ajab-ink-600);
+      font-family: var(--ajab-font-serif);
+      font-weight: 400;
+      font-style: italic;
+      font-size: var(--ajab-fs-body-lg);
+      line-height: 1.3;
+      text-align: center;
+      max-width: 1008px;
+      margin: 0 auto 50px;
+    }
+
+    .ref-count-row {
+      width: min(var(--ajab-grid-max-w), calc(100% - 40px));
+      margin: 0 auto 14px;
+      text-align: left;
+    }
+    .ref-count {
+      color: var(--ajab-ink-900);
+      font-family: var(--ajab-font-serif);
+      font-weight: 400;
+      font-size: 27px;
+      line-height: 1;
+      margin: 0;
+    }
+
+    .ref-filter-bar {
+      display: flex;
+      align-items: center;
+      border-top: 1px solid var(--ajab-ink-100);
+      padding-top: 16px;
+      padding-bottom: 14px;
+      width: min(var(--ajab-grid-max-w), calc(100% - 40px));
+      margin: 0 auto;
+      flex-wrap: nowrap;
+      overflow-x: auto;
+    }
+    .ref-filter-pill {
+      color: var(--ajab-pink-primary);
+      font-family: var(--ajab-font-sans);
+      font-size: 25px;
+      font-weight: 400;
+      margin-right: 10px;
+      white-space: nowrap;
+    }
+    .ref-sep {
+      color: var(--ajab-pink-primary);
+      font-size: 25px;
+      margin: 0 10px;
+    }
+    .ref-az {
+      display: flex;
+      flex: 1;
+      justify-content: space-between;
+      padding-right: 20px;
+      min-width: 0;
+    }
+    .ref-az button {
+      color: var(--ajab-ink-300);
+      font-family: var(--ajab-font-sans);
+      font-size: 25px;
+      font-weight: 400;
+      letter-spacing: 0.04em;
+      background: transparent;
+      border: none;
+      cursor: default;
+      padding: 0;
+    }
+    .ref-az button.active { color: var(--ajab-pink-primary); }
+
+    .ref-song-grid {
+      display: grid;
+      grid-template-columns: repeat(3, var(--ajab-card-w));
+      column-gap: var(--ajab-grid-col-gap);
+      row-gap: var(--ajab-grid-row-gap);
+      justify-content: center;
+      align-items: start;
+      max-width: var(--ajab-grid-max-w);
+      margin: 30px auto 0;
+    }
+    @media (max-width: 1280px) {
+      .ref-song-grid { column-gap: 40px; }
+    }
+    @media (max-width: 1024px) {
+      .ref-song-grid {
+        grid-template-columns: repeat(2, 280px);
+        column-gap: 24px;
+        padding: 0 20px;
+      }
+    }
+    @media (max-width: 767px) {
+      .ref-song-grid {
+        grid-template-columns: 1fr;
+        justify-items: center;
+      }
+      .ref-inner { padding: 0 24px; }
+    }
+
+    /* Simplified card (WavyCard shell approximated — no torn-paper PNG) */
+    .ref-card {
+      width: var(--ajab-card-w);
+      max-width: 100%;
+      background: #fff;
+      border-radius: var(--ajab-card-radius) var(--ajab-card-radius) 0 0;
+      box-shadow: var(--ajab-card-shadow);
+      overflow: hidden;
+    }
+    .ref-thumb {
+      width: calc(100% - 8px);
+      height: var(--ajab-card-thumb-h);
+      margin: 4px 4px 0;
+      border-radius: var(--ajab-card-radius) var(--ajab-card-radius) 0 0;
+      object-fit: cover;
+      display: block;
+      background: #ddd;
+    }
+    .ref-body {
+      padding: 12px 16px 24px;
+      min-height: 100px;
+    }
+    .ref-title {
+      color: var(--ajab-pink-primary);
+      font-family: var(--ajab-font-serif);
+      font-size: var(--ajab-fs-h5);
+      line-height: var(--ajab-lh-base);
+      margin: 0 0 var(--ajab-card-title-mb);
+      max-width: 256px;
+    }
+    .ref-sub {
+      color: var(--ajab-ink-300);
+      font-family: var(--ajab-font-serif);
+      font-style: italic;
+      font-size: var(--ajab-fs-body-lg);
+      margin: 0 0 var(--ajab-card-subtitle-mb);
+      min-height: 26px;
+    }
+    .ref-meta {
+      font-family: var(--ajab-font-sans);
+      font-size: var(--ajab-fs-body-sm);
+      color: var(--ajab-ink-700);
+      margin: 0 0 4px;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    .ref-meta-label { font-weight: 300; }
+
+    .ref-see-more-wrap {
+      display: flex;
+      justify-content: center;
+      margin-top: 28px;
+    }
+    .ref-see-more {
+      font-family: var(--ajab-font-sans);
+      font-weight: 300;
+      font-size: var(--ajab-fs-body-lg);
+      color: var(--ajab-pink-related);
+      background: none;
+      border: none;
+      padding: 8px 16px;
+      cursor: default;
+    }
+
+    table.check {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 0.85rem;
+      margin-top: 20px;
+    }
+    table.check th, table.check td {
+      border: 1px solid #334155;
+      padding: 8px 10px;
+      text-align: left;
+      vertical-align: top;
+    }
+    table.check th { background: #334155; color: #f1f5f9; }
+  </style>
+</head>
+<body class="doc">
+  <header class="doc-header">
+    <h1>Songs listing — UI comparison</h1>
+    <p>
+      This file is a <strong>visual reference</strong> for the songs main layout (intro, count, filter row, 3-column card grid, optional CTA).
+      The <strong>live app</strong> again uses <strong>infinite scroll</strong> and <strong>limit 10</strong> per page (the “9 + SEE MORE” experiment was deferred).
+      Open this file from the repo so the marble image resolves: <code>docs/songs-listing-ui-comparison.html</code> → <code>../public/songs-assets/songs_main_page.png</code>.
+    </p>
+    <p><strong>Compare with the app:</strong> run Next.js and place this window beside <code>http://localhost:3000/songs</code> (or your dev port). The right pane can embed the live page if the server is running.</p>
+  </header>
+
+  <div class="compare-grid">
+    <div>
+      <div class="pane-label">Reference (static, this file)</div>
+      <div class="pane ref-wrap">
+        <div class="ref-root">
+          <div class="ref-page">
+            <div class="ref-inner">
+              <p class="ref-intro">
+                The utterances of Bhakti, Sufi and Baul poets have been kept alive over centuries through song…
+                <span style="font-style:normal;color:#94a3b8;font-size:14px"> (truncated — full copy in <code>CLconstants.ts</code>)</span>
+              </p>
+              <div class="ref-count-row">
+                <h2 class="ref-count">211 Songs</h2>
+              </div>
+              <div class="ref-filter-bar">
+                <span class="ref-filter-pill">Filters ▾</span>
+                <span class="ref-sep">|</span>
+                <span class="ref-filter-pill" style="margin-right:30px">All</span>
+                <div class="ref-az">
+                  <button>A</button><button>B</button><button class="active">C</button>
+                  <button>D</button><button>E</button><button>F</button>
+                  <button>…</button>
+                </div>
+              </div>
+
+              <div class="ref-song-grid" id="ref-cards"></div>
+
+              <div class="ref-see-more-wrap">
+                <button type="button" class="ref-see-more" disabled>SEE MORE</button>
+              </div>
+            </div>
+          </div>
+        </div>
+        <p class="pane-note">Cards use placeholder images. Production uses <code>WavyCard</code> + API thumbnails + wavy paper assets.</p>
+      </div>
+    </div>
+
+    <div>
+      <div class="pane-label">Live app (iframe)</div>
+      <div class="pane">
+        <iframe id="live" title="Songs page" src="http://localhost:3000/songs"></iframe>
+        <p class="pane-note">If this is blank, start the dev server or change the URL in the iframe <code>src</code>. Mixed content / auth may block embedding in some setups — use a second window instead.</p>
+      </div>
+    </div>
+  </div>
+
+  <div class="doc-header">
+    <h2 style="font-size:1.1rem;margin-top:8px">Checklist — reference vs production</h2>
+    <table class="check">
+      <thead>
+        <tr>
+          <th>Element</th>
+          <th>What to verify on <code>/songs</code></th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>Marble + gutters</td>
+          <td><code>songs_main_page.png</code> scales with width; cream fallback <code>#ede8df</code> below fold.</td>
+        </tr>
+        <tr>
+          <td>Count</td>
+          <td>Heading shows API <code>total</code> (e.g. 211), not hard-coded page size.</td>
+        </tr>
+        <tr>
+          <td>Grid</td>
+          <td>3×288px columns (≤1280px tighter gaps); 9 items only on step&nbsp;1.</td>
+        </tr>
+        <tr>
+          <td>Cards</td>
+          <td>Pink Lora title, grey italic subtitle, meta lines; thumb from API path + <code>AJAB_API_BASE</code>.</td>
+        </tr>
+        <tr>
+          <td>SEE MORE</td>
+          <td>Visible when <code>total &gt; 9</code>; pink Merriweather style; no navigation yet.</td>
+        </tr>
+        <tr>
+          <td>Filters / A–Z</td>
+          <td>Full behaviour still in app; this HTML only sketches the bar for layout density.</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <script>
+    (function () {
+      var samples = [
+        { t: 'Hiye Kaaya Mein', s: 'In This Body', singer: 'MOORALALA MARWADA', poet: 'KABIR', seed: 11 },
+        { t: 'Mero Mann Laago Re Fakiri Maan', s: 'My Mind Has Taken To Living Free!', singer: 'MOORALALA MARWADA', poet: 'KABIR', seed: 12 },
+        { t: 'Raatab Meeyada Vathha', s: 'The Night Has Ended', singer: 'MAHESHA RAM', poet: 'KABIR', seed: 13 },
+        { t: 'Piya Mera Jaagta', s: 'My Beloved Stays Awake', singer: 'PARVATHY BAUL', poet: 'LALON FAKIR', seed: 14 },
+        { t: 'Aarshi Nogor', s: 'City Of Mirrors', singer: 'PARVATHY BAUL', poet: 'LALON FAKIR', seed: 15 },
+        { t: 'Had Anhad', s: 'I Lost My Heart…', singer: 'PARVATHY BAUL', poet: 'NIZAM', seed: 16 },
+        { t: 'Maati Kahe Kumbhar Se', s: 'Earth Speaks To The Potter', singer: 'KABIR', poet: 'KABIR', seed: 17 },
+        { t: 'Ab Thaara Laal Samandada Ra', s: 'Your Red Ocean…', singer: 'PARVATHY BAUL', poet: 'LALON FAKIR', seed: 18 },
+        { t: 'Mann Chaakar Rakho', s: 'Keep Your Mind…', singer: 'PRAHLAD TIPANYA', poet: 'KABIR', seed: 19 }
+      ];
+      var root = document.getElementById('ref-cards');
+      samples.forEach(function (row) {
+        var img = 'https://picsum.photos/seed/' + row.seed + '/280/156';
+        var el = document.createElement('div');
+        el.innerHTML =
+          '<article class="ref-card">' +
+          '<img class="ref-thumb" src="' + img + '" alt="" />' +
+          '<div class="ref-body">' +
+          '<div class="ref-title">' + row.t + '</div>' +
+          '<div class="ref-sub">' + row.s + '</div>' +
+          '<div class="ref-meta"><span class="ref-meta-label">sings </span>' + row.singer + '</div>' +
+          '<div class="ref-meta"><span class="ref-meta-label">poet </span>' + row.poet + '</div>' +
+          '</div></article>';
+        root.appendChild(el.firstElementChild);
+      });
+    })();
+  </script>
+</body>
+</html>

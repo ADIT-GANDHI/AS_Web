@@ -1,0 +1,18 @@
+/* Poems filter drawer — Figma 362:4333 / 362:4521 artboard ratios */
+
+.clp-filter-panel {
+  --clp-filter-w: min(508px, 92vw);
+  --clp-filter-pad-x: 45px;
+  /* Panel opens below sticky header — match Songs filter top inset. */
+  --clp-filter-pad-top: 20px;
+  --clp-filter-scroll-gutter: 72px;
+}
+
+.clp-filter-panel .clp-filter-list::-webkit-scrollbar {
+  display: none;
+}
+
+.clp-filter-panel .clp-filter-list {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}

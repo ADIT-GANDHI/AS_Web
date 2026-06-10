@@ -1,0 +1,208 @@
+/* Glossary — Figma 1:26851
+   Warm kaleidoscope plate + centred wavy column (same family as About). */
+
+.cl-songs-page-root:has(.glossary-page-root) {
+  --gl-artboard-w: 1950;
+  --glossary-bg-w: min(100%, 1912px);
+  --glossary-wavy-w: min(100%, 1440px);
+  /* Figma 1:27047 / 1:27048 — count + full-width rule (same rhythm as Poems/Films) */
+  --gl-listing-inset: calc(100vw * 315.34 / var(--gl-artboard-w));
+  --gl-listing-rule-inset: calc(100vw * 298.25 / var(--gl-artboard-w));
+  --gl-listing-rule-width: calc(100vw * 1339.5 / var(--gl-artboard-w));
+  /* Figma 1:26888 — centred intro copy */
+  --gl-intro-max: min(calc(100vw * 918.48 / var(--gl-artboard-w)), calc(100vw - 48px));
+  /* Figma 1:26863 — term list column */
+  --gl-content-inset: calc(100vw * 453.41 / var(--gl-artboard-w));
+  --gl-content-width: min(
+    calc(100vw * 1074.13 / var(--gl-artboard-w)),
+    calc(100vw - var(--gl-content-inset) - 24px)
+  );
+  --gl-pad-page-top: calc(100vw * 42 / var(--gl-artboard-w));
+  background:
+    url(/about-wavy-center.svg) center top / var(--glossary-wavy-w) auto repeat-y,
+    url(/about-page-bg.png) center top / var(--glossary-bg-w) auto repeat-y,
+    #f8f6f2;
+}
+
+body:has(.glossary-page-root) footer.footer-bg {
+  position: relative;
+  z-index: 10;
+}
+
+.glossary-page-root {
+  position: relative;
+  width: 100%;
+  padding: 0;
+  min-height: 100dvh;
+  font-weight: 300;
+  box-sizing: border-box;
+}
+
+.glossary-container {
+  width: 100%;
+  max-width: none;
+  margin: 0;
+  padding: var(--gl-pad-page-top) 0 24px;
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  box-sizing: border-box;
+}
+
+.glossary-header {
+  text-align: center;
+  margin: 0 auto 34px;
+  max-width: var(--gl-intro-max);
+  padding: 0 24px;
+  box-sizing: border-box;
+}
+
+.glossary-header p {
+  color: var(--ajab-ink-500);
+  font-family: var(--ajab-font-serif);
+  font-size: var(--ajab-fs-body-sm);
+  font-style: italic;
+  font-weight: 400;
+  line-height: 1.55;
+  margin: 0;
+}
+
+.glossary-container .cl-songs-count-row {
+  margin-bottom: 0;
+}
+
+.glossary-container .cl-filter-bar {
+  margin-bottom: 8px;
+}
+
+.glossary-list {
+  width: var(--gl-content-width);
+  margin: 8px 0 0 var(--gl-content-inset);
+  padding: 0 24px 0 0;
+  display: flex;
+  flex-direction: column;
+  box-sizing: border-box;
+}
+
+.glossary-item {
+  border-bottom: none;
+  padding: 16px 0 20px;
+  animation: fadeIn 0.3s ease-in;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+.glossary-item-title {
+  display: grid;
+  grid-template-columns: minmax(140px, max-content) minmax(0, 1fr);
+  column-gap: 12px;
+  align-items: baseline;
+  font-family: var(--ajab-font-sans);
+  font-size: var(--ajab-fs-body);
+  font-weight: 400;
+  margin: 0 0 8px;
+  line-height: 1.5;
+}
+
+.glossary-term-word {
+  color: #4f4f4f;
+}
+
+.glossary-term-script {
+  color: #808080;
+  font-weight: 400;
+}
+
+.glossary-item-meaning {
+  color: #575756;
+  font-family: var(--ajab-font-sans);
+  font-weight: 300;
+  font-size: var(--ajab-fs-body);
+  line-height: 1.55;
+  margin: 0;
+}
+
+.glossary-item-meaning p {
+  margin: 0 0 0.75em;
+}
+
+.glossary-item-meaning p:last-child {
+  margin-bottom: 0;
+}
+
+.glossary-item-image-wrap {
+  margin-top: 10px;
+  width: 100%;
+}
+
+.glossary-item-image {
+  width: 100%;
+  height: 280px;
+  object-fit: cover;
+  border-radius: 6px;
+  display: block;
+}
+
+.loading-state {
+  text-align: center;
+  padding: 60px 20px 100px;
+  font-size: var(--ajab-fs-body-lg);
+  color: var(--ajab-ink-500);
+}
+
+.error-state {
+  text-align: center;
+  padding: 60px 20px 100px;
+  background: #fff;
+  color: var(--ajab-ink-500);
+  font-size: var(--ajab-fs-body);
+  max-width: 600px;
+  margin: 0 auto;
+}
+
+.empty-state {
+  text-align: center;
+  padding: 60px 20px 100px;
+  color: var(--ajab-ink-500);
+  font-size: var(--ajab-fs-body);
+}
+
+@media (max-width: 1024px) {
+  .glossary-list {
+    width: auto;
+    margin-left: max(24px, var(--gl-content-inset));
+    margin-right: 24px;
+    padding-right: 0;
+  }
+}
+
+@media (max-width: 768px) {
+  .glossary-page-root {
+    padding-bottom: 48px;
+  }
+
+  .glossary-container {
+    padding-bottom: 48px;
+  }
+
+  .glossary-header {
+    margin-bottom: 24px;
+  }
+
+  .glossary-item-image {
+    height: 220px;
+  }
+}
+
+@media (max-width: 480px) {
+  .glossary-header p {
+    font-size: 13px;
+  }
+}

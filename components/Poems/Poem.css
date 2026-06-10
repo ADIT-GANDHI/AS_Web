@@ -1,0 +1,393 @@
+.poems-related-inner-container .button-font {
+  font-family: var(--ajab-font-sans);
+  font-size: var(--ajab-fs-h6);
+  font-weight: 300;
+  line-height: normal;
+  color: #282828;
+}
+
+button.border-0.button-font.cursor-pointer.transition-colors.button-active-text.font-semibold {
+  color: var(--ajab-pink-related);
+}
+
+.poems-about {
+  color: var(--ajab-ink-800);
+  background: transparent;
+  font-family: 'Inter', sans-serif;
+  font-weight: 400;
+  font-style: normal;
+  font-size: var(--ajab-fs-body-lg);
+  line-height: 100%;
+  letter-spacing: 0%;
+  width: 100%;
+  max-width: 920px;
+  margin: 0 auto 28px;
+  padding: 0 16px;
+  text-align: center;
+}
+.see-all {
+  color: var(--ajab-pink-primary);
+  font-family: var(--ajab-font-sans);
+  font-size: var(--ajab-fs-button);
+  font-style: normal;
+  font-weight: 600;
+  line-height: normal;
+  letter-spacing: 0.869px;
+  padding: 0 15px;
+  box-sizing: border-box;
+}
+button.see-all {
+  border: 0;
+  background: transparent;
+  cursor: pointer;
+}
+
+.poems-filter-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.08);
+  z-index: 40;
+}
+
+.poems-filter-panel {
+  position: absolute !important;
+  left: 0 !important;
+  top: 0 !important;
+  width: 507.67px !important;
+  height: 1430.07px !important;
+  background-color: transparent;
+  border-right: none;
+  z-index: 50;
+  display: flex;
+  flex-direction: column;
+  animation: poems-panel-slide-in 0.22s ease-out;
+  padding: 200px 70px 60px 30px;
+  box-sizing: border-box;
+  overflow: hidden;
+}
+
+.poems-filter-panel > img {
+  width: 507.67px !important;
+  height: 100% !important;
+  object-fit: fill;
+}
+
+.poems-filter-panel > *:not(img) {
+  position: relative;
+  z-index: 1;
+}
+
+/* Make inner sections transparent so the Vector.png wave shape shows */
+.poems-filter-panel,
+.poems-filter-panel-header,
+.poems-filter-list,
+.poems-filter-selected-wrap,
+.poems-filter-clear-wrap,
+.poems-filter-footer {
+  background: transparent !important;
+}
+
+.poems-filter-panel .poems-filter-item.selected {
+  color: var(--ajab-pink-primary) !important;
+}
+
+.poems-filter-panel-header {
+  border-top: 1px solid var(--ajab-ink-100);
+  border-bottom: 1px solid var(--ajab-ink-100);
+  padding: 12px 14px;
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.poems-filter-by {
+  color: var(--ajab-ink-400);
+  font-family: 'Inter', sans-serif;
+  font-weight: 400;
+  font-style: normal;
+  font-size: 21.02px;
+  line-height: 100%;
+  letter-spacing: 0%;
+  margin: 0;
+  text-transform: none;
+}
+
+.poems-filter-tabs {
+  color: var(--ajab-pink-card);
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-family: 'Inter', sans-serif;
+  font-weight: 400;
+  font-style: normal;
+  font-size: 21.02px;
+  line-height: 100%;
+  letter-spacing: 0%;
+  text-transform: none;
+}
+
+.poems-filter-tabs button {
+  border: 0;
+  background: transparent;
+  cursor: pointer;
+  color: var(--ajab-pink-card);
+  padding: 0;
+  font-family: 'Inter', sans-serif;
+  font-weight: 400;
+  font-style: normal;
+  font-size: 21.02px;
+  line-height: 100%;
+  letter-spacing: 0%;
+}
+
+.poems-filter-tabs button.active {
+  color: var(--ajab-pink-related);
+}
+
+.poems-filter-close {
+  position: absolute;
+  right: 10px;
+  top: 8px;
+  border: 0;
+  background: transparent;
+  color: var(--ajab-pink-related);
+  font-size: var(--ajab-fs-tag);
+  cursor: pointer;
+}
+
+.poems-filter-list {
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow-y: auto;
+  overflow-x: hidden;
+  padding: 8px 14px;
+  border-bottom: 1px solid #ededed;
+  scrollbar-width: thin;
+  scrollbar-color: #c9c9c9 transparent;
+  max-height: 800px;
+}
+
+.poems-filter-list::-webkit-scrollbar {
+  width: 6px;
+}
+.poems-filter-list::-webkit-scrollbar-track {
+  background: transparent;
+}
+.poems-filter-list::-webkit-scrollbar-thumb {
+  background: #c9c9c9;
+  border-radius: 3px;
+}
+.poems-filter-list::-webkit-scrollbar-thumb:hover {
+  background: #a7a7a7;
+}
+
+.poems-filter-item {
+  display: block;
+  width: 100%;
+  border: 0;
+  background: transparent;
+  text-align: left;
+  color: var(--ajab-ink-400);
+  font-family: var(--ajab-font-sans);
+  font-weight: 300;
+  font-style: normal;
+  font-size: var(--ajab-fs-body);
+  line-height: 100%;
+  letter-spacing: 0%;
+  padding: 8px 0;
+  cursor: pointer;
+}
+
+.poems-filter-item:hover,
+.poems-filter-item.selected {
+  color: var(--ajab-pink-related);
+}
+
+.poems-filter-selected-wrap {
+  padding: 10px 14px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px 8px;
+  align-items: center;
+  border-top: 1px solid #ededed;
+}
+
+.poems-filter-clear-wrap {
+  padding: 6px 14px 10px;
+}
+
+.poems-filter-clear {
+  border: 0;
+  background: transparent;
+  color: var(--ajab-pink-related);
+  font-family: var(--ajab-font-sans);
+  font-size: var(--ajab-fs-nano);
+  font-weight: 600;
+  letter-spacing: 0.8px;
+  cursor: pointer;
+  padding: 0;
+}
+
+.poems-filter-footer {
+  padding: 12px 14px 16px;
+  border-top: 1px solid #ededed;
+  font-family: var(--ajab-font-sans);
+  font-size: var(--ajab-fs-nano);
+  line-height: 16px;
+  color: var(--ajab-ink-500);
+}
+
+.poems-filter-footer-link {
+  color: var(--ajab-pink-related);
+  cursor: pointer;
+}
+
+.poems-filter-selected-item {
+  font-size: var(--ajab-fs-nano);
+  color: #555;
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+}
+
+.poems-filter-selected-item::after {
+  content: '|';
+  color: #c0c0c0;
+  margin-left: 6px;
+}
+
+.poems-filter-selected-item:last-child::after {
+  display: none;
+}
+
+.poems-filter-selected-item button {
+  border: 0;
+  background: transparent;
+  color: var(--ajab-pink-related);
+  cursor: pointer;
+  font-size: var(--ajab-fs-nano);
+  padding: 0 2px;
+}
+
+@keyframes poems-panel-slide-in {
+  from {
+    transform: translateX(-100%);
+  }
+  to {
+    transform: translateX(0);
+  }
+}
+.heading-border {
+  border-top: 1px solid var(--ajab-ink-100);
+}
+
+.black-custom-color {
+  color: var(--ajab-ink-900);
+}
+
+.text-pink {
+  color: var(--ajab-pink-related);
+}
+
+button.fillter-btn {
+  color: #282828;
+}
+
+/* button.search-btn::before {
+  color: #282828;
+  margin: 0 10px;
+} */
+
+/* button.search-btn:first-child::before {
+  content: ' ';
+  border-right: 1px solid #fff;
+  margin: 0 10px;
+} */
+.poems-inner-container {
+  max-width: 1240px;
+  width: 100%;
+}
+
+.inner-container-poems {
+  padding: 20px 0 200px;
+}
+.poems-heading-text {
+  color: var(--ajab-ink-900);
+  font-family: var(--ajab-font-serif);
+  font-size: 27px;
+  font-weight: 400;
+  line-height: normal;
+  padding: 0 0 8px 0;
+  border-bottom: 1px solid var(--ajab-ink-100);
+}
+.see-all-btn {
+  color: var(--ajab-pink-primary);
+  font-family: var(--ajab-font-sans);
+  font-size: var(--ajab-fs-button);
+  font-style: normal;
+  font-weight: 600;
+  line-height: normal;
+  letter-spacing: 0.869px;
+}
+
+/* .poems-filter-trigger::after {
+  content: '|';
+  font-size: var(--ajab-fs-h5);
+  color: var(--ajab-ink-300);
+  font-weight: 300;
+  margin-left: 8px;
+} */
+
+.poems-filter-all {
+  color: var(--ajab-ink-300);
+  font-family: var(--ajab-font-sans);
+  font-size: var(--ajab-fs-button);
+  font-weight: 300;
+  line-height: normal;
+  letter-spacing: 0.84px;
+}
+.button.fillter-btn:before {
+  display: none;
+}
+
+@media screen and (max-width: 1580px) {
+  .poems-about {
+    font-size: 19px;
+    max-width: 1055px;
+  }
+  .black-custom-color {
+    font-size: 25px;
+  }
+  .see-all {
+    font-size: var(--ajab-fs-body);
+  }
+  .poems-inner-container {
+    max-width: 1180px;
+    width: 100%;
+  }
+  .poems-related-inner-container .button-font {
+    font-size: var(--ajab-fs-body-lg);
+  }
+}
+
+@media screen and (max-width: 768px) {
+  .poems-inner-container {
+    padding: 60px 0 60px;
+    min-height: auto;
+  }
+
+  .poems-about {
+    font-size: var(--ajab-fs-tag);
+    padding: 0 16px;
+    line-height: 22px;
+    margin-bottom: 20px;
+  }
+}
+
+@media screen and (max-width: 480px) {
+  .poems-about {
+    font-size: 13px;
+    padding: 0 12px;
+  }
+}

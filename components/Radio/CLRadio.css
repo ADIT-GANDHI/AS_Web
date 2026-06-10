@@ -1,0 +1,738 @@
+/* ─────────────────────────────────────────────
+   CL Radio — PNG artboard (bubbles baked in) + text-only grid overlay
+───────────────────────────────────────────── */
+
+html:has(.radio-page-root-wrap),
+body:has(.radio-page-root-wrap) {
+  background-color: #f8f6f2 !important;
+  min-height: 100dvh;
+}
+
+.cl-songs-page-root.radio-page-root-wrap {
+  --radio-artboard-w: 100%;
+  --radio-artboard-h: calc(100vw * 1081 / 1922);
+  --radio-player-h: calc(100vw * 174 / 2044);
+  --radio-sidebar-x: 0;
+  --radio-sidebar-w: calc(100vw * 508 / 1922);
+  /* Content placement tuning (1922×1081 artboard) */
+  --radio-pad-sidebar-top: 0.205;
+  --radio-pad-queue-top: 0.155;
+  --radio-pad-queue-x: 0.042;
+  --radio-pad-queue-bottom: 0.085;
+  --radio-pad-queue-item-y: 0.014;
+  --radio-pad-bubble-top: 8%;
+  --radio-pad-bubble-x: 5%;
+  --radio-pad-player-y: 0.26;
+  --radio-pad-player-x: clamp(20px, 3.2vw, 52px);
+  --radio-player-strip-scale-x: 105%;
+  position: relative;
+  overflow-x: hidden;
+  width: 100%;
+  max-width: none;
+  min-height: 100dvh;
+  background-color: #f8f6f2 !important;
+}
+
+.cl-songs-page-root.radio-page-root-wrap--radio {
+  background:
+    url(/radio-page-bg.png) center top / 100% auto no-repeat,
+    #f8f6f2;
+  height: max(var(--radio-artboard-h), 100dvh);
+  min-height: max(var(--radio-artboard-h), 100dvh);
+  overflow-x: hidden;
+  overflow-y: auto;
+}
+
+.cl-songs-page-root.radio-page-root-wrap--playlists {
+  background:
+    url(/radio-playlist-bg.png) center top / 100% auto no-repeat,
+    #f8f6f2;
+  height: max(var(--radio-artboard-h), 100dvh);
+  min-height: max(var(--radio-artboard-h), 100dvh);
+  overflow-x: hidden;
+  overflow-y: auto;
+}
+
+body:has(.radio-page-root) footer.footer-bg {
+  margin-top: 0;
+  position: relative;
+  z-index: 10;
+}
+
+body:has(.radio-page-root--radio) .floating-actions {
+  top: calc(100vw * 1081 / 1922 * 0.58) !important;
+  bottom: auto !important;
+  transform: none !important;
+  right: 16px !important;
+  left: auto !important;
+  z-index: 99999 !important;
+}
+
+body:has(.radio-page-root--playlists) .floating-actions {
+  top: 50% !important;
+  bottom: auto !important;
+  transform: translateY(-50%) !important;
+  right: 16px !important;
+  left: auto !important;
+  z-index: 99999 !important;
+}
+
+.radio-page-root {
+  position: relative;
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+}
+
+.radio-page-root--radio {
+  height: max(var(--radio-artboard-h), 100dvh);
+  min-height: max(var(--radio-artboard-h), 100dvh);
+}
+
+.radio-page-root--playlists {
+  height: max(var(--radio-artboard-h), 100dvh);
+  min-height: max(var(--radio-artboard-h), 100dvh);
+}
+
+.radio-header-wrap {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  z-index: 12;
+}
+
+.radio-page.cl-songs-page {
+  width: 100%;
+  max-width: none;
+  padding: 0;
+  box-sizing: border-box;
+  flex: 1 1 auto;
+  min-height: 0;
+}
+
+.radio-page-root--radio .radio-page.cl-songs-page,
+.radio-page-root--playlists .radio-page.cl-songs-page {
+  height: 100%;
+  min-height: inherit;
+}
+
+/* ── Artboard layout (100×100 grid matches 1922×1081 PNG) ───────────────── */
+
+.radio-layout {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  min-height: inherit;
+  margin: 0;
+}
+
+.radio-stage {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  grid-template-columns: repeat(100, 1fr);
+  grid-template-rows: repeat(100, 1fr);
+  pointer-events: none;
+  z-index: 5;
+}
+
+.radio-panel {
+  pointer-events: auto;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  box-sizing: border-box;
+  min-width: 0;
+  min-height: 0;
+}
+
+/* Inner safe areas measured from PNG white bubbles */
+.radio-panel--intro {
+  grid-column: 44 / 56;
+  grid-row: 25 / 46;
+  padding: var(--radio-pad-bubble-top) var(--radio-pad-bubble-x) 4%;
+  gap: 6px;
+  justify-content: center;
+}
+
+.radio-panel--artist {
+  grid-column: 62 / 84;
+  grid-row: 36 / 58;
+  padding: calc(var(--radio-pad-bubble-top) + 2%) var(--radio-pad-bubble-x) 4%;
+  gap: 6px;
+  justify-content: center;
+}
+
+.radio-page-root--playlists .radio-panel--intro {
+  grid-column: 44 / 56;
+  grid-row: 25 / 46;
+}
+
+.radio-panel--queue {
+  grid-column: 66 / 94;
+  grid-row: 22 / 86;
+  padding:
+    calc(var(--radio-artboard-h) * var(--radio-pad-queue-top))
+    calc(var(--radio-artboard-w) * var(--radio-pad-queue-x))
+    calc(var(--radio-artboard-h) * var(--radio-pad-queue-bottom))
+    calc(var(--radio-artboard-w) * var(--radio-pad-queue-x));
+  gap: 4px;
+  justify-content: flex-start;
+  align-items: center;
+}
+
+/* Playlists sidebar — opaque white wavy column (same layer stack as Songs CLFilterPanel) */
+.radio-panel--sidebar {
+  grid-column: 1 / 27;
+  grid-row: 1 / 100;
+  position: relative;
+  padding:
+    calc(var(--radio-artboard-h) * var(--radio-pad-sidebar-top))
+    calc(100vw * 0.04)
+    calc(var(--radio-artboard-h) * 0.02)
+    calc(100vw * 48 / 1922);
+  align-items: stretch;
+  justify-content: flex-start;
+  text-align: left;
+  overflow: hidden;
+  background-color: #ffffff;
+}
+
+.radio-playlist-sidebar-shape {
+  position: absolute;
+  inset: 0;
+  background: #ffffff;
+  pointer-events: none;
+  z-index: 0;
+}
+
+.radio-playlist-sidebar-shape-svg {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: fill;
+  pointer-events: none;
+  user-select: none;
+}
+
+.radio-playlist-sidebar-inner {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  flex-direction: column;
+  flex: 1 1 auto;
+  min-height: 0;
+  width: 100%;
+  padding-top: calc(var(--radio-artboard-h) * 0.022);
+}
+
+.radio-panel--sidebar .cl-songs-count-row {
+  padding: 0;
+  margin: 0 0 calc(var(--radio-artboard-h) * 0.018);
+  width: 100%;
+  flex-shrink: 0;
+}
+
+.radio-panel--sidebar .cl-songs-count {
+  color: var(--ajab-ink-600, #6d6e71);
+  font-weight: 600;
+}
+
+.radio-playlist-filter {
+  width: 100%;
+  flex-shrink: 0;
+  margin: calc(var(--radio-artboard-h) * 0.012) 0 calc(var(--radio-artboard-h) * 0.024);
+  border-top: 1px solid rgba(177, 177, 177, 0.55);
+  border-bottom: 1px solid rgba(177, 177, 177, 0.55);
+  padding: 12px 0 10px;
+}
+
+.radio-playlist-filter-main {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.radio-playlist-filter-trigger {
+  background: none;
+  border: none;
+  padding: 0;
+  font-family: var(--ajab-font-sans);
+  font-weight: 300;
+  font-size: clamp(15px, calc(var(--radio-artboard-w) * 0.0095), 18px);
+  color: var(--ajab-ink-600, #6d6e71);
+  cursor: pointer;
+  text-align: left;
+}
+
+.radio-playlist-filter-sep {
+  color: var(--ajab-ink-600, #6d6e71);
+}
+
+.radio-playlist-filter-curated {
+  color: var(--ajab-pink-primary, #e31e79);
+}
+
+.radio-playlist-filter-x {
+  background: none;
+  border: none;
+  padding: 0 4px;
+  font-size: 22px;
+  line-height: 1;
+  color: var(--ajab-pink-primary, #e31e79);
+  cursor: pointer;
+}
+
+.radio-playlist-clear-all {
+  margin-top: 10px;
+  background: none;
+  border: none;
+  padding: 0;
+  font-family: var(--ajab-font-sans);
+  font-weight: 300;
+  font-size: 15px;
+  letter-spacing: 0.04em;
+  color: var(--ajab-pink-primary, #e31e79);
+  cursor: pointer;
+}
+
+.radio-playlists-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  flex: 1;
+  min-height: 0;
+  width: 100%;
+  overflow-y: auto;
+  scrollbar-width: thin;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.radio-playlist-item {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  width: 100%;
+  text-align: left;
+  background: transparent;
+  border: none;
+  border-bottom: 1px solid rgba(0, 0, 0, 0.06);
+  padding: 6px 0 8px;
+  cursor: pointer;
+}
+
+.radio-playlist-title {
+  font-family: var(--ajab-font-serif);
+  font-weight: 400;
+  font-size: clamp(16px, calc(var(--radio-artboard-w) * 0.011), 22px);
+  color: var(--ajab-ink-800, #333);
+  line-height: 1.25;
+}
+
+.radio-playlist-item.is-active .radio-playlist-title {
+  color: var(--ajab-pink-primary, #e31e79);
+}
+
+.radio-playlist-artist {
+  font-family: var(--ajab-font-sans);
+  font-weight: 300;
+  font-size: 13px;
+  color: var(--ajab-ink-700, #4f4f4f);
+  margin-top: 3px;
+  letter-spacing: 0.02em;
+}
+
+.radio-playlist-tracks {
+  font-family: var(--ajab-font-serif);
+  font-size: 14px;
+  color: var(--ajab-ink-700, #4f4f4f);
+  margin-top: 2px;
+}
+
+/* ── Typography ─────────────────────────────────────────────────────────── */
+
+.radio-intro-text {
+  margin: 0;
+  font-family: var(--ajab-font-serif);
+  font-size: clamp(15px, calc(var(--radio-artboard-w) * 0.0095), 19px);
+  line-height: 1.32;
+  color: var(--ajab-ink-600, #6d6e71);
+  max-width: 100%;
+}
+
+.radio-intro-bold {
+  font-weight: 600;
+  color: var(--ajab-ink-800, #3c3c3b);
+}
+
+.radio-tabs {
+  margin: 0;
+  font-family: var(--ajab-font-sans);
+  font-weight: 300;
+  font-size: clamp(15px, calc(var(--radio-artboard-w) * 0.0095), 18px);
+  line-height: 1.35;
+  color: var(--ajab-ink-600, #6d6e71);
+  white-space: nowrap;
+}
+
+.radio-tab {
+  background: none;
+  border: none;
+  padding: 0;
+  font: inherit;
+  color: inherit;
+  cursor: pointer;
+}
+
+.radio-tab.is-active,
+.radio-tab:hover {
+  color: var(--ajab-pink-primary, #e31e79);
+}
+
+.radio-tab-sep {
+  user-select: none;
+}
+
+.radio-artist-name {
+  margin: 0;
+  font-family: var(--ajab-font-serif);
+  font-weight: 400;
+  font-size: clamp(17px, calc(var(--radio-artboard-w) * 0.011), 22px);
+  line-height: 1.2;
+  color: var(--ajab-pink-primary, #e31e79);
+}
+
+.radio-artist-bio {
+  margin: 0;
+  font-family: var(--ajab-font-sans);
+  font-weight: 300;
+  font-size: clamp(12px, calc(var(--radio-artboard-w) * 0.0075), 15px);
+  line-height: 1.38;
+  color: var(--ajab-ink-600, #6d6e71);
+  max-width: 100%;
+}
+
+.radio-explore-link {
+  font-family: var(--ajab-font-sans);
+  font-weight: 300;
+  font-size: clamp(14px, calc(var(--radio-artboard-w) * 0.0085), 16px);
+  color: var(--ajab-pink-primary, #e31e79);
+  text-decoration: none;
+  letter-spacing: 0.03em;
+}
+
+.radio-explore-link:hover {
+  text-decoration: underline;
+}
+
+/* ── Queue (transparent — card is in PNG) ──────────────────────────────── */
+
+.radio-queue-player {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  flex-shrink: 0;
+  width: 100%;
+  max-width: 88%;
+  padding-top: calc(var(--radio-artboard-h) * 0.006);
+  padding-bottom: calc(var(--radio-artboard-h) * 0.012);
+}
+
+.radio-queue-timeline {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.radio-queue-controls {
+  display: flex;
+  justify-content: center;
+}
+
+.radio-queue-controls-svg {
+  width: min(220px, 100%) !important;
+  height: auto;
+}
+
+.radio-queue-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  flex: 0 0 auto;
+  width: 100%;
+  max-width: 88%;
+  overflow: hidden;
+}
+
+.radio-queue-item {
+  display: grid;
+  grid-template-columns: 40px minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 8px 12px;
+  padding: calc(var(--radio-artboard-h) * var(--radio-pad-queue-item-y, 0.014)) 0;
+  border-bottom: 1px solid rgba(0, 0, 0, 0.06);
+}
+
+.radio-queue-item:last-child {
+  border-bottom: none;
+}
+
+.radio-queue-item.is-active .radio-queue-name {
+  color: var(--ajab-pink-primary, #e31e79);
+}
+
+.radio-queue-thumb {
+  grid-column: 1;
+  width: 40px;
+  height: 40px;
+  border-radius: 3px;
+  object-fit: cover;
+}
+
+.radio-queue-name {
+  grid-column: 2;
+  font-family: var(--ajab-font-sans);
+  font-size: clamp(14px, calc(var(--radio-artboard-w) * 0.009), 17px);
+  color: var(--ajab-ink-700, #4f4f4f);
+  text-align: left;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.radio-queue-time {
+  grid-column: 3;
+  font-family: var(--ajab-font-sans);
+  font-size: 14px;
+  color: var(--ajab-ink-700, #4f4f4f);
+  flex-shrink: 0;
+  text-align: right;
+}
+
+/* ── Bottom player — page footer: strip PNG only, pinned to artboard bottom ─ */
+
+.radio-page-root--radio .radio-player {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 6;
+  width: 100%;
+  height: var(--radio-player-h);
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+  overflow: hidden;
+  background: url(/radio-player-strip.png) center bottom / var(--radio-player-strip-scale-x) 100% no-repeat;
+  pointer-events: auto;
+}
+
+.radio-player-inner {
+  position: relative;
+  z-index: 1;
+  display: grid;
+  grid-template-columns: minmax(200px, 1fr) minmax(180px, 2fr) auto auto;
+  align-items: center;
+  gap: clamp(12px, 2vw, 28px);
+  height: 100%;
+  padding:
+    calc(var(--radio-player-h) * var(--radio-pad-player-y))
+    var(--radio-pad-player-x)
+    calc(var(--radio-player-h) * 0.1);
+  box-sizing: border-box;
+}
+
+.radio-player-track {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  min-width: 0;
+}
+
+.radio-player-thumb {
+  flex-shrink: 0;
+  width: 78px;
+  height: 78px;
+  border-radius: 4px;
+  object-fit: cover;
+}
+
+.radio-player-title {
+  margin: 0;
+  font-family: var(--ajab-font-sans);
+  font-weight: 400;
+  font-size: clamp(18px, 1.5vw, 24px);
+  color: var(--ajab-ink-700, #4f4f4f);
+}
+
+.radio-player-sub {
+  margin: 4px 0 0;
+  font-family: var(--ajab-font-sans);
+  font-weight: 300;
+  font-size: 16px;
+  color: var(--ajab-ink-700, #4f4f4f);
+}
+
+.radio-player-timeline {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-width: 0;
+}
+
+.radio-player-time {
+  flex-shrink: 0;
+  font-family: var(--ajab-font-sans);
+  font-size: 16px;
+  color: var(--ajab-ink-700, #4f4f4f);
+  white-space: nowrap;
+}
+
+.radio-player-progress {
+  flex: 1;
+  height: 3px;
+  background: #d9d9d9;
+  border-radius: 2px;
+  overflow: hidden;
+  min-width: 80px;
+}
+
+.radio-player-progress-fill {
+  width: 20%;
+  height: 100%;
+  background: var(--ajab-pink-primary, #e31e79);
+}
+
+.radio-player-controls-wrap {
+  display: flex;
+  justify-content: center;
+}
+
+.radio-player-controls {
+  display: block;
+  width: min(351px, 100%);
+  height: auto;
+}
+
+.radio-player-repeat {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: none;
+  border: none;
+  color: #828282;
+  cursor: pointer;
+  padding: 4px;
+}
+
+.radio-player-repeat:hover {
+  color: var(--ajab-pink-primary, #e31e79);
+}
+
+/* ── Responsive ─────────────────────────────────────────────────────────── */
+
+/* Fine-tune placement at common desktop widths (1240 → 1980) */
+@media (min-width: 1240px) and (max-width: 1439px) {
+  .cl-songs-page-root.radio-page-root-wrap {
+    --radio-pad-sidebar-top: 0.2;
+    --radio-pad-queue-top: 0.15;
+    --radio-pad-queue-bottom: 0.082;
+    --radio-pad-queue-item-y: 0.013;
+    --radio-pad-bubble-top: 7%;
+    --radio-pad-player-y: 0.25;
+    --radio-player-strip-scale-x: 106%;
+  }
+}
+
+@media (min-width: 1440px) and (max-width: 1619px) {
+  .cl-songs-page-root.radio-page-root-wrap {
+    --radio-pad-sidebar-top: 0.205;
+    --radio-pad-queue-top: 0.155;
+    --radio-pad-queue-bottom: 0.085;
+    --radio-pad-queue-item-y: 0.014;
+    --radio-pad-bubble-top: 8%;
+    --radio-pad-player-y: 0.26;
+    --radio-player-strip-scale-x: 105%;
+  }
+}
+
+@media (min-width: 1620px) and (max-width: 1979px) {
+  .cl-songs-page-root.radio-page-root-wrap {
+    --radio-pad-sidebar-top: 0.21;
+    --radio-pad-queue-top: 0.158;
+    --radio-pad-queue-bottom: 0.088;
+    --radio-pad-queue-item-y: 0.014;
+    --radio-pad-bubble-top: 8.5%;
+    --radio-pad-player-y: 0.27;
+    --radio-player-strip-scale-x: 104%;
+  }
+}
+
+@media (min-width: 1980px) {
+  .cl-songs-page-root.radio-page-root-wrap {
+    --radio-pad-sidebar-top: 0.215;
+    --radio-pad-queue-top: 0.16;
+    --radio-pad-queue-bottom: 0.09;
+    --radio-pad-queue-item-y: 0.015;
+    --radio-pad-bubble-top: 9%;
+    --radio-pad-player-y: 0.28;
+    --radio-pad-player-x: clamp(28px, 2.8vw, 64px);
+    --radio-player-strip-scale-x: 103%;
+  }
+}
+
+@media (max-width: 900px) {
+  .radio-layout {
+    width: 100%;
+    height: auto;
+    min-height: calc(100vw * 1081 / 1922);
+  }
+
+  .radio-stage {
+    position: relative;
+    inset: auto;
+    min-height: calc(100vw * 1081 / 1922);
+  }
+
+  .radio-panel--sidebar {
+    position: relative;
+    grid-column: 8 / 93;
+    grid-row: auto;
+    margin: 12px 0;
+    padding: 12px;
+    max-height: none;
+  }
+
+  .radio-panel--intro,
+  .radio-panel--artist,
+  .radio-panel--queue {
+    grid-column: 8 / 93;
+    grid-row: auto;
+    position: relative;
+    margin: 12px 0;
+    padding: 12px;
+  }
+
+  .radio-panel--intro { grid-row: 18 / 32; }
+  .radio-panel--artist { grid-row: 32 / 50; }
+  .radio-panel--queue { grid-row: 32 / 55; }
+
+  .radio-player-inner {
+    grid-template-columns: 1fr;
+    gap: 12px;
+  }
+}
+
+@media (max-width: 600px) {
+  body:has(.radio-page-root) .floating-actions {
+    right: 12px !important;
+  }
+}

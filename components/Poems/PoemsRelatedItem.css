@@ -1,0 +1,264 @@
+.news-border,
+.border-dotted-seprator {
+  height: 1px;
+  max-width: 380px;
+  margin: 30px auto 0;
+  background-color: var(--ajab-ink-200);
+}
+.border-dotted-seprator {
+  max-width: 100%;
+}
+.news-inner-container {
+  background: url(/news-white-bg.png) left top;
+  background-size: 100% auto;
+  padding: 110px 0;
+  max-width: 1420px;
+  width: 100%;
+  text-align: left;
+  margin: -30px auto 0;
+  min-height: 1300px;
+  font-weight: 300;
+  z-index: -100;
+}
+.poems-related-inner-container {
+  max-width: 1064px;
+  width: 100%;
+  margin: 0 auto;
+}
+.footer-bg {
+  margin-top: -7rem;
+}
+.text-pink {
+  color: var(--ajab-pink-related);
+}
+button.fillter-btn {
+  color: #282828;
+  font-family: var(--ajab-font-sans);
+  font-size: var(--ajab-fs-h6);
+  font-weight: 300;
+  line-height: normal;
+}
+/* button.search-btn::before {
+  content: ' ';
+  border-right: 1px solid #999;
+  color: ;
+  margin: 0 10px;
+} */
+/* button.search-btn:first-child::before {
+  content: ' ';
+  border-right: 1px solid #fff;
+  margin: 0 10px;
+} */
+.black-custom-color {
+  color: var(--ajab-ink-800);
+}
+.poems-result-page-heading {
+  color: var(--ajab-ink-900);
+  font-size: var(--ajab-fs-h4);
+  font-weight: 400;
+  line-height: normal;
+  margin: 0 0 4px 0;
+  font-family: var(--ajab-font-serif);
+}
+
+.poems-result-page-heading span {
+  color: var(--ajab-ink-500);
+  font-size: var(--ajab-fs-h6);
+  font-weight: 300;
+  margin: 0 0 0 0.5rem;
+}
+.search-result-text {
+  font-size: var(--ajab-fs-body);
+  line-height: 25px;
+  color: var(--ajab-ink-500);
+}
+.poems-heading {
+  color: var(--ajab-ink-800);
+  font-family: Lora;
+  font-size: var(--ajab-fs-tag);
+  font-weight: 400;
+  line-height: normal;
+}
+.button-font {
+  font-family: var(--ajab-font-sans);
+  font-size: 9px;
+  font-weight: 400;
+  line-height: normal;
+  letter-spacing: 0.3px;
+}
+.button-font.button-active-text {
+  color: var(--ajab-pink-primary);
+  font-weight: 600;
+}
+.button-font span.num {
+  font-size: 8px;
+  color: #888;
+  font-weight: 400;
+}
+.news-banner-shadow {
+  filter: drop-shadow(7px 7px 10px rgba(0, 0, 0, 0.1));
+  padding: 4px;
+  background: #fff;
+}
+
+.thumbnail-image {
+  filter: drop-shadow(7px 7px 10px rgba(0, 0, 0, 0.1));
+  padding: 0 5px 5px;
+  background: #fff;
+}
+
+.separator-border {
+  font-size: 9px;
+  font-weight: 200;
+  margin: 0 3px;
+  color: #999;
+}
+.related-border-top {
+  border-top: 1px solid #c6c6c5;
+}
+
+.poems-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.08);
+  z-index: 40;
+}
+
+.poems-side-panel {
+  position: fixed;
+  left: 0;
+  width: 290px;
+  background: #fff;
+  border-right: 1px solid #dadada;
+  z-index: 50;
+  display: flex;
+  flex-direction: column;
+  animation: panel-slide-in 0.22s ease-out;
+}
+
+.poems-side-header {
+  border-bottom: 1px solid #e3e3e3;
+  padding: 10px 14px;
+  position: relative;
+}
+
+.side-filter-label {
+  display: block;
+  color: #9b9b9b;
+  font-size: var(--ajab-fs-micro);
+  margin-bottom: 6px;
+}
+
+.side-filter-tabs {
+  color: #6e6e6e;
+  font-size: var(--ajab-fs-micro);
+  text-transform: uppercase;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.side-filter-tabs button {
+  border: 0;
+  background: transparent;
+  cursor: pointer;
+  color: #6e6e6e;
+  padding: 0;
+}
+
+.side-filter-tabs button.active {
+  color: var(--ajab-pink-related);
+}
+
+.panel-close {
+  position: absolute;
+  right: 10px;
+  top: 8px;
+  border: 0;
+  background: transparent;
+  color: var(--ajab-pink-related);
+  font-size: var(--ajab-fs-body);
+  cursor: pointer;
+}
+
+.poems-side-list {
+  flex: 1;
+  overflow-y: auto;
+  padding: 12px;
+  border-bottom: 1px solid #ededed;
+}
+
+.side-list-item {
+  display: block;
+  width: 100%;
+  border: 0;
+  background: transparent;
+  text-align: left;
+  font-size: var(--ajab-fs-micro);
+  line-height: 1.45;
+  color: var(--ajab-ink-500);
+  padding: 4px 0;
+  cursor: pointer;
+}
+
+.side-list-item.selected,
+.side-list-item:hover {
+  color: var(--ajab-pink-related);
+}
+
+.poems-side-footer {
+  padding: 10px 12px;
+}
+
+.selected-item-row {
+  font-size: var(--ajab-fs-nano);
+  color: #666;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.selected-item-row button {
+  border: 0;
+  background: transparent;
+  color: var(--ajab-pink-related);
+  cursor: pointer;
+}
+
+.side-note-text {
+  margin-top: 10px;
+  font-size: 10px;
+  line-height: 1.4;
+  color: #888;
+}
+
+@keyframes panel-slide-in {
+  from {
+    transform: translateX(-100%);
+  }
+  to {
+    transform: translateX(0);
+  }
+}
+
+@media screen and (max-width: 1580px) {
+  .poems-heading {
+    font-size: 25px;
+  }
+  .poems-result-page-heading {
+    font-size: var(--ajab-fs-h5);
+  }
+
+  .poems-result-page-heading span {
+    font-size: var(--ajab-fs-body-lg);
+  }
+  .search-result-text {
+    font-size: 17px;
+  }
+  .see-all-btn {
+    font-size: var(--ajab-fs-body);
+  }
+  .poems-related-inner-container {
+    max-width: 1000px;
+  }
+}

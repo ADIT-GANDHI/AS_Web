@@ -1,0 +1,113 @@
+/* ─────────────────────────────────────────────
+   WavyCard — shared base for every wavy paper-card across the app:
+     • Songs listing card  (.cl-song-card)
+     • Reflections listing (.clr-card)
+     • Songs detail version slider (.cld-version-card)
+     • Any future module that needs the same look
+
+   The two wavy ornaments are the visual identity:
+     /song-card-bottom.png        — wavy white seam between thumb and body
+     /song-card-bottom-shadow.png — wavy paper drop shadow under the card
+
+   The base provides:
+     - card layout (column flex, white surface, 4px top radius, drop shadow,
+       hover lift), with overflow visible so the wavy ornaments hang out.
+     - thumbnail wrapper (block media at the top, 4px top radius).
+     - wavy seam via .wc-body::before  — pulled to the top of the body so it
+       overlaps the thumbnail bottom (creates the torn-paper look).
+     - wavy bottom shadow via .wc-card::after — pulled below the card body.
+
+   Per-module styling (title size/colour, subtitle, meta lines, dividers,
+   media-type tags, "sings/poet" labels) lives in the module's CSS.  The
+   module wraps `<WavyCard>` and supplies its own children — the visual
+   shell stays consistent.
+───────────────────────────────────────────── */
+
+.wc-card {
+  --wc-width: var(--ajab-card-w, 288px);
+  --wc-thumb-h: 156px;
+  --wc-radius: var(--ajab-card-radius, 4px);
+  --wc-shadow: var(--ajab-card-shadow, 0 4px 14px rgba(0, 0, 0, 0.10));
+
+  width: var(--wc-width);
+  background: var(--ajab-surface, #fff);
+  border-radius: var(--wc-radius) var(--wc-radius) 0 0;
+  box-shadow: var(--wc-shadow);
+  display: flex;
+  flex-direction: column;
+  position: relative;
+  overflow: visible;
+  text-decoration: none;
+  color: inherit;
+  transition: box-shadow 0.25s ease;
+}
+
+.wc-card:hover {
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15);
+}
+
+.wc-card.is-clickable { cursor: pointer; }
+
+/* Outer wavy paper drop-shadow ornament — pulled below the card by 32 px so
+   the wavy bottom edge sits visually beneath the body. 108 % width + -5 px
+   left lets the shadow extend slightly outside the card on both sides
+   (matches the original Songs card decoration exactly). */
+.wc-card::after {
+  content: '';
+  background: url('/song-card-bottom-shadow.png') no-repeat center / 100% 100%;
+  width: 108%;
+  height: 36px;
+  position: absolute;
+  bottom: -32px;
+  left: -5px;
+  z-index: 1;
+  pointer-events: none;
+}
+
+/* ── Thumbnail ── 4 px inset on Songs (listing); flush with the card on
+   the Reflections / version-slider variants.  Consumers control the inset
+   by passing the `wc-thumb--inset` class on the wrapper. */
+.wc-thumb {
+  width: 100%;
+  height: var(--wc-thumb-h);
+  flex-shrink: 0;
+  overflow: hidden;
+  border-radius: var(--wc-radius) var(--wc-radius) 0 0;
+  position: relative;
+}
+
+.wc-thumb--inset {
+  width: calc(var(--wc-width) - 8px);
+  margin: 4px 4px 0 4px;
+}
+
+.wc-thumb img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+/* ── Body ── flexes to fill the rest of the card; consumers stack their
+   own content (title, subtitle, meta, etc.) inside. The body OWNS the wavy
+   top seam so it overlaps the thumbnail by 18 px (matches Figma group
+   361:1414 — the outer Vector with a wavy bottom). */
+.wc-body {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  position: relative;
+  padding: var(--ajab-card-body-pad-t, 12px) var(--ajab-card-body-pad-x, 16px) var(--ajab-card-body-pad-b, 18px);
+}
+
+.wc-body::before {
+  content: '';
+  background: url('/song-card-bottom.png') no-repeat center / 100% 100%;
+  width: 100%;
+  height: 22px;
+  position: absolute;
+  top: -18px;
+  left: 0;
+  z-index: 2;
+  pointer-events: none;
+}

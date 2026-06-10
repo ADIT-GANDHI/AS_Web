@@ -1,0 +1,476 @@
+/* ─────────────────────────────────────────────
+   CL Reflections — listing + detail
+   Background: Images/reflections_mainpage.png → public/reflections_mainpage.png (repeat-y)
+───────────────────────────────────────────── */
+
+/* Listing / detail — grey fill; art on RepeatingPageBackground layer */
+.cl-songs-page-root:has(.clr-page),
+.cl-songs-page-root:has(.clrd-page) {
+  position: relative;
+  overflow-x: hidden;
+  background-color: #dedede;
+  background-image: none;
+}
+
+body:has(.clr-page) footer.footer-bg,
+body:has(.clrd-page) footer.footer-bg {
+  margin-top: 0;
+  position: relative;
+  z-index: 10;
+}
+
+body:has(.clr-page) footer.footer-bg .footer-inner,
+body:has(.clrd-page) footer.footer-bg .footer-inner {
+  margin-top: 0 !important;
+  padding-top: 28px;
+}
+
+body:has(.clr-page) .floating-actions,
+body:has(.clrd-page) .floating-actions {
+  top: 50% !important;
+  bottom: auto !important;
+  transform: translateY(-50%) !important;
+}
+
+/* Listing layout — shared grid/filter shell (not .cl-songs-page, avoids songs nav styling) */
+.clr-page.clr-listing-page {
+  position: relative;
+  width: 100%;
+  max-width: none;
+  padding: 0 0 clamp(100px, 8vw, 150px);
+  font-weight: 300;
+}
+
+/* [Claude] these changes have been recommended by claude —
+   Intro narrowed to match the reduced card grid width (700px max-w).
+   Font reduced to body-sm (16px) to match Figma design.
+   Color bumped from ink-600 (#828282) → ink-700 (#4F4F4F) — user found it too washed out. */
+.clr-intro {
+  color: var(--ajab-ink-700);
+  font-family: var(--ajab-font-serif);
+  font-style: italic;
+  font-weight: 400;
+  font-size: var(--ajab-fs-body-sm);
+  line-height: 1.4;
+  text-align: center;
+  max-width: 700px;
+  width: 100%;
+  margin: 0 auto 32px;
+  padding: 0 clamp(24px, 5vw, 60px);
+  box-sizing: border-box;
+}
+
+.clr-grid-status {
+  grid-column: 1 / -1;
+  text-align: center;
+  font-family: var(--ajab-font-sans);
+  font-weight: 300;
+  font-size: var(--ajab-fs-body);
+  color: var(--ajab-ink-400);
+  padding: 48px 24px;
+}
+
+/* [Claude] these changes have been recommended by claude —
+   Image: aspect-ratio 3/2 replaces fixed 165px so thumb is always ~45% of
+   card height regardless of card width. flex: unset + line-clamp: 4 on desc
+   so description truncates at 4 lines with "…" and mediatype pin stays at bottom. */
+
+/* [Claude] these changes have been recommended by claude —
+   White border added to match Figma design — cards have a 1.5px white outline
+   separating them from the marble background. */
+
+/* White outline via box-shadow (no border gaps on rounded corners). */
+.clr-card {
+  --wc-width: var(--ajab-card-w);
+  --wc-thumb-h: 0;
+  box-shadow: var(--ajab-card-shadow), 0 0 0 1.5px #ffffff;
+}
+
+.clr-card:hover {
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15), 0 0 0 1.5px #ffffff;
+}
+
+/* Lower wave: use default WavyCard ::after (song-card-bottom-shadow.png, 108% width). */
+
+.clr-card .wc-thumb {
+  height: auto;
+  aspect-ratio: 3 / 2;
+}
+
+.clr-card-body {
+  min-height: 128px;
+  padding: 14px 18px 0;
+}
+
+.clr-card-thumb-play {
+  position: absolute;
+  top: 8px;
+  left: 8px;
+  font-size: var(--ajab-fs-tag);
+  color: rgba(255, 255, 255, 0.9);
+  text-shadow: 0 1px 3px rgba(0, 0, 0, 0.5);
+  z-index: 3;
+  pointer-events: none;
+}
+
+/* [Claude] these changes have been recommended by claude —
+   Title reduced 24px → 18px to better fit 220px card width. */
+.clr-card-title {
+  font-family: var(--ajab-font-serif);
+  font-weight: 400;
+  font-size: var(--ajab-fs-body);
+  line-height: 1.2;
+  color: var(--ajab-pink-card);
+  margin: 0 0 6px;
+}
+
+/* [Claude] these changes have been recommended by claude —
+   Says line reduced 16px → 14px (body-sm→tag) to match card proportion. */
+.clr-card-says {
+  font-family: var(--ajab-font-sans);
+  font-weight: 300;
+  font-size: var(--ajab-fs-tag);
+  color: var(--ajab-ink-400);
+  letter-spacing: 0;
+  padding-bottom: 14px;
+  border-bottom: 1px solid #e0e0e0;
+  margin-bottom: 9px;
+}
+
+/* [Claude] these changes have been recommended by claude —
+   Description reduced 16px → 14px (body-sm→tag) to match card proportion. */
+.clr-card-desc {
+  font-family: var(--ajab-font-sans);
+  font-weight: 300;
+  font-size: var(--ajab-fs-tag);
+  line-height: 1.5;
+  color: var(--ajab-ink-400);
+  margin-bottom: 12px;
+  /* [Claude] these changes have been recommended by claude —
+     flex: 1 removed so -webkit-line-clamp can fire; mediatype uses margin-top: auto instead */
+  flex: unset;
+  display: -webkit-box;
+  -webkit-line-clamp: 4;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+/* [Claude] these changes have been recommended by claude —
+   Mediatype tag reduced 14px → 12px and recoloured pink → grey (ink-300)
+   so it reads as a quiet label, not a highlighted CTA.
+   padding-top increased 6px → 20px to push the label further down from the
+   description, matching PDF where the tag sits near the card bottom with clear space. */
+.clr-card-mediatype {
+  font-family: var(--ajab-font-sans);
+  font-weight: 300;
+  font-size: var(--ajab-fs-micro);
+  color: var(--ajab-ink-300);
+  letter-spacing: 0.04em;
+  text-align: right;
+  padding: 20px 16px 14px;
+  margin-top: auto;
+}
+
+/* Active REFLECTIONS nav — count comes from Header (live API via ReflectionsNavCountContext) */
+body:has(.clr-page) .nav-link--reflections,
+body:has(.clrd-page) .nav-link--reflections {
+  color: var(--ajab-pink-primary) !important;
+  align-items: baseline;
+}
+
+body:has(.clr-page) .nav-link--reflections::after,
+body:has(.clrd-page) .nav-link--reflections::after {
+  content: none !important;
+}
+
+/* Reflections listing — do not use .cl-songs-page (avoids songs nav pink on stale builds) */
+body:has(.clr-page) .nav-link--songs,
+body:has(.clrd-page) .nav-link--songs {
+  color: #1a1a1a !important;
+}
+
+body:has(.clr-page) .nav-link--songs::after,
+body:has(.clrd-page) .nav-link--songs::after {
+  content: none !important;
+}
+
+body:has(.clr-page) .nav-link--songs .nav-link-songs-count,
+body:has(.clrd-page) .nav-link--songs .nav-link-songs-count {
+  display: none !important;
+}
+
+/* ── Detail page — PDF artboard 1920, content column 457→1484 (1027px) ── */
+.clrd-page {
+  --clrd-artboard-w: 1920;
+  --clrd-pdf-col-w: 1027;
+  --clrd-col-max: min(1027px, calc(100vw * var(--clrd-pdf-col-w) / var(--clrd-artboard-w)));
+  --clrd-gap-header-video: min(8px, calc(100vw * 8 / var(--clrd-artboard-w)));
+  --clrd-gap-video-about: min(43px, calc(100vw * 43 / var(--clrd-artboard-w)));
+  --clrd-gap-about-related: min(64px, calc(100vw * 64 / var(--clrd-artboard-w)));
+  position: relative;
+  width: 100%;
+  max-width: none;
+  margin: 0 auto;
+  padding: clamp(32px, 3vw, 48px) clamp(24px, 5vw, 80px) 0;
+  font-weight: 300;
+  box-sizing: border-box;
+}
+
+.clrd-content {
+  max-width: var(--clrd-col-max);
+  margin: 0 auto;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+.clrd-header {
+  margin-bottom: var(--clrd-gap-header-video);
+}
+
+.clrd-header-top {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 8px 12px;
+  width: 100%;
+}
+
+.clrd-header-left {
+  display: flex;
+  align-items: baseline;
+  flex-wrap: wrap;
+  gap: 10px 12px;
+  flex: 1;
+  min-width: 0;
+}
+
+/* Figma reflection detail: title Lora Italic 28 #4F4F4F */
+.clrd-header-title-name {
+  font-family: var(--ajab-font-serif);
+  font-size: var(--ajab-fs-h3);
+  font-weight: 400;
+  font-style: italic;
+  color: var(--ajab-ink-700);
+  line-height: 1.2;
+}
+
+.clrd-header-credits {
+  display: inline-flex;
+  align-items: baseline;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.clrd-header-verb {
+  font-family: var(--ajab-font-sans);
+  font-weight: 300;
+  font-size: var(--ajab-fs-body);
+  color: var(--ajab-ink-400);
+  font-style: normal;
+}
+
+.clrd-header-speaker {
+  font-family: var(--ajab-font-sans);
+  font-weight: 300;
+  font-size: var(--ajab-fs-body);
+  color: var(--ajab-pink-primary);
+  text-transform: uppercase;
+  font-style: normal;
+}
+
+.clrd-header-meta {
+  font-family: var(--ajab-font-sans);
+  font-weight: 300;
+  font-size: var(--ajab-fs-body);
+  color: #666666;
+  text-align: right;
+  margin-left: auto;
+  flex: 0 0 auto;
+  white-space: nowrap;
+}
+
+.clrd-video-wrap {
+  width: 100%;
+  margin: 0 0 var(--clrd-gap-video-about);
+  aspect-ratio: 1027 / 588;
+  background: #000;
+  border-radius: 4px;
+  overflow: hidden;
+  border: 8px solid #ffffff;
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.15);
+  box-sizing: border-box;
+}
+
+.clrd-video-wrap iframe {
+  width: 100% !important;
+  height: 100% !important;
+  border: 0;
+}
+
+.clrd-video-placeholder {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #888;
+  background: #2a2a2a;
+  font-family: var(--ajab-font-sans);
+}
+
+.clrd-description {
+  font-family: var(--ajab-font-sans);
+  font-weight: 300;
+  font-size: var(--ajab-fs-body-lg);
+  line-height: 1.4;
+  color: var(--ajab-ink-700);
+  text-align: left;
+  margin: 0 0 var(--clrd-gap-about-related);
+  max-width: 100%;
+}
+
+.clrd-description-body {
+  margin: 0;
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 3;
+  overflow: hidden;
+}
+
+.clrd-description-body.is-expanded {
+  display: block;
+  -webkit-line-clamp: unset;
+  overflow: visible;
+}
+
+.clrd-description-more {
+  background: none;
+  border: none;
+  padding: 0;
+  margin: 6px 0 0;
+  font-family: inherit;
+  font-size: inherit;
+  font-weight: inherit;
+  color: var(--ajab-pink-primary);
+  cursor: pointer;
+  display: inline-block;
+}
+
+/* ── Related + glossary — PDF typography (Figma reflection detail, shared with songs/poems) ── */
+.clrd-page .cld-related {
+  max-width: 100%;
+  margin: 0 0 0;
+  padding-left: 0;
+}
+
+/* Figma: "Related" Lora Regular 30 #3C3C3B */
+.clrd-page .cld-related-title {
+  font-family: var(--ajab-font-serif);
+  font-size: var(--ajab-fs-h2);
+  font-weight: 400;
+  color: var(--ajab-ink-800);
+  margin: 0 0 10px;
+}
+
+/* Tabs: Merriweather Sans Light 22; count 15 */
+.clrd-page .cld-related-tab {
+  font-family: var(--ajab-font-sans);
+  font-weight: 300;
+  font-size: var(--ajab-fs-h6);
+  color: var(--ajab-ink-400);
+}
+
+.clrd-page .cld-related-tab.active {
+  color: var(--ajab-pink-primary);
+}
+
+.clrd-page .cld-related-tab-count {
+  font-size: var(--ajab-fs-caption);
+  font-weight: 300;
+}
+
+/* Item title Lora 26 pink; subtitle Lora Italic 22; desc Merriweather Light 18 */
+.clrd-page .cld-related-itemtitle {
+  font-family: var(--ajab-font-serif);
+  font-size: var(--ajab-fs-h4);
+  font-weight: 400;
+  color: var(--ajab-pink-related);
+}
+
+.clrd-page .cld-related-itemsubtitle {
+  font-family: var(--ajab-font-serif);
+  font-style: italic;
+  font-size: var(--ajab-fs-h6);
+  font-weight: 400;
+  color: var(--ajab-ink-500);
+}
+
+.clrd-page .cld-related-itemdesc {
+  font-family: var(--ajab-font-sans);
+  font-weight: 300;
+  font-size: var(--ajab-fs-body);
+  color: var(--ajab-ink-500);
+  line-height: 1.4;
+}
+
+.clrd-page .cld-related-readmore {
+  font-weight: 300;
+  font-size: var(--ajab-fs-caption);
+}
+
+/* SEE MORE: Merriweather Sans Light 20 pink — inline expand only */
+.clrd-page .cld-related-seemore {
+  font-family: var(--ajab-font-sans);
+  font-weight: 300;
+  font-size: var(--ajab-fs-body-lg);
+  color: var(--ajab-pink-related);
+}
+
+.clrd-related-empty {
+  padding: 16px 0;
+  font-family: var(--ajab-font-sans);
+  font-weight: 300;
+  font-size: var(--ajab-fs-body);
+  color: var(--ajab-ink-400);
+}
+
+/* Glossary strip — Figma 361:1569 wavy pill; PDF sits close to footer wave */
+.clrd-page .clrd-glossary-strip.gs-strip {
+  max-width: min(1015px, calc(100vw * 1015 / var(--clrd-artboard-w)));
+  margin-top: min(24px, calc(100vw * 32 / var(--clrd-artboard-w)));
+  margin-bottom: min(8px, calc(100vw * 12 / var(--clrd-artboard-w)));
+  padding: min(28px, calc(100vw * 36 / var(--clrd-artboard-w)))
+    min(32px, calc(100vw * 40 / var(--clrd-artboard-w)));
+}
+
+/* Figma 362:3320 — word Lora 24 #3c3c3b; meaning Lora Italic 20 #828282 */
+.clrd-page .gs-term-word {
+  font-family: var(--ajab-font-serif);
+  font-weight: 400;
+  font-size: var(--ajab-fs-h5);
+  color: var(--ajab-ink-900);
+}
+
+.clrd-page .gs-term-meaning {
+  font-family: var(--ajab-font-serif);
+  font-style: italic;
+  font-weight: 400;
+  font-size: var(--ajab-fs-body-lg);
+  color: var(--ajab-ink-300);
+}
+
+.clrd-page .gs-term.is-highlighted .gs-term-word {
+  color: var(--ajab-pink-related);
+}
+
+@media screen and (max-width: 767px) {
+  .clrd-header-top {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .clrd-header-meta {
+    margin-left: 0;
+    text-align: left;
+  }
+}

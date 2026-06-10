@@ -1,0 +1,1081 @@
+/* ─────────────────────────────────────────────
+   CL Song Detail Page — pixel-matched to Figma
+   All selectors scoped with .cld- prefix
+───────────────────────────────────────────── */
+
+/* ── Root wrapper — song detail marble (single plate, no dual-layer join).
+
+   Asset: `/songs-assets/song_detail_3.png` (1930 × 7150), copied from `Images/`.
+   Background width is capped at the artwork’s native width so we do not
+   upscale wider than the PNG; extra page height shows the cream fill. */
+.cl-songs-page-root:has(.cld-page) {
+  background: #ede8df;
+  overflow-x: hidden;
+  position: relative;
+}
+
+/* Song detail header: keep logo + nav on one baseline row (same as listing). */
+.cl-songs-page-root:has(.cld-page) header .header-inner-container>div:first-child {
+  align-items: center;
+}
+
+.cl-songs-page-root:has(.cld-page) header .header-inner-container>div>div:first-child {
+  align-items: center;
+}
+
+.cld-bg-stack {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  overflow: hidden;
+}
+
+.cld-bg-marble {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background-color: #ede8df;
+  background-image: url(/songs-assets/song_detail_3.png);
+  background-repeat: no-repeat;
+  background-position: center top;
+  /* Fit width to column without horizontal upscale past native 1930px art. */
+  background-size: min(100%, 1930px) auto;
+}
+
+/* ── DISABLED — last round's custom 100 % × 100 % vertical-stretch hack on
+   the old SVG marble. Stretched 65 % vertically, washed out the texture
+   middle and elongated the corner instruments into ghost streaks. The
+   Figma PNG above is dense enough that natural repeat-y looks correct. ──
+.cl-songs-page-root:has(.cld-page) {
+  background:
+    url(/song-container-bg-v2.svg) center top / 100% 100% no-repeat,
+    #ffffff;
+}
+*/
+
+/* ── Page wrapper ── */
+.cld-page {
+  position: relative;
+  width: 100%;
+  max-width: 1280px;
+  margin: 0 auto;
+  /* Shared layout tokens — map PDF artboard (1925pt) to live viewport */
+  --cld-artboard-w: 1925;
+  --cld-pdf-col-x: 457;
+  /* Figma/PDF left edge of card + video column */
+  --cld-pdf-col-right: 1484;
+  /* 457 + 1027 — Figma 361:1465 outer video frame */
+  --cld-version-nav-w: 44px;
+  --cld-version-nav-gap: 16px;
+  --cld-rail-inset: calc(var(--cld-version-nav-w) + var(--cld-version-nav-gap));
+  --cld-page-x: calc(50px + max(0px, (100vw - 1280px) / 2));
+  --cld-col-center-nudge: max(0px, calc((min(100vw, 1280px) - 100px - 1100px) / 2));
+  /* Push rail right until first card / video left edge hits PDF x=457. */
+  --cld-rail-shift: max(0px,
+      calc(100vw * var(--cld-pdf-col-x) / var(--cld-artboard-w) - var(--cld-page-x) - var(--cld-col-center-nudge) - var(--cld-rail-inset)));
+  --cld-rail-margin-left: calc(var(--cld-col-center-nudge) + var(--cld-rail-shift));
+  /* PDF vertical rhythm (artboard px → scaled) — lyrics stanza rules unchanged */
+  --cld-gap-versions-header: min(86px, calc(100vw * 114 / var(--cld-artboard-w)));
+  --cld-gap-header-video: min(8px, calc(100vw * 8 / var(--cld-artboard-w)));
+  --cld-gap-video-about: min(43px, calc(100vw * 43 / var(--cld-artboard-w)));
+  --cld-gap-about-lang: min(64px, calc(100vw * 86 / var(--cld-artboard-w)));
+  --cld-gap-lang-title: min(44px, calc(100vw * 58 / var(--cld-artboard-w)));
+  --cld-gap-title-lyrics: min(32px, calc(100vw * 42 / var(--cld-artboard-w)));
+  --cld-gap-lyrics-notes: min(36px, calc(100vw * 48 / var(--cld-artboard-w)));
+  --cld-gap-notes-related: min(32px, calc(100vw * 42 / var(--cld-artboard-w)));
+  padding: 0 50px clamp(32px, 4vw, 48px);
+  font-weight: 300;
+}
+
+/* ── REVERT: pre-2026-05-19 carousel pass → padding was 22px 50px 0 ── */
+
+/* ── Song detail: align header / video / about / related with first version card.
+   Version cards stay in the original flex row (chevron + gap + slider).
+   Inset = nav width + row gap — must stay equal to .cld-slider-nav width + .cld-versions-slider-wrap gap.
+   Widths scale from PDF/Figma artboard (1925 pt) so video + related match Page 3 proportions. ── */
+.cld-detail-body-align {
+  --cld-artboard-w: 1925;
+  --cld-media-max-width: min(1027px, calc(100vw * (var(--cld-pdf-col-right) - var(--cld-pdf-col-x)) / var(--cld-artboard-w)));
+  --cld-about-max-width: min(1004px, calc(100vw * 1004 / var(--cld-artboard-w)));
+  --cld-related-max-width: min(1034px, calc(100vw * 1034 / var(--cld-artboard-w)));
+  --cld-related-thumb-w: min(280px, calc(100vw * 280 / var(--cld-artboard-w)));
+  --cld-related-thumb-h: min(156px, calc(100vw * 156 / var(--cld-artboard-w)));
+  max-width: 1100px;
+  margin-left: var(--cld-rail-margin-left);
+  margin-right: auto;
+  padding-left: var(--cld-rail-inset);
+  box-sizing: border-box;
+}
+
+/* ── Versions section — PDF Page 3 strict scale (Figma 361:1414–1446)
+   Revert baseline: components/Songs/CLSongDetails.carousel-revert.md ── */
+.cld-versions-section {
+  --cld-version-card-w: 250px;
+  --cld-version-thumb-h: 130px;
+  --cld-version-gap: 35px;
+  --cld-artboard-w: 1925;
+  margin: 0 auto var(--cld-gap-versions-header);
+  margin-left: var(--cld-rail-margin-left);
+  margin-right: auto;
+  max-width: 1100px;
+}
+
+/* REVERT: margin was 22px auto 40px */
+
+.cld-versions-heading {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  margin-bottom: 6px;
+}
+
+/* REVERT: margin-bottom was 20px */
+
+.cld-versions-title {
+  text-align: center;
+  font-family: var(--ajab-font-serif);
+  font-size: 21px;
+  font-weight: 400;
+  color: var(--ajab-ink-700);
+  margin: 0 0 6px;
+  padding: 0;
+}
+
+/* REVERT: margin 0 0 12px; padding 5px 0 0 */
+
+.cld-versions-title-rule {
+  width: 220px;
+  max-width: min(40vw, 100%);
+  height: 1px;
+  background: var(--ajab-ink-100);
+  flex-shrink: 0;
+}
+
+.cld-versions-slider-wrap {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: var(--cld-version-nav-gap);
+  /* Left-align rail so first card shares the same column edge as video/about.
+     Chevrons sit in-flow before the slider; body-align padding-left must match
+     nav width + gap (44 + 16 = 60px). Do NOT center this wrap — that breaks alignment. */
+  max-width: calc(3 * var(--cld-version-card-w) + 2 * var(--cld-version-gap) + 2 * var(--cld-version-nav-w) + 2 * var(--cld-version-nav-gap));
+  margin-left: 0;
+  margin-right: auto;
+}
+
+/* REVERT: gap was 16px; no max-width on wrap */
+
+.cld-slider-nav {
+  width: var(--cld-version-nav-w);
+  height: var(--cld-version-nav-w);
+  background: #ffffff;
+  border: 1px solid rgba(177, 177, 177, 0.28);
+  border-radius: 999px;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.08);
+  cursor: pointer;
+  color: var(--ajab-ink-400);
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+  z-index: 2;
+  transition: color 0.15s ease, border-color 0.15s ease, box-shadow 0.15s ease;
+}
+
+/* REVERT: width 44px; height 64px */
+
+.cld-slider-nav:hover {
+  color: var(--ajab-pink-primary);
+  border-color: rgba(227, 30, 121, 0.32);
+  box-shadow: 0 2px 14px rgba(227, 30, 121, 0.18);
+}
+
+.cld-slider-nav svg {
+  width: 30px;
+  height: 30px;
+}
+
+/* REVERT: svg 36px */
+
+.cld-versions-slider {
+  display: flex;
+  gap: var(--cld-version-gap);
+  overflow-x: auto;
+  overflow-y: hidden;
+  /* prevents vertical scroll bug */
+  scroll-behavior: smooth;
+  scrollbar-width: none;
+  flex: 1;
+  min-width: 0;
+  padding: 0 0 36px;
+  /* gives enough space for absolute bottom shadow */
+}
+
+/* REVERT: gap 66px; padding 8px 0 48px */
+
+.cld-versions-slider::-webkit-scrollbar {
+  display: none;
+}
+
+.cld-version-card {
+  --wc-width: var(--cld-version-card-w);
+  --wc-thumb-h: var(--cld-version-thumb-h);
+  flex: 0 0 var(--cld-version-card-w);
+}
+
+/* REVERT: --wc-width var(--ajab-card-w); --wc-thumb-h 156px; flex 0 0 var(--ajab-card-w) */
+
+.cld-version-card-thumb img {
+  border: 4px solid #FFFFFF;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+  box-sizing: border-box;
+}
+
+.cld-version-card-body {
+  --ajab-card-body-pad-t: 12px;
+  --ajab-card-body-pad-x: 16px;
+  --ajab-card-body-pad-b: 42px;
+  padding: 12px 16px 42px;
+}
+
+/* REVERT: padding 12px 14px 14px */
+
+.cld-version-card-title {
+  font-family: var(--ajab-font-serif);
+  font-weight: 400;
+  font-size: 18px;
+  color: var(--ajab-pink-primary);
+  line-height: 1.2;
+  margin-bottom: 4px;
+}
+
+/* REVERT: font-size 18px; margin-bottom 6px */
+
+/* Version year — PDF measured: MerriweatherSans Light 13px, always dark (#4f4f4f),
+   sits inline after the title with a small left gap. Must not inherit pink from
+   the active card's title colour. */
+.cld-version-card-year {
+  color: var(--ajab-ink-700);
+  font-family: var(--ajab-font-sans);
+  font-size: 14px;
+  font-weight: 300;
+  margin-left: 4px;
+}
+
+.cld-version-card.is-active .cld-version-card-year {
+  color: var(--ajab-ink-700) !important;
+}
+
+/* Version subtitle — PDF measured: Lora Italic 16px var(--ajab-ink-300) */
+.cld-version-card-subtitle {
+  font-family: var(--ajab-font-serif);
+  font-style: italic;
+  font-size: 16px;
+  color: var(--ajab-ink-300);
+  line-height: 1.2;
+  margin-bottom: 8px;
+}
+
+/* REVERT: font-size 16.5px; margin-bottom 11px */
+
+.cld-version-card-meta {
+  font-family: var(--ajab-font-sans);
+  font-weight: 300;
+  font-size: 13.5px;
+  color: var(--ajab-ink-700);
+  line-height: 1.35;
+  margin-bottom: 2px;
+}
+
+/* REVERT: font-size 14px; margin-bottom 3px */
+
+/* ── Song header row (title, sings, location/year) ── */
+.cld-song-header {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 4px;
+  max-width: var(--cld-media-max-width);
+  width: 100%;
+  margin: 0 0 var(--cld-gap-header-video);
+  padding: 0;
+  box-sizing: border-box;
+}
+
+/* REVERT: .cld-song-header margin was 60px 0 24px */
+
+.cld-song-header-top {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 8px 10px;
+  width: 100%;
+}
+
+.cld-song-header-left {
+  display: flex;
+  align-items: baseline;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+/* Figma 361:1463: "Aarshi Nogor" Lora Regular 28 var(--ajab-ink-700) */
+.cld-song-header-title-name {
+  font-family: var(--ajab-font-serif);
+  font-size: 21px;
+  font-weight: 400;
+  color: var(--ajab-ink-700);
+  line-height: 1.2;
+}
+
+.cld-song-header-credits {
+  display: inline-flex;
+  align-items: baseline;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+/* Figma 361:1434/1463: "sings PARVATHY BAUL" is rendered as one
+   Merriweather Sans Light 16 var(--ajab-ink-700) run (NOT pink) */
+.cld-song-header-sings {
+  font-family: var(--ajab-font-sans);
+  font-weight: 300;
+  font-size: 14px;
+  line-height: 1.35;
+  color: #666666;
+}
+
+.cld-song-header-singer {
+  font-family: var(--ajab-font-sans);
+  font-weight: 400;
+  font-size: 14px;
+  line-height: 1.35;
+  color: var(--ajab-pink-primary);
+}
+
+.cld-singer-link {
+  color: var(--ajab-pink-primary) !important;
+  text-decoration: none !important;
+}
+
+.cld-singer-link:hover {
+  text-decoration: underline !important;
+}
+
+.cld-song-header-meta-row {
+  width: 100%;
+  max-width: var(--cld-media-max-width);
+  display: flex;
+  justify-content: flex-end;
+}
+
+.cld-song-header-meta {
+  font-family: var(--ajab-font-sans);
+  font-weight: 300;
+  font-size: 14px;
+  color: #666666;
+  text-align: right;
+  white-space: nowrap;
+}
+
+/* ── Video section — 16:9 embed width aligned to PDF / standard YouTube proportions. */
+.cld-video-wrap {
+  width: min(100%, var(--cld-media-max-width));
+  max-width: var(--cld-media-max-width);
+  margin: 0 0 var(--cld-gap-video-about);
+  aspect-ratio: 1027 / 588;
+  background: #000;
+  border-radius: 4px;
+  overflow: hidden;
+  border: 8px solid #FFFFFF;
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.15);
+  box-sizing: border-box;
+}
+
+.cld-video-wrap iframe,
+.cld-video-wrap>div {
+  width: 100% !important;
+  height: 100% !important;
+  border: 0;
+}
+
+.cld-video-placeholder {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #888;
+  background: #2a2a2a;
+  font-family: var(--ajab-font-sans);
+}
+
+/* ── Description — Figma 361:1473: Merriweather Sans Light 15px, left-aligned. ── */
+.cld-description {
+  font-family: var(--ajab-font-sans);
+  font-weight: 300;
+  font-size: 14px;
+  line-height: 1.45;
+  color: var(--ajab-ink-700);
+  text-align: left;
+  max-width: var(--cld-media-max-width);
+  margin: 0 0 var(--cld-gap-about-lang);
+  padding: 0;
+  box-sizing: border-box;
+}
+
+/* REVERT (mid-body pass): margin was 0 0 64px */
+
+.cld-description-body p {
+  margin: 0 0 1em;
+}
+
+.cld-description-body p:last-child {
+  margin-bottom: 0;
+}
+
+.cld-description-body ul,
+.cld-description-body ol {
+  margin: 0 0 1em;
+  padding-left: 1.4em;
+}
+
+.cld-description-body li {
+  margin-bottom: 0.35em;
+}
+
+.cld-description-body a {
+  color: var(--ajab-pink-primary);
+}
+
+.cld-description-scroll {
+  max-height: 7.5em;
+  overflow-y: auto;
+  margin-top: 0.35em;
+  padding-right: 6px;
+  scrollbar-width: thin;
+  scrollbar-color: rgba(177, 177, 177, 0.55) transparent;
+}
+
+.cld-description-scroll::-webkit-scrollbar {
+  width: 5px;
+}
+
+.cld-description-scroll::-webkit-scrollbar-thumb {
+  background: rgba(177, 177, 177, 0.55);
+  border-radius: 4px;
+}
+
+.cld-description-scroll::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+/* ── Language toggle — Figma 361:1480
+   Three white circular 44 x 44 glyph buttons with 55 px gaps:
+   pink Devanagari (अ), grey transliteration (ā), pink Latin (a). ── */
+.cld-lang-toggle {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 54px;
+  margin: 0 auto var(--cld-gap-lang-title);
+}
+
+/* REVERT (mid-body pass): margin was 64px auto 72px */
+
+.cld-lang-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 44px;
+  height: 44px;
+  background: #ffffff;
+  border: 1px solid rgba(177, 177, 177, 0.28);
+  border-radius: 999px;
+  padding: 0;
+  font-family: var(--ajab-font-serif);
+  font-size: 22px;
+  line-height: 1;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.08);
+}
+
+.cld-lang-btn--script {
+  color: var(--ajab-pink-primary);
+  cursor: pointer;
+}
+
+.cld-lang-btn--script:hover {
+  opacity: 0.78;
+}
+
+.cld-lang-btn--muted {
+  color: #808080;
+  cursor: pointer;
+}
+
+.cld-lang-btn.active {
+  box-shadow: 0 2px 14px rgba(227, 30, 121, 0.18);
+  border-color: rgba(227, 30, 121, 0.32);
+}
+
+/* ── Big song title + poet ── */
+.cld-song-title-block {
+  text-align: center;
+  margin: 0 auto var(--cld-gap-title-lyrics);
+}
+
+/* REVERT (mid-body pass): margin-bottom was 48px */
+
+.cld-song-title {
+  font-family: var(--ajab-font-serif);
+  font-weight: 400;
+  font-size: 36px;
+  color: var(--ajab-ink-700);
+  margin: 0 0 9px;
+  /* increased spacing between title and translation by 1pt (1px) */
+}
+
+.cld-song-translation {
+  font-family: var(--ajab-font-serif);
+  font-style: italic;
+  font-weight: 400;
+  font-size: 21px;
+  color: var(--ajab-ink-300);
+  line-height: 1.15;
+  /* reduced line-height of translation by 2pt (2px) */
+  margin-bottom: 12px;
+}
+
+.cld-song-poet {
+  font-family: var(--ajab-font-sans);
+  font-weight: 300;
+  font-size: var(--ajab-fs-body);
+  color: var(--ajab-pink-primary);
+  letter-spacing: 0;
+}
+
+/* Figma 361:1477: "poet" colored var(--ajab-ink-400), name colored var(--ajab-pink-primary) */
+.cld-song-poet-label {
+  color: var(--ajab-ink-400);
+}
+
+/* ── Lyrics — DO NOT change line-height / stanza spacing in layout passes.
+   Typography + stanza rhythm are locked; only outer block margin may shift. ── */
+.cld-lyrics {
+  font-family: var(--ajab-font-serif);
+  font-style: normal;
+  font-weight: 400;
+  font-size: 16px;
+  line-height: 1.42;
+  color: var(--ajab-ink-400);
+  text-align: center;
+  margin: 0 auto var(--cld-gap-lyrics-notes);
+  width: 100%;
+  max-width: 700px;
+  white-space: pre-wrap;
+}
+
+.cld-lyrics-stanza {
+  margin-bottom: 1.05em;
+}
+
+.cld-lyrics-stanza+.cld-lyrics-stanza {
+  margin-top: 0;
+}
+
+.cld-lyrics-stanza:last-child {
+  margin-bottom: 0;
+}
+
+/* CMS HTML — base normal; only <em>/<i> italic (matches ajabshahar.com). */
+.cld-lyrics--html p {
+  margin: 0 0 1.05em;
+}
+
+.cld-lyrics--html p:last-child {
+  margin-bottom: 0;
+}
+
+.cld-lyrics em,
+.cld-lyrics i {
+  font-style: italic;
+}
+
+/* ── NOTES | GLOSSARY links ──
+   Figma (361:1478): Merriweather Sans Light 18 / 300; NOTES pink var(--ajab-pink-primary),
+   pipe var(--ajab-ink-200), GLOSSARY dark var(--ajab-ink-950); no letter-spacing, no uppercase. ── */
+.cld-notes-glossary-row {
+  display: flex;
+  justify-content: center;
+  gap: 10px;
+  margin: 0 auto var(--cld-gap-notes-related);
+  font-family: var(--ajab-font-sans);
+  font-weight: 300;
+  font-size: var(--ajab-fs-body);
+  border-top: 1px solid var(--ajab-ink-100);
+  padding-top: 24px;
+  max-width: 380px;
+}
+
+/* REVERT (mid-body pass): margin was 48px auto 56px */
+
+.cld-notes-link,
+.cld-glossary-link {
+  font-family: inherit;
+  font-weight: inherit;
+  font-size: inherit;
+  letter-spacing: 0;
+  text-transform: none;
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 0;
+}
+
+.cld-notes-link {
+  color: var(--ajab-pink-primary);
+}
+
+.cld-glossary-link {
+  color: var(--ajab-ink-950);
+}
+
+/* GLOSSARY turns pink when the panel is open */
+.cld-glossary-link.is-active {
+  color: var(--ajab-pink-primary);
+}
+
+.cld-notes-glossary-sep {
+  color: var(--ajab-ink-200);
+}
+
+/* ── Song Notes floating overlay — positioned on the LEFT side of the page.
+   Uses song_notes.png (353 × 450) as the card background image.
+   Does NOT affect the lyrics layout (position: fixed, z-index overlay).
+   Figma reference: node 361:1575, x=375 from left edge of canvas. ── */
+.cld-notes-sidebar {
+  position: fixed;
+  /* Align with the left margin of the centred 1280px page column.
+     At 1280px viewport: (100vw - 1280px)/2 + ~40px ≈ 40px from viewport left.
+     clamp keeps it visible on narrower screens. */
+  left: max(12px, calc(50vw - 620px));
+  top: 50%;
+  transform: translateY(-50%) translateX(-12px);
+  width: 353px;
+  z-index: 200;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.25s ease, transform 0.25s ease;
+}
+
+.cld-notes-sidebar.is-open {
+  opacity: 1;
+  pointer-events: auto;
+  transform: translateY(-50%) translateX(0);
+}
+
+/* Inner card — uses song_notes.png composite (top wave + body + bottom wave).
+   Padding insets chosen to clear the wave shapes painted in the PNG:
+   top wave ≈ 38px tall, bottom wave ≈ 55px tall. ── */
+.cld-notes-sidebar-inner {
+  width: 353px;
+  min-height: 450px;
+  background: url(/songs-assets/song_notes.png) no-repeat center center / 100% 100%;
+  background-color: transparent;
+  padding: 50px 36px 70px;
+  box-sizing: border-box;
+  position: relative;
+}
+
+.cld-notes-sidebar-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 18px;
+}
+
+.cld-notes-sidebar-title {
+  font-family: var(--ajab-font-serif);
+  font-weight: 400;
+  font-size: var(--ajab-fs-body-lg);
+  color: var(--ajab-ink-700);
+}
+
+.cld-notes-sidebar-close {
+  color: var(--ajab-pink-primary);
+  font-size: 22px;
+  line-height: 1;
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 0 2px;
+  flex-shrink: 0;
+}
+
+.cld-notes-body {
+  margin: 0;
+  font-family: var(--ajab-font-sans);
+  font-weight: 300;
+  font-size: var(--ajab-fs-body-sm);
+  line-height: 1.55;
+  color: var(--ajab-ink-700);
+  white-space: pre-wrap;
+}
+
+/* ── Responsive: on narrow screens anchor the notes card to the bottom of the viewport ── */
+@media screen and (max-width: 800px) {
+  .cld-notes-sidebar {
+    left: 50%;
+    top: auto;
+    bottom: 80px;
+    transform: translateX(-50%) translateY(12px);
+    width: min(353px, 92vw);
+  }
+
+  .cld-notes-sidebar.is-open {
+    transform: translateX(-50%) translateY(0);
+  }
+
+  .cld-notes-sidebar-inner {
+    width: 100%;
+    min-height: 0;
+  }
+}
+
+/* ── Glossary floating overlay — mirrored on the RIGHT side of the page.
+   Same song_notes.png card style as the Notes sidebar. ── */
+.cld-glossary-sidebar {
+  position: fixed;
+  right: max(12px, calc(50vw - 620px));
+  top: 50%;
+  transform: translateY(-50%) translateX(12px);
+  width: 353px;
+  z-index: 200;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.25s ease, transform 0.25s ease;
+}
+
+.cld-glossary-sidebar.is-open {
+  opacity: 1;
+  pointer-events: auto;
+  transform: translateY(-50%) translateX(0);
+}
+
+@media screen and (max-width: 800px) {
+  .cld-glossary-sidebar {
+    right: 50%;
+    top: auto;
+    bottom: 80px;
+    transform: translateX(50%) translateY(12px);
+    width: min(353px, 92vw);
+  }
+
+  .cld-glossary-sidebar.is-open {
+    transform: translateX(50%) translateY(0);
+  }
+}
+
+/* ── Related section — same content column inset as video (Figma 361:1509). ── */
+.cld-related {
+  margin: 0 0 32px;
+  max-width: var(--cld-related-max-width);
+}
+
+/* REVERT: margin was 64px 0 60px */
+
+/* Figma 361:1512: "Related" Lora Regular 30 var(--ajab-ink-800) */
+.cld-related-title {
+  font-family: var(--ajab-font-serif);
+  font-size: var(--ajab-fs-h2);
+  font-weight: 400;
+  color: var(--ajab-ink-800);
+  margin: 0 0 10px;
+}
+
+/* REVERT (mid-body pass): margin-bottom was 14px */
+
+.cld-related-tabs {
+  display: flex;
+  gap: 16px;
+  align-items: baseline;
+  border-top: 1px solid var(--ajab-ink-100);
+  padding-top: 12px;
+  padding-bottom: 0;
+  margin-bottom: 20px;
+}
+
+/* REVERT (mid-body pass): margin-bottom was 28px */
+
+/* Figma 361:1568: tab label Merriweather Sans Light 22 var(--ajab-ink-400), count
+   Merriweather Sans Light 15 var(--ajab-ink-400), no letter-spacing, no uppercase */
+.cld-related-tab {
+  font-family: var(--ajab-font-sans);
+  font-weight: 300;
+  font-size: var(--ajab-fs-h6);
+  color: var(--ajab-ink-400);
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 0;
+  letter-spacing: 0;
+  text-transform: none;
+}
+
+.cld-related-tab.active {
+  color: var(--ajab-pink-primary);
+}
+
+.cld-related-tab-sep {
+  color: var(--ajab-ink-100);
+}
+
+.cld-related-tab-count {
+  font-size: var(--ajab-fs-caption);
+  margin-left: 2px;
+}
+
+.cld-related-list {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+/* REVERT: gap was 28px */
+
+/* Related item — Figma 361:1514/1550: thumb ~280×156, title 26, desc 18 */
+.cld-related-item {
+  display: flex;
+  gap: 20px;
+  align-items: flex-start;
+  padding-bottom: 0;
+  border-bottom: none;
+}
+
+/* REVERT (mid-body pass): gap was 32px */
+/* Divider only under the text column — avoids a full-bleed line cutting
+   horizontally through the thumbnail (read as "weird" on song detail). */
+.cld-related-item:not(:last-child) .cld-related-body {
+  border-bottom: 1px solid #e0e0e0;
+  padding-bottom: 16px;
+  margin-bottom: 2px;
+}
+
+/* Figma 361:1567 — full-width line above SEE MORE (replaces last row's item border). */
+.cld-related-item:last-child .cld-related-body {
+  padding-bottom: 8px;
+}
+
+.cld-related-thumb {
+  width: var(--cld-related-thumb-w);
+  height: var(--cld-related-thumb-h);
+  flex-shrink: 0;
+  background: #f0f0f0;
+  border-radius: 3px;
+  border: 3px solid #FFFFFF;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+  box-sizing: border-box;
+  overflow: hidden;
+}
+
+.cld-related-thumb img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+/* Figma 361:1517 — "Maati Kahe Kumbhar Se" thumb is a calligraphic Kabir
+   verse on cream paper (Zapfino, hand-drawn vibe). The exported PNG already
+   includes the paper background, so the container is transparent and the
+   image is shown at its natural aspect (object-fit: contain to avoid
+   cropping the verse). */
+.cld-related-thumb--handwritten {
+  background: transparent;
+}
+
+.cld-related-thumb--handwritten img {
+  object-fit: cover;
+  object-position: center;
+}
+
+.cld-related-body {
+  flex: 1;
+}
+
+/* Title row: pink title + inline italic subtitle on same line (Figma) */
+.cld-related-titlerow {
+  display: flex;
+  align-items: baseline;
+  gap: 10px;
+  flex-wrap: wrap;
+  margin-bottom: 4px;
+}
+
+/* Figma 361:1514: Lora 26, default var(--ajab-ink-900) (e.g. "Maati Kahe Kumbhar Se...");
+   highlighted/active: var(--ajab-pink-related) (e.g. "Had Anhad") */
+.cld-related-itemtitle {
+  font-family: var(--ajab-font-serif);
+  font-size: var(--ajab-fs-h4);
+  color: var(--ajab-pink-related);
+  margin: 0;
+}
+
+/* Dark variant — Figma 361:1514 ("Maati Kahe Kumbhar Se…"): fill #3c3c3b
+   maps to var(--ajab-ink-900). Used for poem/written-work items that don't
+   take the pink call-out treatment. */
+.cld-related-itemtitle--dark {
+  color: var(--ajab-ink-900);
+}
+
+.cld-related-itemsubtitle {
+  font-family: var(--ajab-font-serif);
+  font-style: italic;
+  font-size: var(--ajab-fs-h6);
+  color: var(--ajab-ink-500);
+  margin: 0;
+}
+
+/* Figma 361:1515 / 361:1516: Merriweather Sans Light 18 var(--ajab-ink-500).
+   `pre-line` is used so authored newlines in the mock/API copy (e.g. the
+   two-line "Maati Kahe Kumbhar Se…" excerpt) render on separate lines while
+   ordinary multi-sentence descriptions still wrap normally. */
+.cld-related-itemdesc {
+  font-family: var(--ajab-font-sans);
+  font-weight: 300;
+  font-size: var(--ajab-fs-body);
+  color: var(--ajab-ink-500);
+  line-height: 1.4;
+  white-space: pre-line;
+}
+
+/* ~4 lines, roughly aligned with related thumb height (158px rail). */
+.cld-related-itemdesc--clamped {
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 3;
+  overflow: hidden;
+  white-space: normal;
+}
+
+.cld-related-readmore {
+  display: inline-block;
+  margin-top: 6px;
+  padding: 0;
+  border: none;
+  background: none;
+  cursor: pointer;
+  font-family: var(--ajab-font-sans);
+  font-weight: 300;
+  font-size: var(--ajab-fs-caption);
+  color: var(--ajab-pink-primary);
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+
+.cld-related-readmore:hover {
+  opacity: 0.85;
+}
+
+/* Figma 361:1510: Merriweather Sans Light 20 var(--ajab-pink-related), no uppercase, no LS */
+.cld-related-seemore {
+  display: inline-block;
+  border-top: 1px solid #e0e0e0;
+  width: 100%;
+  box-sizing: border-box;
+  padding-top: 20px;
+  margin-top: 8px;
+  color: var(--ajab-pink-related);
+  font-family: var(--ajab-font-sans);
+  font-weight: 300;
+  font-size: var(--ajab-fs-body-lg);
+  text-transform: none;
+  letter-spacing: 0;
+  text-decoration: none;
+  cursor: pointer;
+  background: none;
+  border-left: none;
+  border-right: none;
+  border-bottom: none;
+  text-align: left;
+}
+
+/* ── Glossary strip — see components/shared/GlossaryStrip.css.
+   Extra bottom margin so the footer tree (baked into Footer.png) sits farther
+   below the dictionary pill strip than the default `.gs-strip` 80px. ── */
+.cl-songs-page-root:has(.cld-page) .gs-strip {
+  max-width: min(1015px, calc(100vw * 1015 / 1925));
+  margin-left: 0;
+  margin-right: auto;
+  margin-top: 24px;
+  margin-bottom: 24px;
+  padding: 28px 32px;
+}
+
+/* REVERT (mid-body pass): margin-left/right auto; margin-top 56px (from GlossaryStrip.css); padding 48px 40px */
+
+.cld-glossary-align .gs-strip {
+  max-width: var(--cld-related-max-width);
+}
+
+/* ── Keywords Block ── */
+.cld-keywords-wrap {
+  text-align: center;
+  margin: 0 auto 36px;
+  max-width: 700px;
+  font-family: var(--ajab-font-sans);
+  font-weight: 300;
+  font-size: var(--ajab-fs-body-sm);
+  color: var(--ajab-ink-400);
+}
+
+.cld-keyword-tag {
+  color: var(--ajab-ink-500) !important;
+  text-decoration: none !important;
+  font-weight: 400;
+  transition: color 0.2s ease;
+  cursor: pointer;
+}
+
+.cld-keyword-tag:hover {
+  color: var(--ajab-pink-primary) !important;
+  text-decoration: underline !important;
+  text-underline-offset: 3px;
+}
+
+.cld-keyword-sep {
+  color: var(--ajab-ink-300);
+}
+
+/* ── Responsive ── */
+@media screen and (max-width: 1024px) {
+  .cld-page {
+    padding: 20px 24px 0;
+  }
+
+  .cld-version-card {
+    --wc-width: 240px;
+    flex: 0 0 240px;
+  }
+
+  .cld-versions-slider {
+    gap: 28px;
+  }
+}
+
+@media screen and (max-width: 767px) {
+  .cld-versions-title {
+    font-size: var(--ajab-fs-h6);
+  }
+
+  .cld-song-title {
+    font-size: var(--ajab-fs-h3);
+  }
+
+  .cld-lyrics {
+    font-size: 17px;
+  }
+}

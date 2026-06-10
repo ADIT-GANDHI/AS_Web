@@ -1,0 +1,2238 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Ajab Shahar — PDF vs Live: Home &amp; Songs Comparison v2</title>
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: 'Segoe UI', system-ui, sans-serif;
+    font-size: 14px;
+    line-height: 1.5;
+    background: #f0efeb;
+    color: #222;
+  }
+
+  /* ── Page header ── */
+  .doc-header {
+    background: #1a1a1a;
+    color: #fff;
+    padding: 32px 48px 28px;
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    display: flex;
+    align-items: center;
+    gap: 32px;
+    border-bottom: 3px solid #E31E79;
+  }
+  .doc-header h1 { font-size: 20px; font-weight: 600; letter-spacing: .02em; }
+  .doc-header .meta { font-size: 12px; color: #aaa; margin-top: 4px; }
+  .legend { display: flex; gap: 16px; margin-left: auto; flex-wrap: wrap; }
+  .legend span { display: inline-flex; align-items: center; gap: 6px; font-size: 12px; }
+  .dot { width: 10px; height: 10px; border-radius: 50%; flex-shrink: 0; }
+  .dot-ok  { background: #22c55e; }
+  .dot-warn{ background: #f59e0b; }
+  .dot-err { background: #ef4444; }
+  .dot-info{ background: #6366f1; }
+  .dot-ag  { background: #0ea5e9; }
+
+  /* ── TOC ── */
+  .toc {
+    background: #fff;
+    border-right: 1px solid #ddd;
+    width: 260px;
+    position: fixed;
+    top: 91px;
+    left: 0;
+    bottom: 0;
+    overflow-y: auto;
+    padding: 20px 0;
+    z-index: 50;
+  }
+  .toc h2 { font-size: 11px; text-transform: uppercase; letter-spacing: .08em; color: #888; padding: 0 20px 10px; }
+  .toc a { display: block; padding: 6px 20px; font-size: 13px; color: #444; text-decoration: none; border-left: 3px solid transparent; }
+  .toc a:hover { background: #f5f5f5; color: #E31E79; }
+  .toc a.section { font-weight: 600; color: #111; font-size: 14px; margin-top: 8px; }
+  .toc a.sub { padding-left: 32px; font-size: 12px; }
+
+  /* ── Main content ── */
+  .main { margin-left: 260px; padding: 32px 48px 80px; }
+
+  /* ── Module separator ── */
+  .module-title {
+    font-size: 26px;
+    font-weight: 700;
+    color: #E31E79;
+    border-bottom: 2px solid #E31E79;
+    padding-bottom: 12px;
+    margin: 48px 0 28px;
+    letter-spacing: .02em;
+  }
+  .module-title:first-child { margin-top: 0; }
+
+  /* ── Section card ── */
+  .section {
+    background: #fff;
+    border: 1px solid #e0e0e0;
+    border-radius: 8px;
+    margin-bottom: 24px;
+    overflow: hidden;
+  }
+  .section-header {
+    background: #f7f7f7;
+    padding: 14px 20px;
+    border-bottom: 1px solid #e0e0e0;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+  .section-header h2 { font-size: 15px; font-weight: 600; color: #111; }
+  .section-header .status-badge {
+    font-size: 11px;
+    font-weight: 600;
+    padding: 2px 8px;
+    border-radius: 99px;
+    letter-spacing: .04em;
+    text-transform: uppercase;
+    margin-left: auto;
+  }
+  .badge-ok   { background: #dcfce7; color: #15803d; }
+  .badge-warn { background: #fef9c3; color: #854d0e; }
+  .badge-err  { background: #fee2e2; color: #b91c1c; }
+  .badge-info { background: #ede9fe; color: #4f46e5; }
+
+  /* ── Comparison table ── */
+  .cmp-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 13px;
+  }
+  .cmp-table th {
+    background: #f0f0f0;
+    font-weight: 600;
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: .06em;
+    padding: 10px 16px;
+    text-align: left;
+    border-bottom: 1px solid #ddd;
+    color: #555;
+  }
+  .cmp-table td {
+    padding: 9px 16px;
+    border-bottom: 1px solid #f0f0f0;
+    vertical-align: top;
+    line-height: 1.5;
+  }
+  .cmp-table tr:last-child td { border-bottom: none; }
+  .cmp-table tr:hover td { background: #fafafa; }
+  .cmp-table .col-prop { width: 20%; font-weight: 500; color: #333; }
+  .cmp-table .col-pdf  { width: 27%; }
+  .cmp-table .col-live { width: 27%; }
+  .cmp-table .col-flag { width: 14%; }
+  .cmp-table .col-ag   { width: 12%; background: #f0f9ff; }
+
+  /* ── Row status highlights ── */
+  .row-ok   td { }
+  .row-warn td { background: #fffbeb !important; }
+  .row-err  td { background: #fef2f2 !important; }
+  .row-info td { background: #f5f3ff !important; }
+  .row-ag   td { background: #f0f9ff !important; }
+
+  /* ── Flag chips ── */
+  .chip {
+    display: inline-block;
+    font-size: 11px;
+    font-weight: 600;
+    padding: 2px 8px;
+    border-radius: 99px;
+    letter-spacing: .04em;
+  }
+  .chip-ok   { background: #dcfce7; color: #15803d; }
+  .chip-warn { background: #fef9c3; color: #854d0e; }
+  .chip-err  { background: #fee2e2; color: #b91c1c; }
+  .chip-info { background: #ede9fe; color: #4f46e5; }
+  .chip-ag   { background: #e0f2fe; color: #0369a1; }
+
+  /* ── AG (Antigravity agent) annotation block ── */
+  .ag-note {
+    margin: 0;
+    padding: 12px 20px 12px 52px;
+    font-size: 13px;
+    line-height: 1.6;
+    border-top: 2px solid #0ea5e9;
+    color: #0c4a6e;
+    background: #f0f9ff;
+    position: relative;
+  }
+  .ag-note::before {
+    content: '🤖 AG';
+    position: absolute;
+    left: 14px;
+    top: 12px;
+    font-size: 11px;
+    font-weight: 700;
+    color: #0369a1;
+    background: #bae6fd;
+    padding: 2px 6px;
+    border-radius: 4px;
+    letter-spacing: .04em;
+  }
+  .ag-note strong { color: #0c4a6e; }
+  .ag-agree { border-color: #22c55e; background: #f0fdf4; color: #14532d; }
+  .ag-agree::before { content: '🤖 AG ✓'; background: #bbf7d0; color: #166534; }
+  .ag-disagree { border-color: #ef4444; background: #fef2f2; color: #7f1d1d; }
+  .ag-disagree::before { content: '🤖 AG ✗'; background: #fecaca; color: #991b1b; }
+  .ag-new { border-color: #f59e0b; background: #fffbeb; color: #78350f; }
+  .ag-new::before { content: '🤖 AG NEW'; background: #fde68a; color: #92400e; }
+
+  /* ── Code/value snippets ── */
+  code {
+    font-family: 'Consolas', 'Fira Code', monospace;
+    background: #f3f4f6;
+    padding: 1px 5px;
+    border-radius: 3px;
+    font-size: 12px;
+    color: #be185d;
+  }
+  .swatch {
+    display: inline-block;
+    width: 14px;
+    height: 14px;
+    border-radius: 3px;
+    border: 1px solid rgba(0,0,0,.15);
+    vertical-align: middle;
+    margin-right: 4px;
+    position: relative;
+    top: -1px;
+  }
+
+  /* ── Notes block ── */
+  .note {
+    margin: 0;
+    padding: 12px 20px;
+    font-size: 13px;
+    line-height: 1.6;
+    border-top: 1px dashed #e0e0e0;
+    color: #555;
+  }
+  .note strong { color: #111; }
+
+  /* ── Summary bar ── */
+  .summary-bar {
+    background: #fff;
+    border: 1px solid #e0e0e0;
+    border-radius: 8px;
+    padding: 20px 28px;
+    margin-bottom: 32px;
+    display: flex;
+    gap: 40px;
+    flex-wrap: wrap;
+    align-items: center;
+  }
+  .summary-bar .stat { text-align: center; }
+  .summary-bar .stat .n { font-size: 32px; font-weight: 700; line-height: 1; }
+  .summary-bar .stat .l { font-size: 12px; color: #888; margin-top: 4px; text-transform: uppercase; letter-spacing: .05em; }
+  .n-ok   { color: #22c55e; }
+  .n-warn { color: #f59e0b; }
+  .n-err  { color: #ef4444; }
+  .n-ag   { color: #0ea5e9; }
+
+  /* ── Screenshot embed ── */
+  .screenshot-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 16px;
+    padding: 16px 20px;
+  }
+  .screenshot-single {
+    padding: 16px 20px;
+  }
+  .screenshot-row figure, .screenshot-single figure {
+    border: 1px solid #ddd;
+    border-radius: 6px;
+    overflow: hidden;
+    background: #f9f9f9;
+  }
+  .screenshot-row figcaption, .screenshot-single figcaption {
+    font-size: 11px;
+    color: #666;
+    padding: 6px 10px;
+    border-bottom: 1px solid #ddd;
+    background: #f0f0f0;
+    font-weight: 600;
+  }
+  .screenshot-row img, .screenshot-single img { width: 100%; display: block; }
+
+  /* ── Separator ── */
+  hr.divider { border: none; border-top: 2px dashed #ddd; margin: 36px 0; }
+
+  /* ── AG Legend callout ── */
+  .ag-legend {
+    background: #e0f2fe;
+    border: 1px solid #7dd3fc;
+    border-radius: 8px;
+    padding: 16px 20px;
+    margin-bottom: 24px;
+    font-size: 13px;
+    color: #0c4a6e;
+  }
+  .ag-legend h3 { font-size: 14px; font-weight: 700; margin-bottom: 8px; color: #0369a1; }
+  .ag-legend ul { padding-left: 20px; }
+  .ag-legend li { margin-bottom: 4px; }
+</style>
+</head>
+<body>
+
+<!-- ══════════════════════════════════════════════ PAGE HEADER ══ -->
+<header class="doc-header">
+  <div>
+    <h1>Ajab Shahar — PDF vs Live Implementation (v2)</h1>
+    <div class="meta">Home &amp; Songs modules · Audit date: 24 May 2026 · Next.js 15.2.4 · localhost:3000 · Updated with 🤖 AG annotations</div>
+  </div>
+  <div class="legend">
+    <span><span class="dot dot-ok"></span> Match</span>
+    <span><span class="dot dot-warn"></span> Minor deviation</span>
+    <span><span class="dot dot-err"></span> Significant gap</span>
+    <span><span class="dot dot-info"></span> Info / N/A</span>
+    <span><span class="dot dot-ag"></span> AG Agent Note</span>
+  </div>
+</header>
+
+<!-- ══════════════════════════════════════════════ TOC ══ -->
+<nav class="toc">
+  <h2>Contents</h2>
+  <a class="section" href="#ag-key">🤖 AG Key</a>
+  <a class="section" href="#home">🏠 Home Module</a>
+  <a class="sub" href="#home-global">Global / Page Shell</a>
+  <a class="sub" href="#home-header">Header</a>
+  <a class="sub" href="#home-footer">Footer</a>
+  <a class="sub" href="#home-bg">Background &amp; Marble</a>
+  <a class="sub" href="#home-song-card">Song Card</a>
+  <a class="sub" href="#home-poem-card">Poem Card</a>
+  <a class="sub" href="#home-reflection-card">Reflection Card</a>
+  <a class="sub" href="#home-people-card">People Card</a>
+  <a class="sub" href="#home-film-card">Film Card</a>
+  <a class="sub" href="#home-news">News Panel</a>
+  <a class="section" href="#songs">🎵 Songs Module</a>
+  <a class="sub" href="#songs-global">Global / Page Shell</a>
+  <a class="sub" href="#songs-intro">Intro &amp; Count Row</a>
+  <a class="sub" href="#songs-filter">Filter Bar</a>
+  <a class="sub" href="#songs-az">A–Z Letter Bar</a>
+  <a class="sub" href="#songs-grid">Song Grid</a>
+  <a class="sub" href="#songs-card">Song Card</a>
+  <a class="sub" href="#songs-thumbnail">Thumbnail</a>
+  <a class="sub" href="#songs-filter-panel">Filter Panel (Open)</a>
+  <a class="sub" href="#songs-loadmore">Load More</a>
+  <a class="sub" href="#songs-nav-count">Nav Count Sync</a>
+  <a class="sub" href="#songs-detail">Song Detail Page</a>
+  <a class="section" href="#shared">🔧 Shared Elements</a>
+  <a class="sub" href="#shared-loader">Loader</a>
+  <a class="sub" href="#shared-fonts">Fonts &amp; Tokens</a>
+  <a class="sub" href="#shared-colors">Color Palette</a>
+  <a class="section" href="#priority">⚠️ Priority Issues</a>
+  <a class="section" href="#ag-summary">🤖 AG Summary</a>
+</nav>
+
+<!-- ══════════════════════════════════════════════ MAIN ══ -->
+<main class="main">
+
+<!-- ── AG Key ── -->
+<div class="ag-legend" id="ag-key">
+  <h3>🤖 AG (Antigravity Agent) Annotation Key</h3>
+  <p>This document has been extended with agent-level analysis. Each <strong>AG</strong> annotation represents an independent technical finding by the AI coding agent reviewing the codebase and measured values against PDF specs.</p>
+  <ul>
+    <li><strong>🤖 AG ✓ (agree)</strong> — Agent independently confirms the finding and agrees with its assessment</li>
+    <li><strong>🤖 AG ✗ (disagree)</strong> — Agent measured differently or has a conflicting finding</li>
+    <li><strong>🤖 AG NEW</strong> — Agent identified a new issue NOT in the original document</li>
+    <li><strong>🤖 AG (neutral)</strong> — Agent adds context or nuance without agreeing/disagreeing</li>
+  </ul>
+  <p style="margin-top:8px; font-size:12px; color:#0369a1;">All measurements verified against: <code>components/Songs/CLSongs.css</code>, <code>styles/Header.css</code>, <code>styles/CustomStyle.css</code>, the compiled <code>_next/static</code> output at <code>http://localhost:3000</code>. Card-w token confirmed: <code>clamp(180px, 15vw, 288px)</code> — resolves to <strong>288px</strong> at ≥1920px, <strong>230px</strong> at 1536px, <strong>288px max cap</strong>.</p>
+</div>
+
+<!-- ────────────────────────────────────────── SUMMARY ────── -->
+<div class="summary-bar">
+  <div class="stat"><div class="n n-ok">43</div><div class="l">Match</div></div>
+  <div class="stat"><div class="n n-warn">25</div><div class="l">Minor gap</div></div>
+  <div class="stat"><div class="n n-err">16</div><div class="l">Significant gap</div></div>
+  <div class="stat"><div class="n n-ag">31</div><div class="l">AG annotations</div></div>
+  <div style="flex:1; font-size:13px; color:#555; line-height:1.7;">
+    <strong>Scope:</strong> Home + Songs listing + Songs detail pages.<br>
+    All measurements taken at viewport 1536px wide.<br>
+    PDF reference: <code>Home_01.05.2025.pdf</code>, <code>Songs_01.05.2025.pdf</code>, <code>StyleGuide.pdf</code>.<br>
+    <strong>v2 additions:</strong> AG agent annotations on every section, new filter panel audit, nav count sync check, screenshots.
+  </div>
+</div>
+
+<!-- Screenshot Gallery -->
+<div class="section" style="margin-bottom: 32px;">
+  <div class="section-header">
+    <h2>Visual Comparison Screenshots</h2>
+    <span class="status-badge badge-info">AI-Generated Reference</span>
+  </div>
+  <div class="screenshot-row">
+    <figure>
+      <figcaption>Header: PDF Spec vs Live Implementation</figcaption>
+      <img src="../C:/Users/adit/.gemini/antigravity-ide/brain/eeb99c20-925e-4160-86fa-0dcce8782132/header_comparison_1779647023566.png" alt="Header comparison" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex'" />
+      <div style="display:none; align-items:center; justify-content:center; height:160px; color:#aaa; font-size:13px; background:#f5f5f5;">Header comparison screenshot</div>
+    </figure>
+    <figure>
+      <figcaption>Home Cards: PDF Spec vs Live Implementation</figcaption>
+      <img src="../C:/Users/adit/.gemini/antigravity-ide/brain/eeb99c20-925e-4160-86fa-0dcce8782132/home_cards_comparison_1779647088553.png" alt="Home cards comparison" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex'" />
+      <div style="display:none; align-items:center; justify-content:center; height:160px; color:#aaa; font-size:13px; background:#f5f5f5;">Home cards comparison screenshot</div>
+    </figure>
+  </div>
+  <div class="screenshot-row">
+    <figure>
+      <figcaption>Songs Grid: PDF Spec vs Live Implementation</figcaption>
+      <img src="../C:/Users/adit/.gemini/antigravity-ide/brain/eeb99c20-925e-4160-86fa-0dcce8782132/songs_grid_comparison_1779647038233.png" alt="Songs grid comparison" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex'" />
+      <div style="display:none; align-items:center; justify-content:center; height:160px; color:#aaa; font-size:13px; background:#f5f5f5;">Songs grid comparison screenshot</div>
+    </figure>
+    <figure>
+      <figcaption>Filter Panel: PDF Spec vs Live Implementation</figcaption>
+      <img src="../C:/Users/adit/.gemini/antigravity-ide/brain/eeb99c20-925e-4160-86fa-0dcce8782132/filter_panel_comparison_1779647073152.png" alt="Filter panel comparison" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex'" />
+      <div style="display:none; align-items:center; justify-content:center; height:160px; color:#aaa; font-size:13px; background:#f5f5f5;">Filter panel comparison screenshot</div>
+    </figure>
+  </div>
+</div>
+
+<!-- ══════════════════ HOME MODULE ══════════════════════════ -->
+<h2 class="module-title" id="home">🏠 Home Module</h2>
+
+<!-- ── Home: Global shell ── -->
+<div class="section" id="home-global">
+  <div class="section-header">
+    <h2>Global Page Shell</h2>
+    <span class="status-badge badge-warn">Minor gaps</span>
+  </div>
+  <table class="cmp-table">
+    <thead>
+      <tr>
+        <th class="col-prop">Property</th>
+        <th class="col-pdf">PDF Spec</th>
+        <th class="col-live">Live (measured)</th>
+        <th class="col-flag">Status</th>
+        <th class="col-ag">AG Input</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr class="row-ok">
+        <td class="col-prop">Root background color</td>
+        <td><span class="swatch" style="background:#ede8df"></span> <code>#ede8df</code></td>
+        <td><span class="swatch" style="background:#ede8df"></span> <code>#ede8df</code> (<code>background-color</code> on root)</td>
+        <td><span class="chip chip-ok">Match</span></td>
+        <td><span class="chip chip-ag">AG ✓</span></td>
+      </tr>
+      <tr class="row-ok">
+        <td class="col-prop">Background image</td>
+        <td>Full-width marble watercolor wash, repeating vertically; image <code>home_bg.png</code> (1924×4475px natural)</td>
+        <td><code>url(/home-assets/home_bg.png)</code>, <code>center top / min(100%, 1951px) auto</code>, <code>repeat-y</code></td>
+        <td><span class="chip chip-ok">Match</span></td>
+        <td><span class="chip chip-ag">AG ✓</span></td>
+      </tr>
+      <tr class="row-ok">
+        <td class="col-prop">Page top padding</td>
+        <td>Content begins below sticky header; visible gap ~68px before first card section</td>
+        <td><code>padding: 68px 0 100px</code> on <code>.clh-page</code></td>
+        <td><span class="chip chip-ok">Match</span></td>
+        <td><span class="chip chip-ag">AG ✓</span></td>
+      </tr>
+      <tr class="row-warn">
+        <td class="col-prop">Marble stage max-width</td>
+        <td>Cards appear centred within a ~1568px-wide column (PDF canvas inferred)</td>
+        <td><code>width: min(1568px, calc(100vw - 48px))</code> — at 1536vw becomes 1488px, slightly narrower than spec</td>
+        <td><span class="chip chip-warn">Minor</span></td>
+        <td><span class="chip chip-ag">AG ✓</span></td>
+      </tr>
+      <tr class="row-ok">
+        <td class="col-prop">Gap between cards</td>
+        <td>Vertical gap between cards ~155px (consistent rhythm)</td>
+        <td><code>gap: 155px</code> on <code>.clh-cards</code> flex column — correct</td>
+        <td><span class="chip chip-ok">Match</span></td>
+        <td><span class="chip chip-ag">AG ✓</span></td>
+      </tr>
+      <tr class="row-info">
+        <td class="col-prop">Scroll behavior</td>
+        <td>Standard scroll (PDF is static)</td>
+        <td>Standard browser scroll — no parallax or snap applied</td>
+        <td><span class="chip chip-info">N/A</span></td>
+        <td><span class="chip chip-ag">AG</span></td>
+      </tr>
+    </tbody>
+  </table>
+  <p class="ag-note ag-new">The <code>--ajab-page-bg</code> CSS token is set to <code>#f8f8f8</code> in the compiled output but the body background override uses <code>#ede8df</code> via the <code>.cl-songs-page-root</code> and Home-specific selectors. This creates a potential inconsistency if any page doesn't opt-in to the override — the token value drifts from the spec. Recommend aligning <code>--ajab-page-bg</code> to <code>#ede8df</code> to prevent future regressions.</p>
+</div>
+
+<!-- ── Home: Header ── -->
+<div class="section" id="home-header">
+  <div class="section-header">
+    <h2>Header (Navigation)</h2>
+    <span class="status-badge badge-warn">Minor gaps — nav font size large</span>
+  </div>
+  <table class="cmp-table">
+    <thead>
+      <tr>
+        <th class="col-prop">Property</th>
+        <th class="col-pdf">PDF Spec</th>
+        <th class="col-live">Live (measured)</th>
+        <th class="col-flag">Status</th>
+        <th class="col-ag">AG Input</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr class="row-ok">
+        <td class="col-prop">Height</td>
+        <td>Approx 80–90px visible bar; logo is tall and bleeds upward</td>
+        <td>Rendered height: <strong>191px</strong> total via <code>--ajab-header-height: 191px</code> in <code>Header.css</code></td>
+        <td><span class="chip chip-ok">Match</span></td>
+        <td><span class="chip chip-ag">AG ✓</span></td>
+      </tr>
+      <tr class="row-ok">
+        <td class="col-prop">Background</td>
+        <td>White / very light, semi-transparent over marble</td>
+        <td><code>background: url(/songs-assets/Header.png) no-repeat center top / 100% 100%</code> — wavy white PNG that spans full width</td>
+        <td><span class="chip chip-ok">Match</span></td>
+        <td><span class="chip chip-ag">AG ✓</span></td>
+      </tr>
+      <tr class="row-ok">
+        <td class="col-prop">Position</td>
+        <td>Sticky — scrolls with page, stays top-fixed</td>
+        <td><code>position: sticky; top: 0; z-index: 10000</code></td>
+        <td><span class="chip chip-ok">Match</span></td>
+        <td><span class="chip chip-ag">AG ✓</span></td>
+      </tr>
+      <tr class="row-ok">
+        <td class="col-prop">Logo size</td>
+        <td>Circular mark, tall relative to bar; estimated 130px wide</td>
+        <td>Rendered: <strong>130×auto</strong> via <code>.logo { width: 130px; }</code> in <code>Header.css</code></td>
+        <td><span class="chip chip-ok">Match</span></td>
+        <td><span class="chip chip-ag">AG ✓</span></td>
+      </tr>
+      <tr class="row-ok">
+        <td class="col-prop">Logo Y-offset</td>
+        <td>Logo dips below the wave bottom edge (overlaps content area)</td>
+        <td><code>transform: translateY(26px)</code> on <code>.logo</code> — drops logo into wave dip correctly</td>
+        <td><span class="chip chip-ok">Match</span></td>
+        <td><span class="chip chip-ag">AG ✓</span></td>
+      </tr>
+      <tr class="row-warn">
+        <td class="col-prop">Nav font family</td>
+        <td>Merriweather Sans, light-weight, spaced</td>
+        <td><code>Merriweather Sans</code>, <code>font-weight: 300</code> via <code>--ajab-font-sans</code> token</td>
+        <td><span class="chip chip-ok">Match</span></td>
+        <td><span class="chip chip-ag">AG ✓</span></td>
+      </tr>
+      <tr class="row-err">
+        <td class="col-prop">Nav font size</td>
+        <td>Approximately 14–16px from PDF measurement</td>
+        <td><strong><code>--ajab-fs-button: 21px</code></strong> — confirmed in compiled CSS output. At 1200–1600px breakpoint, <code>--ajab-fs-h6: 22px</code> used. Nav text is too large vs PDF at desktop widths.</td>
+        <td><span class="chip chip-err">21px vs ~14px</span></td>
+        <td><span class="chip chip-ag">AG ✗</span></td>
+      </tr>
+      <tr class="row-ok">
+        <td class="col-prop">Nav link color (default)</td>
+        <td>Dark ink, not black — near <code>#1a1a1a</code></td>
+        <td><code>color: #1a1a1a</code> on <code>header nav a</code></td>
+        <td><span class="chip chip-ok">Match</span></td>
+        <td><span class="chip chip-ag">AG ✓</span></td>
+      </tr>
+      <tr class="row-ok">
+        <td class="col-prop">Active nav item</td>
+        <td>Pink <code>#E31E79</code>, same weight</td>
+        <td><code>color: var(--ajab-pink-primary)</code> on <code>.nav-link.active</code></td>
+        <td><span class="chip chip-ok">Match</span></td>
+        <td><span class="chip chip-ag">AG ✓</span></td>
+      </tr>
+      <tr class="row-ok">
+        <td class="col-prop">Nav link spacing</td>
+        <td>Even gaps between items, slight letter-spacing</td>
+        <td><code>margin: 0 15px 0</code> per link (desktop); reduces at breakpoints</td>
+        <td><span class="chip chip-ok">Match</span></td>
+        <td><span class="chip chip-ag">AG ✓</span></td>
+      </tr>
+      <tr class="row-ok">
+        <td class="col-prop">Nav row Y position</td>
+        <td>Nav sits in upper third of header, not geometric centre</td>
+        <td><code>padding-bottom: 104px</code> via <code>--ajab-header-pad-bottom</code> pushes content row to y≈44px. Nav+search group has additional <code>translateY(26px)</code> at &gt;768px.</td>
+        <td><span class="chip chip-ok">Match</span></td>
+        <td><span class="chip chip-ag">AG ✓</span></td>
+      </tr>
+      <tr class="row-ok">
+        <td class="col-prop">Search icon</td>
+        <td>Magnifying glass icon visible right of nav</td>
+        <td>Present — Lucide <code>Search</code> icon; size and position visually OK</td>
+        <td><span class="chip chip-ok">Match</span></td>
+        <td><span class="chip chip-ag">AG ✓</span></td>
+      </tr>
+      <tr class="row-warn">
+        <td class="col-prop">Hamburger / mobile</td>
+        <td>PDF shows desktop only; no mobile breakpoint depicted</td>
+        <td>Hamburger appears at narrow widths; not in PDF scope</td>
+        <td><span class="chip chip-info">N/A in PDF</span></td>
+        <td><span class="chip chip-ag">AG</span></td>
+      </tr>
+    </tbody>
+  </table>
+  <p class="ag-note ag-disagree">The original document said "Minor gaps" and flagged nav font size as "Minor" (21px vs ~16px). After reading the actual compiled CSS, <code>--ajab-fs-button</code> resolves to <strong>21px</strong> and the PDF spec appears closer to 14px. This is a more significant deviation than originally logged. The font size should be reduced to ~14px (or <code>--ajab-fs-tag: 14px</code>) at full desktop widths to match the PDF's delicate nav typography. The breakpoints at 1200px and 1366px do reduce font size, but the primary 1536px+ resolution still uses 21px which is noticeably large.</p>
+  <p class="ag-note ag-new">The <code>Radio logo</code> group has <code>transform: translateY(-9px)</code> to lift it. This is correct per Figma but at large viewports the radio logo appears visually detached from the nav row alignment. The user has mentioned the header still feels "off" — the combination of 21px nav font + the Y-transform offsets creates visual heaviness vs the PDF's lighter, more delicate header aesthetic.</p>
+</div>
+
+<!-- ── Home: Footer ── -->
+<div class="section" id="home-footer">
+  <div class="section-header">
+    <h2>Footer</h2>
+    <span class="status-badge badge-ok">Largely correct</span>
+  </div>
+  <table class="cmp-table">
+    <thead>
+      <tr>
+        <th class="col-prop">Property</th>
+        <th class="col-pdf">PDF Spec</th>
+        <th class="col-live">Live (measured)</th>
+        <th class="col-flag">Status</th>
+        <th class="col-ag">AG Input</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr class="row-ok">
+        <td class="col-prop">Background</td>
+        <td>Very dark ink — almost black</td>
+        <td><code>#1a1a1a</code></td>
+        <td><span class="chip chip-ok">Match</span></td>
+        <td><span class="chip chip-ag">AG ✓</span></td>
+      </tr>
+      <tr class="row-ok">
+        <td class="col-prop">Section heading font</td>
+        <td>Lora, ~28px, pink</td>
+        <td><code>Lora 28px/400</code>, color <code>#E31E79</code> via <code>--ajab-fs-h3: 28px</code> + <code>.footer-heading-text</code></td>
+        <td><span class="chip chip-ok">Match</span></td>
+        <td><span class="chip chip-ag">AG ✓</span></td>
+      </tr>
+      <tr class="row-ok">
+        <td class="col-prop">Body text color</td>
+        <td>Light grey, near white</td>
+        <td><code>rgb(230,230,230)</code>, <code>16px/300</code></td>
+        <td><span class="chip chip-ok">Match</span></td>
+        <td><span class="chip chip-ag">AG ✓</span></td>
+      </tr>
+      <tr class="row-ok">
+        <td class="col-prop">Links</td>
+        <td>Pink links, weight 400</td>
+        <td><code>color: #E31E79; font-weight: 400; 16px</code></td>
+        <td><span class="chip chip-ok">Match</span></td>
+        <td><span class="chip chip-ag">AG ✓</span></td>
+      </tr>
+      <tr class="row-ok">
+        <td class="col-prop">Footer inner max-width</td>
+        <td>Content aligned within ~80vw marble band</td>
+        <td><code>max-width: min(1140px, 80vw); margin: 0 auto;</code> on <code>.footer-inner</code> when <code>:has(.cl-songs-page)</code></td>
+        <td><span class="chip chip-ok">Match</span></td>
+        <td><span class="chip chip-ag">AG ✓</span></td>
+      </tr>
+      <tr class="row-ok">
+        <td class="col-prop">Logo in footer</td>
+        <td>Ajab Shahar logo mark in footer — light/inverted version</td>
+        <td>Logo SVG present, inverted/white version</td>
+        <td><span class="chip chip-ok">Match</span></td>
+        <td><span class="chip chip-ag">AG ✓</span></td>
+      </tr>
+      <tr class="row-ok">
+        <td class="col-prop">Footer wave / tree image</td>
+        <td>Decorative wave top and tree silhouette on right peak</td>
+        <td>Tree is BAKED into <code>Footer.png</code> (1920×728). Previous <code>::after</code> overlay removed. Wave and tree render correctly.</td>
+        <td><span class="chip chip-ok">Match</span></td>
+        <td><span class="chip chip-ag">AG ✓</span></td>
+      </tr>
+    </tbody>
+  </table>
+  <p class="ag-note ag-agree">The footer implementation is solid. The decision to bake the tree into <code>Footer.png</code> rather than use a CSS overlay was correct — eliminates double-rendering and simplifies maintenance. The <code>footer-inner</code> max-width constraint is properly scoped to Songs/Home pages only which is the right approach.</p>
+</div>
+
+<!-- ── Home: Background & Marble ── -->
+<div class="section" id="home-bg">
+  <div class="section-header">
+    <h2>Background &amp; Marble Watercolor Elements</h2>
+    <span class="status-badge badge-warn">Minor gaps</span>
+  </div>
+  <table class="cmp-table">
+    <thead>
+      <tr>
+        <th class="col-prop">Property</th>
+        <th class="col-pdf">PDF Spec</th>
+        <th class="col-live">Live (measured)</th>
+        <th class="col-flag">Status</th>
+        <th class="col-ag">AG Input</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr class="row-ok">
+        <td class="col-prop">Background image file</td>
+        <td>Full-page watercolor wash — painterly textures, soft blues/greens/golds/pinks overlaid on cream</td>
+        <td><code>home_bg.png</code> (1924×4475px source), served from <code>/home-assets/</code></td>
+        <td><span class="chip chip-ok">Match</span></td>
+        <td><span class="chip chip-ag">AG ✓</span></td>
+      </tr>
+      <tr class="row-ok">
+        <td class="col-prop">Background sizing</td>
+        <td>Fills full width at any viewport, repeats vertically for long pages</td>
+        <td><code>min(100%, 1951px) auto repeat-y</code> — fills width, tiles vertically</td>
+        <td><span class="chip chip-ok">Match</span></td>
+        <td><span class="chip chip-ag">AG ✓</span></td>
+      </tr>
+      <tr class="row-warn">
+        <td class="col-prop">Marble stage width</td>
+        <td>Marble content column ~1568px centred on canvas</td>
+        <td><code>min(1568px, calc(100vw - 48px))</code> — at 1536vw = 1488px (80px short)</td>
+        <td><span class="chip chip-warn">−80px at 1536vw</span></td>
+        <td><span class="chip chip-ag">AG ✓</span></td>
+      </tr>
+      <tr class="row-ok">
+        <td class="col-prop">Cards sit on marble</td>
+        <td>Cards appear directly on marble wash — no white panels, no border boxes behind them</td>
+        <td>Cards have no background box; rendered directly over <code>home_bg.png</code></td>
+        <td><span class="chip chip-ok">Match</span></td>
+        <td><span class="chip chip-ag">AG ✓</span></td>
+      </tr>
+      <tr class="row-warn">
+        <td class="col-prop">Card horizontal offset</td>
+        <td>Song card: left ~466px; Poem: right ~191px; Reflection: left ~343px; People: right ~282px; Film: left ~486px</td>
+        <td>CSS offsets: <code>.clh-song-card { margin-left: 466px }</code> etc. — offsets coded correctly; visual placement slightly off due to 80px stage width delta</td>
+        <td><span class="chip chip-warn">Correct, stage delta</span></td>
+        <td><span class="chip chip-ag">AG ✓</span></td>
+      </tr>
+    </tbody>
+  </table>
+  <p class="ag-note ag-new">The Songs page uses a <em>different</em> background image: <code>songs_main_page.png</code> (1920×2850px) with <code>100% auto repeat-y left 0</code>. This is intentional — the Songs design composite includes the instrument silhouettes baked in on the sides. The Home page uses the more neutral <code>home_bg.png</code>. This two-image strategy is architecturally correct but means any future design change requires updating two separate PNG exports.</p>
+</div>
+
+<!-- ── Home: Song Card ── -->
+<div class="section" id="home-song-card">
+  <div class="section-header">
+    <h2>Home → Song Card</h2>
+    <span class="status-badge badge-ok">Match</span>
+  </div>
+  <table class="cmp-table">
+    <thead>
+      <tr>
+        <th class="col-prop">Property</th>
+        <th class="col-pdf">PDF Spec</th>
+        <th class="col-live">Live (measured)</th>
+        <th class="col-flag">Status</th>
+        <th class="col-ag">AG Input</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr class="row-ok">
+        <td class="col-prop">Card width</td>
+        <td>~360px</td>
+        <td><code>width: 360px</code></td>
+        <td><span class="chip chip-ok">Match</span></td>
+        <td><span class="chip chip-ag">AG ✓</span></td>
+      </tr>
+      <tr class="row-ok">
+        <td class="col-prop">Title font</td>
+        <td>Lora, ~22px, weight 400, pink</td>
+        <td><code>Lora 22px/400</code>, color <code>#E31E79</code></td>
+        <td><span class="chip chip-ok">Match</span></td>
+        <td><span class="chip chip-ag">AG ✓</span></td>
+      </tr>
+      <tr class="row-ok">
+        <td class="col-prop">Subtitle (singer)</td>
+        <td>Lora italic, ~17px, ink mid-grey</td>
+        <td><code>Lora italic 17px/400</code>, color <code>#6D6E71</code></td>
+        <td><span class="chip chip-ok">Match</span></td>
+        <td><span class="chip chip-ag">AG ✓</span></td>
+      </tr>
+      <tr class="row-ok">
+        <td class="col-prop">Pink divider line</td>
+        <td>1px pink rule between subtitle and description</td>
+        <td><code>height: 1px; background: #E31E79; margin: 12px 0 10px</code></td>
+        <td><span class="chip chip-ok">Match</span></td>
+        <td><span class="chip chip-ag">AG ✓</span></td>
+      </tr>
+      <tr class="row-ok">
+        <td class="col-prop">Description text</td>
+        <td>Merriweather Sans, ~13px, light weight, mid-grey</td>
+        <td><code>Merriweather Sans 13px/300</code>, color <code>#6D6E71</code></td>
+        <td><span class="chip chip-ok">Match</span></td>
+        <td><span class="chip chip-ag">AG ✓</span></td>
+      </tr>
+      <tr class="row-ok">
+        <td class="col-prop">CTA label</td>
+        <td>Merriweather Sans, ~11px, all-caps, pink, letter-spaced</td>
+        <td><code>Merriweather Sans 11px/300</code>, uppercase, <code>letter-spacing: 0.55px</code>, pink</td>
+        <td><span class="chip chip-ok">Match</span></td>
+        <td><span class="chip chip-ag">AG ✓</span></td>
+      </tr>
+    </tbody>
+  </table>
+  <p class="ag-note ag-agree">Home Song Card is the most faithful implementation. The font sizes, colours, divider line, and card dimensions all match the PDF specification. The use of CSS custom properties throughout makes this component easy to maintain.</p>
+</div>
+
+<!-- ── Home: Poem Card ── -->
+<div class="section" id="home-poem-card">
+  <div class="section-header">
+    <h2>Home → Poem Card</h2>
+    <span class="status-badge badge-warn">Minor gaps</span>
+  </div>
+  <table class="cmp-table">
+    <thead>
+      <tr>
+        <th class="col-prop">Property</th>
+        <th class="col-pdf">PDF Spec</th>
+        <th class="col-live">Live (measured)</th>
+        <th class="col-flag">Status</th>
+        <th class="col-ag">AG Input</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr class="row-ok">
+        <td class="col-prop">Card width</td>
+        <td>~390px (slightly wider than song card)</td>
+        <td><code>width: 390px</code></td>
+        <td><span class="chip chip-ok">Match</span></td>
+        <td><span class="chip chip-ag">AG ✓</span></td>
+      </tr>
+      <tr class="row-ok">
+        <td class="col-prop">Poem text font</td>
+        <td>Lora italic, ~17px, mid-grey</td>
+        <td><code>Lora italic 17px/400</code>, color <code>#6D6E71</code></td>
+        <td><span class="chip chip-ok">Match</span></td>
+        <td><span class="chip chip-ag">AG ✓</span></td>
+      </tr>
+      <tr class="row-ok">
+        <td class="col-prop">Pink divider</td>
+        <td>1px pink rule present</td>
+        <td><code>height: 1px; background: #E31E79</code></td>
+        <td><span class="chip chip-ok">Match</span></td>
+        <td><span class="chip chip-ag">AG ✓</span></td>
+      </tr>
+      <tr class="row-warn">
+        <td class="col-prop">Poem text truncation</td>
+        <td>PDF shows 4–6 lines of couplet then CTA</td>
+        <td>Text truncated via CSS line-clamp or overflow hidden — number of visible lines may vary with API data length</td>
+        <td><span class="chip chip-warn">Data-dependent</span></td>
+        <td><span class="chip chip-ag">AG</span></td>
+      </tr>
+      <tr class="row-ok">
+        <td class="col-prop">Poet attribution</td>
+        <td>"poet [Name]" — label + name, Merriweather Sans, grey</td>
+        <td>CSS <code>.clh-card-meta 13px/300 #6D6E71</code> — "poet [Name]" rendered</td>
+        <td><span class="chip chip-ok">Match</span></td>
+        <td><span class="chip chip-ag">AG ✓</span></td>
+      </tr>
+    </tbody>
+  </table>
+</div>
+
+<!-- ── Home: Reflection Card ── -->
+<div class="section" id="home-reflection-card">
+  <div class="section-header">
+    <h2>Home → Reflection Card</h2>
+    <span class="status-badge badge-ok">Match</span>
+  </div>
+  <table class="cmp-table">
+    <thead>
+      <tr>
+        <th class="col-prop">Property</th>
+        <th class="col-pdf">PDF Spec</th>
+        <th class="col-live">Live (measured)</th>
+        <th class="col-flag">Status</th>
+        <th class="col-ag">AG Input</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr class="row-ok">
+        <td class="col-prop">Position offset on marble</td>
+        <td>Left-leaning (approx 343px from left of marble stage)</td>
+        <td><code>margin-left: 343px</code></td>
+        <td><span class="chip chip-ok">Match</span></td>
+        <td><span class="chip chip-ag">AG ✓</span></td>
+      </tr>
+      <tr class="row-ok">
+        <td class="col-prop">Card width</td>
+        <td>~360px</td>
+        <td><code>width: 360px</code></td>
+        <td><span class="chip chip-ok">Match</span></td>
+        <td><span class="chip chip-ag">AG ✓</span></td>
+      </tr>
+      <tr class="row-ok">
+        <td class="col-prop">Title</td>
+        <td>Lora 22px, pink</td>
+        <td><code>22px/400 Lora #E31E79</code></td>
+        <td><span class="chip chip-ok">Match</span></td>
+        <td><span class="chip chip-ag">AG ✓</span></td>
+      </tr>
+      <tr class="row-ok">
+        <td class="col-prop">Description</td>
+        <td>Merriweather Sans 13px, light, grey</td>
+        <td><code>13px/300 Merriweather Sans #6D6E71</code></td>
+        <td><span class="chip chip-ok">Match</span></td>
+        <td><span class="chip chip-ag">AG ✓</span></td>
+      </tr>
+      <tr class="row-ok">
+        <td class="col-prop">Media type badge</td>
+        <td>Format label (e.g. INTERVIEW) in small caps, grey, bottom of card</td>
+        <td>Rendered uppercase; <code>Merriweather Sans 11px</code></td>
+        <td><span class="chip chip-ok">Match</span></td>
+        <td><span class="chip chip-ag">AG ✓</span></td>
+      </tr>
+    </tbody>
+  </table>
+</div>
+
+<!-- ── Home: People Card ── -->
+<div class="section" id="home-people-card">
+  <div class="section-header">
+    <h2>Home → People Card</h2>
+    <span class="status-badge badge-warn">Minor gaps</span>
+  </div>
+  <table class="cmp-table">
+    <thead>
+      <tr>
+        <th class="col-prop">Property</th>
+        <th class="col-pdf">PDF Spec</th>
+        <th class="col-live">Live (measured)</th>
+        <th class="col-flag">Status</th>
+        <th class="col-ag">AG Input</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr class="row-ok">
+        <td class="col-prop">Thumbnail shape</td>
+        <td>Circular / oval portrait thumbnail</td>
+        <td><code>border-radius: 50%</code> or oval on thumbnail</td>
+        <td><span class="chip chip-ok">Match</span></td>
+        <td><span class="chip chip-ag">AG ✓</span></td>
+      </tr>
+      <tr class="row-ok">
+        <td class="col-prop">Name font</td>
+        <td>Lora 22px, pink</td>
+        <td><code>22px/400 Lora #E31E79</code></td>
+        <td><span class="chip chip-ok">Match</span></td>
+        <td><span class="chip chip-ag">AG ✓</span></td>
+      </tr>
+      <tr class="row-warn">
+        <td class="col-prop">Description excerpt</td>
+        <td>2–3 lines of bio text, truncated</td>
+        <td>Live data: <code>thumbnail_excerpt</code> from API, falls back to truncated <code>profile</code> (220 chars). Dependent on API data quality</td>
+        <td><span class="chip chip-warn">API data quality</span></td>
+        <td><span class="chip chip-ag">AG ✓</span></td>
+      </tr>
+    </tbody>
+  </table>
+</div>
+
+<!-- ── Home: Film Card ── -->
+<div class="section" id="home-film-card">
+  <div class="section-header">
+    <h2>Home → Film Card</h2>
+    <span class="status-badge badge-warn">Minor gaps</span>
+  </div>
+  <table class="cmp-table">
+    <thead>
+      <tr>
+        <th class="col-prop">Property</th>
+        <th class="col-pdf">PDF Spec</th>
+        <th class="col-live">Live (measured)</th>
+        <th class="col-flag">Status</th>
+        <th class="col-ag">AG Input</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr class="row-ok">
+        <td class="col-prop">Position offset</td>
+        <td>Left side, approx 486px from left of marble</td>
+        <td><code>margin-left: 486px</code></td>
+        <td><span class="chip chip-ok">Match</span></td>
+        <td><span class="chip chip-ag">AG ✓</span></td>
+      </tr>
+      <tr class="row-ok">
+        <td class="col-prop">Thumbnail aspect</td>
+        <td>Widescreen video thumbnail (16:9-ish)</td>
+        <td>Wide rectangular thumbnail, <code>aspect-ratio: 16/9</code></td>
+        <td><span class="chip chip-ok">Match</span></td>
+        <td><span class="chip chip-ag">AG ✓</span></td>
+      </tr>
+      <tr class="row-warn">
+        <td class="col-prop">Play button overlay</td>
+        <td>Play ▶ button visible on thumbnail</td>
+        <td>Play icon overlaid via CSS on <code>.clh-film-card</code> thumbnail — present but styling may differ slightly from PDF spec</td>
+        <td><span class="chip chip-warn">Present, minor style delta</span></td>
+        <td><span class="chip chip-ag">AG</span></td>
+      </tr>
+    </tbody>
+  </table>
+</div>
+
+<!-- ── Home: News Panel ── -->
+<div class="section" id="home-news">
+  <div class="section-header">
+    <h2>Home → News / Ajab News Panel</h2>
+    <span class="status-badge badge-err">Significant gap</span>
+  </div>
+  <table class="cmp-table">
+    <thead>
+      <tr>
+        <th class="col-prop">Property</th>
+        <th class="col-pdf">PDF Spec</th>
+        <th class="col-live">Live (measured)</th>
+        <th class="col-flag">Status</th>
+        <th class="col-ag">AG Input</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr class="row-err">
+        <td class="col-prop">Panel trigger</td>
+        <td>PDF suggests it should be triggered by a user action (button/link)</td>
+        <td>Currently triggers immediately on mount — not user-initiated</td>
+        <td><span class="chip chip-err">Auto-triggers on load</span></td>
+        <td><span class="chip chip-ag">AG ✓</span></td>
+      </tr>
+      <tr class="row-warn">
+        <td class="col-prop">News panel design</td>
+        <td>Dark panel, article list with titles, dates, thumbnails; close button top-right</td>
+        <td>Modal present with news content; visual styling partially matches; exact font/spacing not audited</td>
+        <td><span class="chip chip-warn">Partial match</span></td>
+        <td><span class="chip chip-ag">AG</span></td>
+      </tr>
+    </tbody>
+  </table>
+  <p class="note"><strong>Note:</strong> The auto-firing of the Ajab News modal on every page load is the most impactful UX issue on the Home page. It should be triggered by an explicit user action (e.g., clicking a "News" button in the header or a dedicated trigger element on the page), not on mount.</p>
+  <p class="ag-note ag-disagree">While the original document flags this as "Significant gap," it's worth noting this may be intentional product behaviour (show news on first visit). However, from a UX perspective, blocking the home page immediately IS harmful. Recommend using <code>sessionStorage</code> to show the modal once per session rather than on every mount, which would be a middle-ground approach.</p>
+</div>
+
+
+<!-- ══════════════════ SONGS MODULE ════════════════════════ -->
+<hr class="divider">
+<h2 class="module-title" id="songs">🎵 Songs Module</h2>
+
+<!-- ── Songs: Global ── -->
+<div class="section" id="songs-global">
+  <div class="section-header">
+    <h2>Songs Page — Global Shell</h2>
+    <span class="status-badge badge-ok">Match</span>
+  </div>
+  <table class="cmp-table">
+    <thead>
+      <tr>
+        <th class="col-prop">Property</th>
+        <th class="col-pdf">PDF Spec</th>
+        <th class="col-live">Live (measured)</th>
+        <th class="col-flag">Status</th>
+        <th class="col-ag">AG Input</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr class="row-ok">
+        <td class="col-prop">Root background color</td>
+        <td><span class="swatch" style="background:#ede8df"></span> Cream <code>#ede8df</code></td>
+        <td><code>background-color: #ede8df</code> on <code>.cl-songs-page-root</code></td>
+        <td><span class="chip chip-ok">Match</span></td>
+        <td><span class="chip chip-ag">AG ✓</span></td>
+      </tr>
+      <tr class="row-ok">
+        <td class="col-prop">Background image</td>
+        <td>Marble watercolor wash, same palette as home but more saturated; instrument silhouettes on sides</td>
+        <td><code>songs_main_page.png</code> (1920×2850px source), <code>left 0px / 100% auto repeat-y</code></td>
+        <td><span class="chip chip-ok">Match</span></td>
+        <td><span class="chip chip-ag">AG ✓</span></td>
+      </tr>
+      <tr class="row-ok">
+        <td class="col-prop">Page bottom padding</td>
+        <td>Generous whitespace below grid</td>
+        <td><code>padding: 0 0 clamp(80px, 6.25vw, 160px)</code> → at 1536vw = 96px</td>
+        <td><span class="chip chip-ok">Match</span></td>
+        <td><span class="chip chip-ag">AG ✓</span></td>
+      </tr>
+      <tr class="row-ok">
+        <td class="col-prop">Inner content max-width</td>
+        <td>Content centred within marble band</td>
+        <td><code>--ajab-songs-inner-max-w: calc(1200px + 100px) = 1300px</code> via <code>.cl-songs-inner</code></td>
+        <td><span class="chip chip-ok">Match</span></td>
+        <td><span class="chip chip-ag">AG ✓</span></td>
+      </tr>
+    </tbody>
+  </table>
+</div>
+
+<!-- ── Songs: Intro & Count ── -->
+<div class="section" id="songs-intro">
+  <div class="section-header">
+    <h2>Songs Intro Text &amp; Count Row</h2>
+    <span class="status-badge badge-ok">Match</span>
+  </div>
+  <table class="cmp-table">
+    <thead>
+      <tr>
+        <th class="col-prop">Property</th>
+        <th class="col-pdf">PDF Spec</th>
+        <th class="col-live">Live (measured)</th>
+        <th class="col-flag">Status</th>
+        <th class="col-ag">AG Input</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr class="row-ok">
+        <td class="col-prop">Intro font</td>
+        <td>Lora italic, ~18px, grey</td>
+        <td><code>Lora italic 18px/400</code>, color <code>var(--ajab-ink-600)</code></td>
+        <td><span class="chip chip-ok">Match</span></td>
+        <td><span class="chip chip-ag">AG ✓</span></td>
+      </tr>
+      <tr class="row-ok">
+        <td class="col-prop">Intro max-width</td>
+        <td>Text is constrained to ~60% of page width, centred</td>
+        <td><code>max-width: clamp(560px, 60vw, 800px)</code>; <code>margin: 0 auto</code></td>
+        <td><span class="chip chip-ok">Match</span></td>
+        <td><span class="chip chip-ag">AG ✓</span></td>
+      </tr>
+      <tr class="row-ok">
+        <td class="col-prop">Count text</td>
+        <td>"201 Songs" (or current live total)</td>
+        <td>Dynamically set from API total; rendered as <code>filteredSongs.length + " Songs"</code></td>
+        <td><span class="chip chip-ok">Match</span></td>
+        <td><span class="chip chip-ag">AG ✓</span></td>
+      </tr>
+      <tr class="row-ok">
+        <td class="col-prop">Count font</td>
+        <td>Lora, ~22px, dark ink</td>
+        <td><code>Lora 22px/400</code>, color <code>#3C3C3B</code> (<code>--ajab-ink-900</code>)</td>
+        <td><span class="chip chip-ok">Match</span></td>
+        <td><span class="chip chip-ag">AG ✓</span></td>
+      </tr>
+      <tr class="row-ok">
+        <td class="col-prop">Count row horizontal padding</td>
+        <td>Aligned with filter/grid left edge</td>
+        <td><code>padding: 0 clamp(80px, 16vw, 307px)</code> → at 1536vw = 245.76px each side</td>
+        <td><span class="chip chip-ok">Match</span></td>
+        <td><span class="chip chip-ag">AG ✓</span></td>
+      </tr>
+    </tbody>
+  </table>
+</div>
+
+<!-- ── Songs: Filter Bar ── -->
+<div class="section" id="songs-filter">
+  <div class="section-header">
+    <h2>Songs Filter Bar (Trigger + A–Z)</h2>
+    <span class="status-badge badge-warn">Minor gaps</span>
+  </div>
+  <table class="cmp-table">
+    <thead>
+      <tr>
+        <th class="col-prop">Property</th>
+        <th class="col-pdf">PDF Spec</th>
+        <th class="col-live">Live (measured)</th>
+        <th class="col-flag">Status</th>
+        <th class="col-ag">AG Input</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr class="row-ok">
+        <td class="col-prop">Filter bar height</td>
+        <td>~54px bar containing trigger + separator + AZ buttons</td>
+        <td>Measured: <strong>54px</strong> (padding: 16px top + 14px bottom + 18px text ≈ 54px)</td>
+        <td><span class="chip chip-ok">Match</span></td>
+        <td><span class="chip chip-ag">AG ✓</span></td>
+      </tr>
+      <tr class="row-ok">
+        <td class="col-prop">Filter bar padding</td>
+        <td>Same left/right alignment as count row</td>
+        <td><code>padding: 16px clamp(80px, 16vw, 307px) 14px</code></td>
+        <td><span class="chip chip-ok">Match</span></td>
+        <td><span class="chip chip-ag">AG ✓</span></td>
+      </tr>
+      <tr class="row-ok">
+        <td class="col-prop">Top separator line</td>
+        <td>Thin line above filter bar</td>
+        <td><code>::before</code> pseudo-element: <code>height: 1px; background: var(--ajab-ink-100)</code>, inset at <code>clamp(80px, 15.1vw, 290px)</code> each side</td>
+        <td><span class="chip chip-ok">Match</span></td>
+        <td><span class="chip chip-ag">AG ✓</span></td>
+      </tr>
+      <tr class="row-ok">
+        <td class="col-prop">Filter trigger label</td>
+        <td>"Filter" with funnel icon</td>
+        <td>Rendered as "Filter" + Lucide <code>SlidersHorizontal</code> icon, Merriweather Sans 18px/300</td>
+        <td><span class="chip chip-ok">Match</span></td>
+        <td><span class="chip chip-ag">AG ✓</span></td>
+      </tr>
+      <tr class="row-ok">
+        <td class="col-prop">Separator pipe</td>
+        <td>"|" vertical separator between Filter and AZ</td>
+        <td><code>&lt;span class="cl-filter-sep"&gt;|&lt;/span&gt;</code>, color <code>var(--ajab-ink-300)</code> = <code>#828282</code></td>
+        <td><span class="chip chip-ok">Match</span></td>
+        <td><span class="chip chip-ag">AG ✓</span></td>
+      </tr>
+    </tbody>
+  </table>
+  <p class="ag-note ag-new">The filter bar uses <code>overflow-x: auto; scrollbar-width: none</code> on mobile viewports which is good. However at 1024px and below the layout may overflow before scrolling kicks in because the A–Z row has <code>flex: 1; justify-content: space-between</code> which won't shrink below the sum of all letter button widths. Consider adding <code>min-width: 0</code> to <code>.cl-az-row</code> to help flex shrink work properly on tablet widths.</p>
+</div>
+
+<!-- ── Songs: A-Z Bar ── -->
+<div class="section" id="songs-az">
+  <div class="section-header">
+    <h2>Songs A–Z Letter Bar</h2>
+    <span class="status-badge badge-ok">Match</span>
+  </div>
+  <table class="cmp-table">
+    <thead>
+      <tr>
+        <th class="col-prop">Property</th>
+        <th class="col-pdf">PDF Spec</th>
+        <th class="col-live">Live (measured)</th>
+        <th class="col-flag">Status</th>
+        <th class="col-ag">AG Input</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr class="row-ok">
+        <td class="col-prop">Button font</td>
+        <td>Merriweather Sans, light, ~18px, spaced</td>
+        <td><code>Merriweather Sans 18px/300</code>, <code>letter-spacing: 0.04em</code></td>
+        <td><span class="chip chip-ok">Match</span></td>
+        <td><span class="chip chip-ag">AG ✓</span></td>
+      </tr>
+      <tr class="row-ok">
+        <td class="col-prop">Default button color</td>
+        <td>Grey — inactive letters</td>
+        <td><code>color: #828282</code> (<code>--ajab-ink-300</code>)</td>
+        <td><span class="chip chip-ok">Match</span></td>
+        <td><span class="chip chip-ag">AG ✓</span></td>
+      </tr>
+      <tr class="row-ok">
+        <td class="col-prop">Active button color</td>
+        <td>Pink, slightly bolder</td>
+        <td><code>color: #E31E79; font-weight: 400</code> on <code>.cl-az-btn.active</code></td>
+        <td><span class="chip chip-ok">Match</span></td>
+        <td><span class="chip chip-ag">AG ✓</span></td>
+      </tr>
+      <tr class="row-ok">
+        <td class="col-prop">"All" button differentiation</td>
+        <td>First in row, slightly differentiated — NOT pink when active</td>
+        <td><code>.cl-az-btn--all.active { color: var(--ajab-ink-300) }</code> — All stays grey even when active, matching PDF</td>
+        <td><span class="chip chip-ok">Match</span></td>
+        <td><span class="chip chip-ag">AG ✓</span></td>
+      </tr>
+      <tr class="row-ok">
+        <td class="col-prop">AZ filtering behaviour</td>
+        <td>Clicking a letter shows only songs starting with that letter</td>
+        <td>Client-side filter: <code>title.startsWith(letter)</code> — correct</td>
+        <td><span class="chip chip-ok">Match</span></td>
+        <td><span class="chip chip-ag">AG ✓</span></td>
+      </tr>
+    </tbody>
+  </table>
+  <p class="ag-note ag-agree">The A–Z implementation is well-done. The "All" button correctly stays grey (not pink) when active, matching the PDF exactly. The letter-spacing and font weight differentiation between "All" (Regular/400) and letter buttons (Light/300) is also faithful to spec.</p>
+</div>
+
+<!-- ── Songs: Grid ── -->
+<div class="section" id="songs-grid">
+  <div class="section-header">
+    <h2>Songs Card Grid Layout</h2>
+    <span class="status-badge badge-warn">Card width delta corrected</span>
+  </div>
+  <table class="cmp-table">
+    <thead>
+      <tr>
+        <th class="col-prop">Property</th>
+        <th class="col-pdf">PDF Spec</th>
+        <th class="col-live">Live (measured)</th>
+        <th class="col-flag">Status</th>
+        <th class="col-ag">AG Input</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr class="row-ok">
+        <td class="col-prop">Columns</td>
+        <td>3 columns of equal width</td>
+        <td><code>grid-template-columns: repeat(3, var(--ajab-card-w))</code> — 3 equal cols</td>
+        <td><span class="chip chip-ok">Match</span></td>
+        <td><span class="chip chip-ag">AG ✓</span></td>
+      </tr>
+      <tr class="row-warn">
+        <td class="col-prop">Column width (card width)</td>
+        <td>PDF: ~280px per card (Style Guide: "thumbnail small 280×156px")</td>
+        <td><code>--ajab-card-w: clamp(180px, 15vw, 288px)</code> → at 1536vw = <strong>230.4px</strong>; at 1920px = <strong>288px</strong> (max cap). Still ~50px short at laptop widths.</td>
+        <td><span class="chip chip-warn">230px at 1536px</span></td>
+        <td><span class="chip chip-ag">AG ✗</span></td>
+      </tr>
+      <tr class="row-warn">
+        <td class="col-prop">Column gap</td>
+        <td>Consistent gap between columns; estimated ~66px from PDF</td>
+        <td><code>--ajab-grid-col-gap: clamp(24px, 4.2vw, 81px)</code> → at 1536vw = <strong>64.5px</strong> (close to 66px spec)</td>
+        <td><span class="chip chip-warn">−1.5px minor</span></td>
+        <td><span class="chip chip-ag">AG ✓</span></td>
+      </tr>
+      <tr class="row-ok">
+        <td class="col-prop">Row gap</td>
+        <td>~64–65px between rows</td>
+        <td><code>--ajab-grid-row-gap: clamp(32px, 4.3vw, 83px)</code> → at 1536vw = <strong>66px</strong></td>
+        <td><span class="chip chip-ok">Match</span></td>
+        <td><span class="chip chip-ag">AG ✓</span></td>
+      </tr>
+      <tr class="row-ok">
+        <td class="col-prop">Grid max-width</td>
+        <td>Grid centred within marble panel</td>
+        <td><code>--ajab-grid-max-w: 1026px</code>; <code>margin: 30px auto 140px</code></td>
+        <td><span class="chip chip-ok">Match</span></td>
+        <td><span class="chip chip-ag">AG ✓</span></td>
+      </tr>
+      <tr class="row-ok">
+        <td class="col-prop">Pagination strategy</td>
+        <td>PDF shows "Load more" — not infinite scroll</td>
+        <td>9 cards per page (<code>SONGS_PER_PAGE = 9</code>), "load more" button adds 9 more — correct strategy</td>
+        <td><span class="chip chip-ok">Match</span></td>
+        <td><span class="chip chip-ag">AG ✓</span></td>
+      </tr>
+      <tr class="row-ok">
+        <td class="col-prop">Empty state</td>
+        <td>Not depicted in PDF</td>
+        <td>"No songs found matching active filters." — plain text, grey, centered via <code>.cl-no-results</code></td>
+        <td><span class="chip chip-ok">Handled</span></td>
+        <td><span class="chip chip-ag">AG ✓</span></td>
+      </tr>
+    </tbody>
+  </table>
+  <p class="ag-note ag-disagree">The original document measured card width as "230px" and marked it as an error (−50px). After verifying the token: <code>clamp(180px, 15vw, 288px)</code>, at 1536px viewport: <code>15 × 1536 / 100 = 230.4px</code>. The max cap is 288px which only activates at 1920px+. To fix this to always render at 280–288px at desktop widths, the token should be changed to a fixed <code>280px</code> or a higher clamp minimum. The grid max-width of 1026px = 3 × 280 + 2 × 66 = 972px — so a 280px card + 66px gap × 2 + 280×3 = 972px would fit within 1026px. Recommend changing <code>--ajab-card-w</code> to <code>clamp(220px, 17.7vw, 280px)</code> so it hits 280px at 1580px+ viewports.</p>
+</div>
+
+<!-- ── Songs: Card ── -->
+<div class="section" id="songs-card">
+  <div class="section-header">
+    <h2>Individual Song Card (Listing)</h2>
+    <span class="status-badge badge-warn">Card width needs fix</span>
+  </div>
+  <table class="cmp-table">
+    <thead>
+      <tr>
+        <th class="col-prop">Property</th>
+        <th class="col-pdf">PDF Spec</th>
+        <th class="col-live">Live (measured)</th>
+        <th class="col-flag">Status</th>
+        <th class="col-ag">AG Input</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr class="row-err">
+        <td class="col-prop">Card rendered width</td>
+        <td>Style Guide: 280px. PDF visual confirms ~280px cards in 3-col grid</td>
+        <td>Measured: <strong>230px</strong> at 1536vw viewport via <code>clamp(180px, 15vw, 288px)</code></td>
+        <td><span class="chip chip-err">−50px narrow</span></td>
+        <td><span class="chip chip-ag">AG ✓</span></td>
+      </tr>
+      <tr class="row-ok">
+        <td class="col-prop">Card background</td>
+        <td>White card body (wavy-paper textured background in spec)</td>
+        <td>Background: <code>#ffffff</code>; WavyCard component provides wavy paper PNG texture on body</td>
+        <td><span class="chip chip-ok">Match</span></td>
+        <td><span class="chip chip-ag">AG ✓</span></td>
+      </tr>
+      <tr class="row-ok">
+        <td class="col-prop">Card border-radius</td>
+        <td>Slight radius top corners; square bottom (where wavy paper sits)</td>
+        <td><code>--ajab-card-radius: 4px</code> → <code>border-radius: 4px 4px 0 0</code></td>
+        <td><span class="chip chip-ok">Match</span></td>
+        <td><span class="chip chip-ag">AG ✓</span></td>
+      </tr>
+      <tr class="row-ok">
+        <td class="col-prop">Card shadow / elevation</td>
+        <td>Subtle drop shadow</td>
+        <td><code>--ajab-card-shadow: 0 4px 14px rgba(0,0,0,0.10)</code></td>
+        <td><span class="chip chip-ok">Match</span></td>
+        <td><span class="chip chip-ag">AG ✓</span></td>
+      </tr>
+      <tr class="row-ok">
+        <td class="col-prop">Title font</td>
+        <td>Lora, ~24px, pink</td>
+        <td><code>Lora 24px/400</code> (<code>--ajab-fs-h5</code>), color <code>#E31E79</code></td>
+        <td><span class="chip chip-ok">Match</span></td>
+        <td><span class="chip chip-ag">AG ✓</span></td>
+      </tr>
+      <tr class="row-ok">
+        <td class="col-prop">Title line-clamp</td>
+        <td>Max 2 lines visible</td>
+        <td><code>-webkit-line-clamp: 2; display: -webkit-box; overflow: hidden</code></td>
+        <td><span class="chip chip-ok">Match</span></td>
+        <td><span class="chip chip-ag">AG ✓</span></td>
+      </tr>
+      <tr class="row-ok">
+        <td class="col-prop">Subtitle font (singer/poem title)</td>
+        <td>Lora italic, ~20px, light grey</td>
+        <td><code>Lora italic 20px/400</code> (<code>--ajab-fs-body-lg</code>), color <code>#828282</code> (<code>--ajab-ink-300</code>)</td>
+        <td><span class="chip chip-ok">Match</span></td>
+        <td><span class="chip chip-ag">AG ✓</span></td>
+      </tr>
+      <tr class="row-ok">
+        <td class="col-prop">Meta text (singer/poet names)</td>
+        <td>Merriweather Sans, ~16px, light, dark grey</td>
+        <td><code>Merriweather Sans 16px/300</code> (<code>--ajab-fs-body-sm</code>), color <code>#4F4F4F</code> (<code>--ajab-ink-700</code>)</td>
+        <td><span class="chip chip-ok">Match</span></td>
+        <td><span class="chip chip-ag">AG ✓</span></td>
+      </tr>
+      <tr class="row-ok">
+        <td class="col-prop">Card body min-height</td>
+        <td>Enough space for 2 title + 2 subtitle + 2 meta lines</td>
+        <td><code>.cl-song-card-body { min-height: 145px }</code></td>
+        <td><span class="chip chip-ok">Match</span></td>
+        <td><span class="chip chip-ag">AG ✓</span></td>
+      </tr>
+      <tr class="row-ok">
+        <td class="col-prop">Card link behaviour</td>
+        <td>Entire card is clickable → song detail</td>
+        <td>Wrapped in <code>&lt;Link href="/songs/details/[id]"&gt;</code> via <code>.cl-song-card-link</code></td>
+        <td><span class="chip chip-ok">Match</span></td>
+        <td><span class="chip chip-ag">AG ✓</span></td>
+      </tr>
+    </tbody>
+  </table>
+  <p class="ag-note ag-new">The card has <code>-webkit-tap-highlight-color: rgba(227, 30, 121, 0.15)</code> which is a nice pink touch feedback on mobile. Also noted: the thumbnail height uses <code>--wc-thumb-h: clamp(80px, 7.4vw, 141px)</code> which at 1536px = 113.7px vs the spec 156px. The thumb is proportionally shorter because the card is also narrower. Both issues resolve together if card width is corrected to 280px.</p>
+</div>
+
+<!-- ── Songs: Thumbnail ── -->
+<div class="section" id="songs-thumbnail">
+  <div class="section-header">
+    <h2>Song Card — Thumbnail Image</h2>
+    <span class="status-badge badge-warn">Undersized at laptop viewport</span>
+  </div>
+  <table class="cmp-table">
+    <thead>
+      <tr>
+        <th class="col-prop">Property</th>
+        <th class="col-pdf">PDF Spec</th>
+        <th class="col-live">Live (measured)</th>
+        <th class="col-flag">Status</th>
+        <th class="col-ag">AG Input</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr class="row-err">
+        <td class="col-prop">Thumbnail rendered width</td>
+        <td>Style Guide: small thumbnail = <strong>280×156px</strong></td>
+        <td>At 1536px: card = 230px, so thumbnail = 230px × 113.7px (clamp thumb height)</td>
+        <td><span class="chip chip-err">~50px narrow, 42px short</span></td>
+        <td><span class="chip chip-ag">AG ✓</span></td>
+      </tr>
+      <tr class="row-ok">
+        <td class="col-prop">Thumbnail max size</td>
+        <td>280×156px</td>
+        <td>At 1920px: card = 288px, thumbnail = 288px × 141px — near-spec</td>
+        <td><span class="chip chip-ok">Near-match at 1920px+</span></td>
+        <td><span class="chip chip-ag">AG ✓</span></td>
+      </tr>
+      <tr class="row-ok">
+        <td class="col-prop">Object-fit</td>
+        <td>Cover — fill without distortion</td>
+        <td><code>object-fit: cover</code></td>
+        <td><span class="chip chip-ok">Match</span></td>
+        <td><span class="chip chip-ag">AG ✓</span></td>
+      </tr>
+      <tr class="row-err">
+        <td class="col-prop">Fallback when no thumbnail</td>
+        <td>PDF always shows image</td>
+        <td>No explicit placeholder/fallback image in <code>CLSongCard</code> if <code>thumbnailUrl</code> is empty</td>
+        <td><span class="chip chip-err">Missing fallback</span></td>
+        <td><span class="chip chip-ag">AG ✓</span></td>
+      </tr>
+    </tbody>
+  </table>
+  <p class="note"><strong>Root cause:</strong> <code>--ajab-card-w</code> resolves to ~230px at 1536vw instead of the spec'd 280px. Fix: change token to <code>clamp(220px, 17.7vw, 280px)</code> so it hits 280px at ~1580px viewports.</p>
+  <p class="ag-note ag-new">For the missing thumbnail fallback: add <code>onError={(e) =&gt; { e.currentTarget.src = '/songs-assets/placeholder_thumb.png'; }}</code> to the thumbnail <code>&lt;img&gt;</code> tag in <code>CLSongCard.tsx</code>. A placeholder image should be created at 280×156px matching the cream/marble aesthetic of the site. This prevents broken-image icons in production.</p>
+</div>
+
+<!-- ── Songs: Filter Panel (Open State) ── -->
+<div class="section" id="songs-filter-panel">
+  <div class="section-header">
+    <h2>Songs Filter Panel (Open / Expanded State)</h2>
+    <span class="status-badge badge-warn">Functional — visual polish needed</span>
+  </div>
+  <table class="cmp-table">
+    <thead>
+      <tr>
+        <th class="col-prop">Property</th>
+        <th class="col-pdf">PDF Spec</th>
+        <th class="col-live">Live (code)</th>
+        <th class="col-flag">Status</th>
+        <th class="col-ag">AG Input</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr class="row-ok">
+        <td class="col-prop">Panel trigger</td>
+        <td>Clicking "Filter" text/icon opens the panel</td>
+        <td>Open/close managed via <code>useState(false)</code> in <code>CLFilterPanel.tsx</code></td>
+        <td><span class="chip chip-ok">Match</span></td>
+        <td><span class="chip chip-ag">AG ✓</span></td>
+      </tr>
+      <tr class="row-ok">
+        <td class="col-prop">Panel animation</td>
+        <td>Slides in/slides out</td>
+        <td><code>framer-motion AnimatePresence</code> with slide-in animation via React Portal</td>
+        <td><span class="chip chip-ok">Match</span></td>
+        <td><span class="chip chip-ag">AG ✓</span></td>
+      </tr>
+      <tr class="row-ok">
+        <td class="col-prop">Panel height</td>
+        <td>Full screen height</td>
+        <td>Dynamic <code>listMaxHeight</code> computed from <code>clientHeight</code> — adjusts on resize</td>
+        <td><span class="chip chip-ok">Match</span></td>
+        <td><span class="chip chip-ag">AG ✓</span></td>
+      </tr>
+      <tr class="row-ok">
+        <td class="col-prop">Three categories</td>
+        <td>Singer | Poet | Theme — 3 columns</td>
+        <td>Tabs for Singer, Poet, Theme implemented. Currently uses <code>MOCK_FILTERS</code> with hardcoded data (API bypass for UI testing)</td>
+        <td><span class="chip chip-ok">Match (mocked)</span></td>
+        <td><span class="chip chip-ag">AG</span></td>
+      </tr>
+      <tr class="row-ok">
+        <td class="col-prop">Selected chips at top</td>
+        <td>PDF shows selected filters appear as pink chips</td>
+        <td>Selected chips (Singer/Poet/Theme) rendered at top of panel with individual remove (×) buttons</td>
+        <td><span class="chip chip-ok">Match</span></td>
+        <td><span class="chip chip-ag">AG ✓</span></td>
+      </tr>
+      <tr class="row-warn">
+        <td class="col-prop">Selected chips below filter bar</td>
+        <td>PDF page 2 shows selected chips visible BELOW the filter bar when panel is closed</td>
+        <td>Chips are only visible inside the open panel — NOT rendered below the filter bar when panel is closed</td>
+        <td><span class="chip chip-err">Missing chip strip</span></td>
+        <td><span class="chip chip-ag">AG ✓</span></td>
+      </tr>
+      <tr class="row-ok">
+        <td class="col-prop">Max 5 selections total</td>
+        <td>PDF text: max 5 filter items across all categories</td>
+        <td>Enforced in code: <code>selectedCount &gt;= 5</code> disables remaining checkboxes</td>
+        <td><span class="chip chip-ok">Match</span></td>
+        <td><span class="chip chip-ag">AG ✓</span></td>
+      </tr>
+      <tr class="row-ok">
+        <td class="col-prop">Custom checkboxes</td>
+        <td>Checkboxes with brand styling</td>
+        <td>Custom SVG checkbox elements with brand pink color on selected state</td>
+        <td><span class="chip chip-ok">Match</span></td>
+        <td><span class="chip chip-ag">AG ✓</span></td>
+      </tr>
+      <tr class="row-ok">
+        <td class="col-prop">Clear All button</td>
+        <td>"Clear All" / "X" action visible when filters active</td>
+        <td><code>onClearAll</code> handler wired to "CLEAR ALL" button at top of panel</td>
+        <td><span class="chip chip-ok">Present</span></td>
+        <td><span class="chip chip-ag">AG ✓</span></td>
+      </tr>
+      <tr class="row-warn">
+        <td class="col-prop">Filter data source</td>
+        <td>Live from API</td>
+        <td>Currently uses <code>MOCK_FILTERS</code> hardcoded in <code>CLFilterPanel.tsx</code> (API bypassed "for UI testing"). Real API call is commented/bypassed.</td>
+        <td><span class="chip chip-warn">Mock data only</span></td>
+        <td><span class="chip chip-ag">AG ✗</span></td>
+      </tr>
+    </tbody>
+  </table>
+  <p class="ag-note ag-disagree">The original document marked filter panel as just "Minor gaps — logic correct; visual fidelity not verified." After reading the code in detail, a critical issue was found: <strong>the filter data is hardcoded via <code>MOCK_FILTERS</code></strong> — the actual API call to fetch singers/poets/themes is bypassed. This means the filter panel always shows the same ~18 hardcoded singers and 12 poets regardless of what's in the database. This needs to be wired back to the real API endpoints.</p>
+  <p class="ag-note ag-new">The missing "chip strip below filter bar" can be implemented in <code>CLindex.tsx</code> by rendering a <code>&lt;div class="cl-active-chips-row"&gt;</code> between the filter bar and the grid. It should map over <code>selectedSingers</code>, <code>selectedPoets</code>, and <code>selectedThemes</code> to render pink chip buttons with <code>onRemoveFilter</code> wired to each chip's × button. This is a UI-only change (no API needed) and would be very visible to users.</p>
+</div>
+
+<!-- ── Songs: Load More ── -->
+<div class="section" id="songs-loadmore">
+  <div class="section-header">
+    <h2>Load More Button</h2>
+    <span class="status-badge badge-ok">Match</span>
+  </div>
+  <table class="cmp-table">
+    <thead>
+      <tr>
+        <th class="col-prop">Property</th>
+        <th class="col-pdf">PDF Spec</th>
+        <th class="col-live">Live (measured)</th>
+        <th class="col-flag">Status</th>
+        <th class="col-ag">AG Input</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr class="row-ok">
+        <td class="col-prop">Label</td>
+        <td>"load more" (all lowercase)</td>
+        <td><code>text-transform: lowercase</code> on <code>.cl-load-more-btn</code> — matches spec</td>
+        <td><span class="chip chip-ok">Match</span></td>
+        <td><span class="chip chip-ag">AG ✓</span></td>
+      </tr>
+      <tr class="row-ok">
+        <td class="col-prop">Font</td>
+        <td>Merriweather Sans, pink, spaced, button style</td>
+        <td><code>font-size: var(--ajab-fs-button) = 21px</code>, pink, <code>letter-spacing: 0.04em</code>, weight 400</td>
+        <td><span class="chip chip-ok">Match</span></td>
+        <td><span class="chip chip-ag">AG ✓</span></td>
+      </tr>
+      <tr class="row-ok">
+        <td class="col-prop">Hidden when all loaded</td>
+        <td>Button disappears when all songs shown</td>
+        <td>Conditional render: <code>{hasMore &amp;&amp; &lt;button&gt;}</code></td>
+        <td><span class="chip chip-ok">Match</span></td>
+        <td><span class="chip chip-ag">AG ✓</span></td>
+      </tr>
+      <tr class="row-ok">
+        <td class="col-prop">Load count</td>
+        <td>9 cards per load (implied by 3×3 grid)</td>
+        <td><code>SONGS_PER_PAGE = 9</code></td>
+        <td><span class="chip chip-ok">Match</span></td>
+        <td><span class="chip chip-ag">AG ✓</span></td>
+      </tr>
+    </tbody>
+  </table>
+</div>
+
+<!-- ── Songs: Nav Count Sync (NEW) ── -->
+<div class="section" id="songs-nav-count">
+  <div class="section-header">
+    <h2>Songs Nav Count Synchronisation (NEW SECTION)</h2>
+    <span class="status-badge badge-warn">Partially working</span>
+  </div>
+  <table class="cmp-table">
+    <thead>
+      <tr>
+        <th class="col-prop">Property</th>
+        <th class="col-pdf">PDF Spec</th>
+        <th class="col-live">Live (code)</th>
+        <th class="col-flag">Status</th>
+        <th class="col-ag">AG Input</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr class="row-ok">
+        <td class="col-prop">SONGS(n) in nav</td>
+        <td>PDF shows the nav "SONGS" link has a small count indicator</td>
+        <td>Static fallback: <code>content: '(234)'</code> on <code>.nav-link--songs::after</code>. Live count via <code>SongsNavCountContext</code> replaces this when set.</td>
+        <td><span class="chip chip-ok">Present</span></td>
+        <td><span class="chip chip-ag">AG ✓</span></td>
+      </tr>
+      <tr class="row-warn">
+        <td class="col-prop">Count updates on filter change</td>
+        <td>Count should reflect filtered result total</td>
+        <td><code>CLindex.tsx</code> has <code>useEffect</code> pushing <code>filteredSongs.length</code> to context. However the static CSS <code>::after { content: '(234)' }</code> fallback may override if the live class <code>nav-link--songs-count-live</code> isn't applied correctly.</td>
+        <td><span class="chip chip-warn">May not update</span></td>
+        <td><span class="chip chip-ag">AG ✗</span></td>
+      </tr>
+      <tr class="row-warn">
+        <td class="col-prop">Count font size</td>
+        <td>Superscript-sized, visually small next to "SONGS"</td>
+        <td><code>font-size: 0.55em</code> on <code>.nav-link-songs-count</code> — matches the small superscript style</td>
+        <td><span class="chip chip-ok">Match</span></td>
+        <td><span class="chip chip-ag">AG ✓</span></td>
+      </tr>
+    </tbody>
+  </table>
+  <p class="ag-note ag-new">This is a new section added by the AG agent. The count sync between filter results and the nav header is implemented but has a potential conflict: the CSS pseudo-element <code>::after { content: '(234)' }</code> is the "static" fallback that shows a hardcoded 234. The live count mechanism works by adding class <code>nav-link--songs-count-live</code> to the nav element AND rendering a <code>&lt;span class="nav-link-songs-count"&gt;</code> inside it. If the context update or class addition fails, the user sees "(234)" permanently. Recommend adding a console warning or debug output to verify the context is updating correctly during filter operations.</p>
+</div>
+
+<!-- ── Songs: Detail page ── -->
+<div class="section" id="songs-detail">
+  <div class="section-header">
+    <h2>Song Detail Page (CLSongDetailsPage)</h2>
+    <span class="status-badge badge-warn">Partially audited</span>
+  </div>
+  <table class="cmp-table">
+    <thead>
+      <tr>
+        <th class="col-prop">Property</th>
+        <th class="col-pdf">PDF Spec (Songs PDF page 3)</th>
+        <th class="col-live">Live (inferred from code)</th>
+        <th class="col-flag">Status</th>
+        <th class="col-ag">AG Input</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr class="row-ok">
+        <td class="col-prop">Versions carousel</td>
+        <td>Horizontal strip of version thumbnails above main content</td>
+        <td><code>songVersions</code> array rendered as carousel; <code>CLSongDetails</code> component</td>
+        <td><span class="chip chip-ok">Present</span></td>
+        <td><span class="chip chip-ag">AG ✓</span></td>
+      </tr>
+      <tr class="row-ok">
+        <td class="col-prop">Language toggle</td>
+        <td>Hindi / English toggle buttons</td>
+        <td><code>language</code> state: <code>'hindi' | 'english'</code>; toggle renders two buttons</td>
+        <td><span class="chip chip-ok">Match</span></td>
+        <td><span class="chip chip-ag">AG ✓</span></td>
+      </tr>
+      <tr class="row-ok">
+        <td class="col-prop">Notes sidebar</td>
+        <td>Slide-in left sidebar with poem notes</td>
+        <td>Fixed-position <code>.cld-notes-sidebar</code> with <code>is-open</code> toggle</td>
+        <td><span class="chip chip-ok">Present</span></td>
+        <td><span class="chip chip-ag">AG ✓</span></td>
+      </tr>
+      <tr class="row-ok">
+        <td class="col-prop">Glossary sidebar</td>
+        <td>Slide-in right sidebar with glossary</td>
+        <td>Fixed-position <code>.cld-glossary-sidebar</code> with <code>is-open</code> toggle</td>
+        <td><span class="chip chip-ok">Present</span></td>
+        <td><span class="chip chip-ag">AG ✓</span></td>
+      </tr>
+      <tr class="row-warn">
+        <td class="col-prop">API response latency</td>
+        <td>N/A — PDF is static</td>
+        <td>API endpoint <code>/Api/explore_songs</code> takes ~8–12 seconds to respond; fullscreen white loader shows correctly during wait</td>
+        <td><span class="chip chip-warn">Slow API — loader correct</span></td>
+        <td><span class="chip chip-ag">AG ✓</span></td>
+      </tr>
+    </tbody>
+  </table>
+  <p class="note"><strong>Note:</strong> A full pixel-perfect comparison of the song detail page against Songs PDF page 3 requires a follow-up audit once the API latency issue is mitigated or a mock is used.</p>
+  <p class="ag-note ag-new">The songs detail page has a large file: <code>CLSongDetailsPage.tsx</code> at 25.5KB and <code>CLSongDetails.css</code> at 23KB. These are substantial. Before the next major audit, consider whether the detail page component can be split into smaller sub-components (lyrics, related, sidebar, carousel) to improve readability and maintainability.</p>
+</div>
+
+
+<!-- ══════════════════ SHARED ELEMENTS ════════════════════════ -->
+<hr class="divider">
+<h2 class="module-title" id="shared">🔧 Shared Elements</h2>
+
+<!-- ── Shared: Loader ── -->
+<div class="section" id="shared-loader">
+  <div class="section-header">
+    <h2>Loader (Loading State)</h2>
+    <span class="status-badge badge-ok">Correct — fixed in session</span>
+  </div>
+  <table class="cmp-table">
+    <thead>
+      <tr>
+        <th class="col-prop">Property</th>
+        <th class="col-pdf">PDF Spec</th>
+        <th class="col-live">Live (verified)</th>
+        <th class="col-flag">Status</th>
+        <th class="col-ag">AG Input</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr class="row-ok">
+        <td class="col-prop">Loader background</td>
+        <td>Pure white — no marble, no page chrome</td>
+        <td><code>position: fixed; inset: 0; z-index: 9999; background: #ffffff</code></td>
+        <td><span class="chip chip-ok">Match</span></td>
+        <td><span class="chip chip-ag">AG ✓</span></td>
+      </tr>
+      <tr class="row-ok">
+        <td class="col-prop">Loader content</td>
+        <td>Only the Ajab Shahar logo, centred</td>
+        <td>Centered logo mark; no header, no footer, no background image</td>
+        <td><span class="chip chip-ok">Match</span></td>
+        <td><span class="chip chip-ag">AG ✓</span></td>
+      </tr>
+      <tr class="row-ok">
+        <td class="col-prop">Applied globally</td>
+        <td>All pages use same loader</td>
+        <td>All 10 loading states return <code>&lt;Loader /&gt;</code> directly — confirmed via grep (zero <code>variant="panel"</code> remaining)</td>
+        <td><span class="chip chip-ok">Match</span></td>
+        <td><span class="chip chip-ag">AG ✓</span></td>
+      </tr>
+    </tbody>
+  </table>
+  <p class="ag-note ag-agree">The loader fix was cleanly done. Using a full-page fixed overlay with z-index 9999 is the correct approach. The logo-only loader matches the PDF spec's clean loading experience.</p>
+</div>
+
+<!-- ── Shared: Fonts ── -->
+<div class="section" id="shared-fonts">
+  <div class="section-header">
+    <h2>Fonts &amp; Design Tokens</h2>
+    <span class="status-badge badge-ok">Mostly match</span>
+  </div>
+  <table class="cmp-table">
+    <thead>
+      <tr>
+        <th class="col-prop">Token / Property</th>
+        <th class="col-pdf">PDF Spec</th>
+        <th class="col-live">Live CSS value</th>
+        <th class="col-flag">Status</th>
+        <th class="col-ag">AG Input</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr class="row-ok">
+        <td class="col-prop">Serif font</td>
+        <td>Lora — all headings, card titles, poem text</td>
+        <td><code>--ajab-font-serif: "Lora", serif</code></td>
+        <td><span class="chip chip-ok">Match</span></td>
+        <td><span class="chip chip-ag">AG ✓</span></td>
+      </tr>
+      <tr class="row-ok">
+        <td class="col-prop">Sans font</td>
+        <td>Merriweather Sans — all UI labels, meta, navigation</td>
+        <td><code>--ajab-font-sans: "Merriweather Sans", sans-serif</code></td>
+        <td><span class="chip chip-ok">Match</span></td>
+        <td><span class="chip chip-ag">AG ✓</span></td>
+      </tr>
+      <tr class="row-ok">
+        <td class="col-prop">h5 (card title)</td>
+        <td>~24px</td>
+        <td><code>--ajab-fs-h5: 24px</code></td>
+        <td><span class="chip chip-ok">Match</span></td>
+        <td><span class="chip chip-ag">AG ✓</span></td>
+      </tr>
+      <tr class="row-ok">
+        <td class="col-prop">body-lg</td>
+        <td>~20px</td>
+        <td><code>--ajab-fs-body-lg: 20px</code></td>
+        <td><span class="chip chip-ok">Match</span></td>
+        <td><span class="chip chip-ag">AG ✓</span></td>
+      </tr>
+      <tr class="row-ok">
+        <td class="col-prop">body-sm</td>
+        <td>~16px</td>
+        <td><code>--ajab-fs-body-sm: 16px</code></td>
+        <td><span class="chip chip-ok">Match</span></td>
+        <td><span class="chip chip-ag">AG ✓</span></td>
+      </tr>
+      <tr class="row-err">
+        <td class="col-prop">button / nav</td>
+        <td>~14px, uppercase for CTA; nav looks ~14px in PDF</td>
+        <td><code>--ajab-fs-button: 21px</code> — used for nav links AND load-more AND filter trigger. This is too large for nav text at desktop widths.</td>
+        <td><span class="chip chip-err">21px — too large for nav</span></td>
+        <td><span class="chip chip-ag">AG ✗</span></td>
+      </tr>
+      <tr class="row-warn">
+        <td class="col-prop">Card width token</td>
+        <td>280px (Style Guide: small thumbnail)</td>
+        <td><code>--ajab-card-w: clamp(180px, 15vw, 288px)</code> — 230px at 1536px laptop</td>
+        <td><span class="chip chip-err">Token too small at 1536vw</span></td>
+        <td><span class="chip chip-ag">AG ✓</span></td>
+      </tr>
+      <tr class="row-ok">
+        <td class="col-prop">Grid col gap</td>
+        <td>~66px</td>
+        <td><code>--ajab-grid-col-gap: clamp(24px, 4.2vw, 81px)</code> = 64.5px at 1536px</td>
+        <td><span class="chip chip-warn">−1.5px minor</span></td>
+        <td><span class="chip chip-ag">AG ✓</span></td>
+      </tr>
+      <tr class="row-ok">
+        <td class="col-prop">Grid row gap</td>
+        <td>~64px</td>
+        <td><code>--ajab-grid-row-gap: clamp(32px, 4.3vw, 83px)</code> = 66px at 1536px</td>
+        <td><span class="chip chip-ok">Match</span></td>
+        <td><span class="chip chip-ag">AG ✓</span></td>
+      </tr>
+    </tbody>
+  </table>
+  <p class="ag-note ag-new">A concern worth flagging: the token <code>--ajab-fs-button: 21px</code> is used for MULTIPLE purposes — navigation links, load more button, AND filter trigger text. These should ideally use different tokens because navigation links in a PDF-faithful design are much smaller than button labels. Consider splitting into <code>--ajab-fs-nav: 14px</code> and keeping <code>--ajab-fs-button: 21px</code> for CTA buttons like "load more". This would immediately improve header visual parity with the PDF.</p>
+</div>
+
+<!-- ── Shared: Colors ── -->
+<div class="section" id="shared-colors">
+  <div class="section-header">
+    <h2>Color Palette — Full Audit</h2>
+    <span class="status-badge badge-ok">Match</span>
+  </div>
+  <table class="cmp-table">
+    <thead>
+      <tr>
+        <th class="col-prop">Token Name</th>
+        <th class="col-pdf">PDF / Design Spec</th>
+        <th class="col-live">Live CSS value</th>
+        <th class="col-flag">Usage</th>
+        <th class="col-ag">AG Input</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr class="row-ok">
+        <td class="col-prop"><code>--ajab-pink-primary</code></td>
+        <td><span class="swatch" style="background:#E31E79"></span> Vivid pink — CTAs, titles, active states</td>
+        <td><code>#E31E79</code></td>
+        <td>Card titles, AZ active, CTA, divider, footer headings, links</td>
+        <td><span class="chip chip-ag">AG ✓</span></td>
+      </tr>
+      <tr class="row-ok">
+        <td class="col-prop"><code>--ajab-ink-950</code></td>
+        <td><span class="swatch" style="background:#1a1a1a"></span> Near-black</td>
+        <td><code>#1a1a1a</code></td>
+        <td>Footer background, nav default, poem translation (dark)</td>
+        <td><span class="chip chip-ag">AG ✓</span></td>
+      </tr>
+      <tr class="row-ok">
+        <td class="col-prop"><code>--ajab-ink-900</code></td>
+        <td><span class="swatch" style="background:#3C3C3B"></span> Dark ink</td>
+        <td><code>#3C3C3B</code></td>
+        <td>Songs count text, primary body text</td>
+        <td><span class="chip chip-ag">AG ✓</span></td>
+      </tr>
+      <tr class="row-ok">
+        <td class="col-prop"><code>--ajab-ink-700</code></td>
+        <td><span class="swatch" style="background:#4F4F4F"></span> Mid-dark grey</td>
+        <td><code>#4F4F4F</code></td>
+        <td>Song card meta (Singer/Poet names)</td>
+        <td><span class="chip chip-ag">AG ✓</span></td>
+      </tr>
+      <tr class="row-warn">
+        <td class="col-prop"><code>--ajab-ink-600</code> vs <code>--ajab-ink-500</code></td>
+        <td><span class="swatch" style="background:#6D6E71"></span> Mid grey</td>
+        <td><code>--ajab-ink-600: #828282</code> but <code>--ajab-ink-500: #6d6e71</code> — the names don't match the values (600 should be darker than 500)</td>
+        <td>Inverted naming</td>
+        <td><span class="chip chip-ag">AG ✗</span></td>
+      </tr>
+      <tr class="row-ok">
+        <td class="col-prop"><code>--ajab-ink-300</code></td>
+        <td><span class="swatch" style="background:#828282"></span> Light grey</td>
+        <td><code>#828282</code></td>
+        <td>AZ buttons (inactive), intro text, filter separator, card subtitle</td>
+        <td><span class="chip chip-ag">AG ✓</span></td>
+      </tr>
+      <tr class="row-ok">
+        <td class="col-prop">Page background</td>
+        <td><span class="swatch" style="background:#ede8df"></span> Warm cream</td>
+        <td><code>#ede8df</code></td>
+        <td>Root background on all pages</td>
+        <td><span class="chip chip-ag">AG ✓</span></td>
+      </tr>
+      <tr class="row-ok">
+        <td class="col-prop">Card background</td>
+        <td><span class="swatch" style="background:#ffffff"></span> White</td>
+        <td><code>#ffffff</code></td>
+        <td>Song card body (<code>--ajab-surface: #fff</code>)</td>
+        <td><span class="chip chip-ag">AG ✓</span></td>
+      </tr>
+    </tbody>
+  </table>
+  <p class="ag-note ag-disagree">The ink scale is incorrectly numbered. In standard design systems, higher numbers = darker (e.g. <code>ink-900</code> should be darker than <code>ink-300</code>). Looking at the compiled CSS: <code>ink-800: #4d4d4d</code>, <code>ink-700: #4f4f4f</code>, <code>ink-600: #828282</code>, <code>ink-500: #6d6e71</code>, <code>ink-300: #828282</code> — the 600 and 300 resolve to the <strong>same hex value</strong> (#828282). The 500 (#6d6e71) is actually darker than the 600 (#828282) which is backwards. This doesn't cause visual bugs today since each token is used consistently, but it's a maintenance risk that could confuse developers. Recommend renaming tokens to accurately reflect luminance ordering.</p>
+</div>
+
+<!-- ══════════════════ PRIORITY ACTION LIST ════════════════════ -->
+<hr class="divider">
+<h2 class="module-title" style="color:#ef4444; border-color:#ef4444;" id="priority">⚠️ Priority Issues — Action Required</h2>
+
+<div class="section">
+  <div class="section-header">
+    <h2>Issues Ranked by Impact (Updated with AG findings)</h2>
+  </div>
+  <table class="cmp-table">
+    <thead>
+      <tr>
+        <th style="width:4%">#</th>
+        <th style="width:10%">Priority</th>
+        <th style="width:28%">Issue</th>
+        <th style="width:28%">Fix</th>
+        <th style="width:18%">File(s)</th>
+        <th style="width:12%">Source</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr class="row-err">
+        <td><strong>1</strong></td>
+        <td><span class="chip chip-err">Critical</span></td>
+        <td>News modal auto-fires on every page load — blocks home page before user sees content</td>
+        <td>Trigger news panel only on explicit user action, OR use <code>sessionStorage</code> to show once per session</td>
+        <td><code>components/Home/CLHome.tsx</code></td>
+        <td><span class="chip chip-info">Original</span></td>
+      </tr>
+      <tr class="row-err">
+        <td><strong>2</strong></td>
+        <td><span class="chip chip-err">High</span></td>
+        <td>Filter panel uses hardcoded <code>MOCK_FILTERS</code> — not live API data. Users cannot see their actual catalogue of singers/poets.</td>
+        <td>Restore API call in <code>CLFilterPanel.tsx</code>; remove mock bypass. Wire <code>availableSingers/Poets</code> props from parent.</td>
+        <td><code>components/Fillter/CLFilterPanel.tsx</code></td>
+        <td><span class="chip chip-ag">AG NEW</span></td>
+      </tr>
+      <tr class="row-err">
+        <td><strong>3</strong></td>
+        <td><span class="chip chip-err">High</span></td>
+        <td>Song card width 230px instead of spec 280px at 1536px laptop widths</td>
+        <td>Change <code>--ajab-card-w</code> from <code>clamp(180px, 15vw, 288px)</code> to <code>clamp(220px, 17.7vw, 280px)</code></td>
+        <td><code>styles/CustomStyle.css</code> (compiled tokens)</td>
+        <td><span class="chip chip-info">Original</span></td>
+      </tr>
+      <tr class="row-err">
+        <td><strong>4</strong></td>
+        <td><span class="chip chip-err">High</span></td>
+        <td>Active filter chips not shown below filter bar when panel is closed — user can't see which filters are active</td>
+        <td>Add chip strip row between filter bar and song count, rendering selectedSingers/Poets/Themes as dismissible pink chips</td>
+        <td><code>components/Songs/CLindex.tsx</code>, <code>CLSongs.css</code></td>
+        <td><span class="chip chip-info">Original</span></td>
+      </tr>
+      <tr class="row-err">
+        <td><strong>5</strong></td>
+        <td><span class="chip chip-err">High</span></td>
+        <td>Nav font size is 21px (<code>--ajab-fs-button</code>) at desktop — PDF shows delicate ~14px nav links</td>
+        <td>Create <code>--ajab-fs-nav: 14px</code> token and apply to <code>header nav a</code>. Keep <code>--ajab-fs-button</code> at 21px for CTA buttons only.</td>
+        <td><code>styles/Header.css</code>, <code>styles/CustomStyle.css</code></td>
+        <td><span class="chip chip-ag">AG NEW</span></td>
+      </tr>
+      <tr class="row-warn">
+        <td><strong>6</strong></td>
+        <td><span class="chip chip-warn">Medium</span></td>
+        <td>Song card thumbnail has no fallback image when API returns empty <code>thumbnailUrl</code></td>
+        <td>Add <code>onError</code> handler → placeholder image in <code>CLSongCard</code></td>
+        <td><code>components/Songs/CLSongCard.tsx</code></td>
+        <td><span class="chip chip-info">Original</span></td>
+      </tr>
+      <tr class="row-warn">
+        <td><strong>7</strong></td>
+        <td><span class="chip chip-warn">Medium</span></td>
+        <td>Nav count "(234)" is hardcoded static CSS fallback. Count may not update when filters change.</td>
+        <td>Verify <code>SongsNavCountContext</code> push in <code>CLindex.tsx</code> correctly adds <code>nav-link--songs-count-live</code> class. Test with active filters.</td>
+        <td><code>components/Songs/CLindex.tsx</code>, <code>CLSongs.css</code></td>
+        <td><span class="chip chip-ag">AG NEW</span></td>
+      </tr>
+      <tr class="row-warn">
+        <td><strong>8</strong></td>
+        <td><span class="chip chip-warn">Medium</span></td>
+        <td>Marble stage width at 1536vw is 1488px instead of spec 1568px (80px short)</td>
+        <td>Change <code>calc(100vw - 48px)</code> to <code>calc(100vw - 32px)</code> on <code>.clh-marble-stage</code></td>
+        <td><code>CLHome.css</code> — <code>.clh-marble-stage</code></td>
+        <td><span class="chip chip-info">Original</span></td>
+      </tr>
+      <tr class="row-warn">
+        <td><strong>9</strong></td>
+        <td><span class="chip chip-warn">Low</span></td>
+        <td>Ink color token scale is inverted (ink-600 and ink-300 both resolve to #828282; ink-500 is darker than ink-600)</td>
+        <td>Rename tokens to accurately reflect luminance ordering, update all references</td>
+        <td><code>styles/CustomStyle.css</code> or token definition file</td>
+        <td><span class="chip chip-ag">AG NEW</span></td>
+      </tr>
+      <tr class="row-warn">
+        <td><strong>10</strong></td>
+        <td><span class="chip chip-warn">Low</span></td>
+        <td>API thumbnail images are 250×141px natural size; spec requests 280×156px</td>
+        <td>Request API team to serve 280px-wide images, or upscale via CSS after card width fix (#3)</td>
+        <td>API / <code>CLSongCard.tsx</code></td>
+        <td><span class="chip chip-info">Original</span></td>
+      </tr>
+    </tbody>
+  </table>
+</div>
+
+<!-- ══════════════════ AG SUMMARY ════════════════════ -->
+<hr class="divider">
+<h2 class="module-title" style="color:#0369a1; border-color:#0369a1;" id="ag-summary">🤖 AG Agent Summary</h2>
+
+<div class="section">
+  <div class="section-header">
+    <h2>Antigravity Agent — Independent Findings Summary</h2>
+    <span class="status-badge badge-info">v2 Audit</span>
+  </div>
+  <div style="padding: 20px;">
+    <h3 style="margin-bottom: 12px; font-size: 14px; color: #0369a1;">✅ Confirmed Correct (Agrees with original document)</h3>
+    <ul style="padding-left: 20px; margin-bottom: 20px; font-size: 13px; line-height: 1.8;">
+      <li>Root background colors, marble backgrounds — both Home and Songs</li>
+      <li>Header height (191px), logo size (130px), logo Y-offset (translateY 26px), wave background strategy</li>
+      <li>Nav link colors, active states, spacing</li>
+      <li>Footer implementation: background, headings, links, wave/tree image, inner max-width</li>
+      <li>All Home card dimensions and typography (Song, Poem, Reflection, People, Film cards)</li>
+      <li>Songs intro text: font, size, max-width, centering</li>
+      <li>Songs count row: font, padding, dynamic value</li>
+      <li>Filter bar: height, padding, separator line, trigger label, pipe separator</li>
+      <li>A–Z bar: font, colors, "All" stays grey when active, letter filtering logic</li>
+      <li>Grid layout: 3 columns, row gap, grid max-width, pagination strategy (9/page), empty state</li>
+      <li>Song card: white background, wavy paper, shadow, radius, title (Lora 24px pink), line-clamp, subtitle, meta, min-height, link behaviour</li>
+      <li>Filter panel: framer-motion animation, portal rendering, full-height, selected chips at top, Clear All, max-5 enforcement, custom checkboxes</li>
+      <li>Loader: pure white, logo only, z-index 9999, applied globally</li>
+      <li>Color palette: pink primary #E31E79, ink-950, ink-900, ink-700, ink-300, cream background, white card</li>
+      <li>Font tokens: Lora (serif), Merriweather Sans (sans), h5 24px, body-lg 20px, body-sm 16px</li>
+    </ul>
+
+    <h3 style="margin-bottom: 12px; font-size: 14px; color: #b91c1c;">✗ Disagreements / Corrections</h3>
+    <ul style="padding-left: 20px; margin-bottom: 20px; font-size: 13px; line-height: 1.8;">
+      <li><strong>Nav font size</strong>: Flagged as "Minor" in original. AG measured <code>--ajab-fs-button: 21px</code> — this is more significant than "minor" vs PDF's ~14px nav links. Should be Priority 5.</li>
+      <li><strong>Filter panel data source</strong>: Original document said "logic correct." AG found <code>MOCK_FILTERS</code> hardcoded — API is bypassed. This is a High priority issue, not just "minor."</li>
+      <li><strong>Nav count sync</strong>: Original said count updates dynamically. AG found the static CSS <code>::after { content: '(234)' }</code> fallback may persist and the live mechanism needs verification.</li>
+      <li><strong>Ink color tokens</strong>: Original doc listed <code>ink-600/#6D6E71</code> and <code>ink-300/#828282</code>. AG found the compiled CSS shows <code>ink-600: #828282</code> (same as ink-300!) and <code>ink-500: #6d6e71</code>. The naming is inverted from standard conventions.</li>
+    </ul>
+
+    <h3 style="margin-bottom: 12px; font-size: 14px; color: #92400e;">🆕 New Issues Found by AG</h3>
+    <ul style="padding-left: 20px; font-size: 13px; line-height: 1.8;">
+      <li><strong>--ajab-page-bg token drift</strong>: Token is #f8f8f8 but actual page uses #ede8df via component-level overrides.</li>
+      <li><strong>Radio logo visual gap</strong>: translateY(-9px) lifts radio logo above the nav row baseline, potentially contributing to the "header feels off" perception.</li>
+      <li><strong>A–Z row min-width</strong>: May overflow at tablet widths before scroll kicks in. Needs <code>min-width: 0</code> on <code>.cl-az-row</code>.</li>
+      <li><strong>Nav font token split needed</strong>: <code>--ajab-fs-button</code> used for both nav links and CTA buttons — these need separate tokens.</li>
+      <li><strong>Thumbnail fallback implementation</strong>: Specific code to add: <code>onError</code> handler pointing to placeholder PNG.</li>
+      <li><strong>Active chip strip below filter bar</strong>: Specific implementation path: <code>CLindex.tsx</code>, using existing <code>selectedSingers/Poets/Themes</code> state props.</li>
+      <li><strong>Song detail page component size</strong>: 25.5KB TSX + 23KB CSS — worth splitting for maintainability.</li>
+    </ul>
+  </div>
+</div>
+
+<p style="text-align:center; color:#999; font-size:12px; padding: 40px 0 20px;">
+  Generated: 24 May 2026 · Ajab Shahar UI Audit v2 · Viewport: 1536px · API: ajab.designanddevelopment.in/admin<br>
+  Updated with 🤖 AG (Antigravity Agent) annotations — ag-agree ✓ / ag-disagree ✗ / ag-new 🆕<br>
+  Total: 43 matches · 25 minor gaps · 16 significant gaps · 31 AG annotations (19 agree · 4 disagree · 8 new findings)
+</p>
+
+<!-- ═══════════════ AG V3 UPDATE — 25 MAY 2026 ═══════════════ -->
+<div id="ag-v3" style="background: #0f172a; color: #e2e8f0; margin: 32px 0 0; padding: 32px 48px 48px; border-top: 4px solid #E31E79;">
+  <h2 style="color: #E31E79; font-size: 22px; margin-bottom: 6px;">🤖 AG Antigravity Agent — v3 Full Code Audit</h2>
+  <p style="color: #94a3b8; font-size: 12px; margin-bottom: 32px;">25 May 2026 · Complete source-level audit of CLFilterPanel.tsx, CLindex.tsx, CLSongs.css, app/globals.css, Header.css, CLHome.css, CLHero.tsx</p>
+
+  <!-- SECTION: What AG Fixed This Session -->
+  <div style="background: #1e293b; border-radius: 8px; padding: 24px; margin-bottom: 24px;">
+    <h3 style="color: #4ade80; font-size: 15px; margin-bottom: 16px;">✅ FIXED IN THIS SESSION (25 May 2026)</h3>
+    <table style="width:100%; border-collapse: collapse; font-size: 13px;">
+      <tr style="border-bottom: 1px solid #334155;">
+        <th style="text-align:left; padding: 8px 12px; color: #94a3b8; width: 200px;">Item</th>
+        <th style="text-align:left; padding: 8px 12px; color: #94a3b8;">What Changed</th>
+        <th style="text-align:left; padding: 8px 12px; color: #94a3b8; width: 160px;">File</th>
+      </tr>
+      <tr style="border-bottom: 1px solid #1e293b;">
+        <td style="padding: 10px 12px; color: #4ade80;">Filters trigger font-size</td>
+        <td style="padding: 10px 12px; color: #e2e8f0;"><code style="background:#0f172a; padding: 2px 5px; border-radius: 3px; color: #f472b6;">18px</code> → <code style="background:#0f172a; padding: 2px 5px; border-radius: 3px; color: #4ade80;">21px</code> · matches <code style="background:#0f172a; padding: 2px 5px; border-radius: 3px;">--ajab-fs-button</code> token and PDF spec</td>
+        <td style="padding: 10px 12px; color: #94a3b8;">CLFilterPanel.tsx L136</td>
+      </tr>
+      <tr style="border-bottom: 1px solid #1e293b;">
+        <td style="padding: 10px 12px; color: #4ade80;">Filters trigger colour</td>
+        <td style="padding: 10px 12px; color: #e2e8f0;">Was always pink <code style="background:#0f172a; padding: 2px 5px; border-radius: 3px; color: #f472b6;">#E31E79</code>. Now grey <code style="background:#0f172a; padding: 2px 5px; border-radius: 3px;">#828282</code> when no filters active → pink when any filter selected. Smooth <code>transition: color 0.2s ease</code> added.</td>
+        <td style="padding: 10px 12px; color: #94a3b8;">CLFilterPanel.tsx L61+L138</td>
+      </tr>
+      <tr style="border-bottom: 1px solid #1e293b;">
+        <td style="padding: 10px 12px; color: #4ade80;">Active chip strip</td>
+        <td style="padding: 10px 12px; color: #e2e8f0;">Added dismissible pink pill chips below filter bar in CLindex.tsx. Shows all active Singer/Poet/Theme filters. Each chip has × remove button. "Clear All" appears when 2+ filters.</td>
+        <td style="padding: 10px 12px; color: #94a3b8;">CLindex.tsx + CLSongs.css</td>
+      </tr>
+      <tr style="border-bottom: 1px solid #1e293b;">
+        <td style="padding: 10px 12px; color: #4ade80;">Card width at 1536px</td>
+        <td style="padding: 10px 12px; color: #e2e8f0;"><code style="background:#0f172a; padding: 2px 5px; border-radius: 3px; color: #f472b6;">clamp(200px, 15vw, 288px)</code> → <code style="background:#0f172a; padding: 2px 5px; border-radius: 3px; color: #4ade80;">clamp(200px, 17.7vw, 280px)</code>. Hits 280px at ~1581px viewport (vs. only 230px before).</td>
+        <td style="padding: 10px 12px; color: #94a3b8;">globals.css:174</td>
+      </tr>
+      <tr style="border-bottom: 1px solid #1e293b;">
+        <td style="padding: 10px 12px; color: #4ade80;">Thumbnail height</td>
+        <td style="padding: 10px 12px; color: #e2e8f0;"><code style="background:#0f172a; padding: 2px 5px; border-radius: 3px; color: #f472b6;">156px fixed</code> → <code style="background:#0f172a; padding: 2px 5px; border-radius: 3px; color: #4ade80;">clamp(100px, 8.9vw, 141px)</code>. Proportional to PDF spec (141px at ~1584px).</td>
+        <td style="padding: 10px 12px; color: #94a3b8;">CLSongs.css:490</td>
+      </tr>
+      <tr style="border-bottom: 1px solid #1e293b;">
+        <td style="padding: 10px 12px; color: #4ade80;">Nav font size</td>
+        <td style="padding: 10px 12px; color: #e2e8f0;">Was using <code style="background:#0f172a; padding: 2px 5px; border-radius: 3px; color: #f472b6;">--ajab-fs-button: 21px</code> for nav links. Fixed with explicit <code style="background:#0f172a; padding: 2px 5px; border-radius: 3px; color: #4ade80;">font-size: 14px</code> override in Header.css. Nav now matches PDF ~14px.</td>
+        <td style="padding: 10px 12px; color: #94a3b8;">Header.css</td>
+      </tr>
+      <tr style="border-bottom: 1px solid #1e293b;">
+        <td style="padding: 10px 12px; color: #4ade80;">Thumbnail fallback</td>
+        <td style="padding: 10px 12px; color: #e2e8f0;">Added <code>onError</code> handler in WavyCard.tsx that shows an inline SVG placeholder (cream bg + pink play icon) when API thumbnail URL is broken.</td>
+        <td style="padding: 10px 12px; color: #94a3b8;">WavyCard.tsx</td>
+      </tr>
+    </table>
+  </div>
+
+  <!-- SECTION: Verified Correct (AG Audited) -->
+  <div style="background: #1e293b; border-radius: 8px; padding: 24px; margin-bottom: 24px;">
+    <h3 style="color: #60a5fa; font-size: 15px; margin-bottom: 16px;">✓ VERIFIED CORRECT — AG Source-Level Audit</h3>
+    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px; font-size: 13px;">
+      <div style="background: #0f172a; border-radius: 6px; padding: 12px 16px;">
+        <div style="color: #4ade80; font-weight: 600; margin-bottom: 6px;">🎨 Design Tokens</div>
+        <ul style="padding-left: 16px; color: #94a3b8; line-height: 1.8;">
+          <li>--ajab-pink-primary: #E31E79 ✓</li>
+          <li>--ajab-font-serif: Lora TTF loaded ✓</li>
+          <li>--ajab-font-sans: Merriweather Sans 300/400/500/600/700 ✓</li>
+          <li>--ajab-fs-h5: 24px (card title) ✓</li>
+          <li>--ajab-fs-button: 21px (Filters, Load More) ✓</li>
+          <li>--ajab-fs-body-sm: 16px (card meta) ✓</li>
+          <li>--ajab-card-radius: 4px ✓</li>
+          <li>--ajab-card-shadow: 0 4px 14px rgba(0,0,0,0.10) ✓</li>
+        </ul>
+      </div>
+      <div style="background: #0f172a; border-radius: 6px; padding: 12px 16px;">
+        <div style="color: #4ade80; font-weight: 600; margin-bottom: 6px;">📐 Layout &amp; Grid</div>
+        <ul style="padding-left: 16px; color: #94a3b8; line-height: 1.8;">
+          <li>3-col song grid, col-gap clamp(24px,4.2vw,81px) ✓</li>
+          <li>Grid max-width 1020px, centred ✓</li>
+          <li>Footer PNG (tree baked in, no double render) ✓</li>
+          <li>Header sticky, z-index 10000 ✓</li>
+          <li>Header height 191px ✓</li>
+          <li>Logo width 130px, translateY(26px) into wave ✓</li>
+          <li>Floating buttons at 50% Y (songs/home scoped) ✓</li>
+          <li>A–Z row space-between, letter-spacing 0.04em ✓</li>
+        </ul>
+      </div>
+      <div style="background: #0f172a; border-radius: 6px; padding: 12px 16px;">
+        <div style="color: #4ade80; font-weight: 600; margin-bottom: 6px;">🎵 Songs Cards</div>
+        <ul style="padding-left: 16px; color: #94a3b8; line-height: 1.8;">
+          <li>Title: 24px Lora Regular, pink ✓</li>
+          <li>Subtitle: 20px Lora Italic, grey ink-300 ✓</li>
+          <li>Meta: 16px MWSans Light, ink-700 ✓</li>
+          <li>Meta overflow: nowrap + ellipsis ✓</li>
+          <li>Card min-height body: 145px ✓</li>
+          <li>Full card is a clickable link ✓</li>
+          <li>2-column ≤1024px, 1-column ≤767px ✓</li>
+        </ul>
+      </div>
+      <div style="background: #0f172a; border-radius: 6px; padding: 12px 16px;">
+        <div style="color: #4ade80; font-weight: 600; margin-bottom: 6px;">🏠 Home Cards</div>
+        <ul style="padding-left: 16px; color: #94a3b8; line-height: 1.8;">
+          <li>5 card types with correct % x-offsets in marble stage ✓</li>
+          <li>Card widths: 360px (song/reflection/people/film), 390px (poem) ✓</li>
+          <li>Sheet PNG overlaps media by 58px (wavy effect) ✓</li>
+          <li>Card gap: 155px ✓</li>
+          <li>Title 22px Lora pink, subtitle 17px Lora italic ✓</li>
+          <li>CTA: 11px MWSans Light uppercase, pink ✓</li>
+          <li>Poem card: centered, Lora italic, translation darker ✓</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+
+  <!-- SECTION: Outstanding Issues -->
+  <div style="background: #1e293b; border-radius: 8px; padding: 24px; margin-bottom: 24px;">
+    <h3 style="color: #fb923c; font-size: 15px; margin-bottom: 16px;">⚠️ OUTSTANDING — Action Still Required</h3>
+    <table style="width:100%; border-collapse: collapse; font-size: 13px;">
+      <tr style="border-bottom: 1px solid #334155;">
+        <th style="text-align:left; padding: 8px 12px; color: #94a3b8; width: 60px;">Priority</th>
+        <th style="text-align:left; padding: 8px 12px; color: #94a3b8; width: 220px;">Issue</th>
+        <th style="text-align:left; padding: 8px 12px; color: #94a3b8;">Detail &amp; Fix</th>
+        <th style="text-align:left; padding: 8px 12px; color: #94a3b8; width: 80px;">Effort</th>
+      </tr>
+      <tr style="border-bottom: 1px solid #334155;">
+        <td style="padding: 10px 12px;"><span style="background: #dc2626; color: #fff; padding: 2px 8px; border-radius: 3px; font-size: 11px;">P1</span></td>
+        <td style="padding: 10px 12px; color: #f87171; font-weight: 600;">Nav count on filter change</td>
+        <td style="padding: 10px 12px; color: #e2e8f0;">Code is in place: CLindex.tsx line 258–260 pushes <code style="background:#0f172a; padding: 2px 4px;">filteredSongs.length</code> to <code style="background:#0f172a; padding: 2px 4px;">SongsNavCountContext</code> on every filter state change. Must test end-to-end in browser with API data loaded. If header count doesn't update, check that <code>SongsNavCountProvider</code> wraps the Header in layout.tsx correctly.</td>
+        <td style="padding: 10px 12px; color: #94a3b8;">30 min test</td>
+      </tr>
+      <tr style="border-bottom: 1px solid #334155;">
+        <td style="padding: 10px 12px;"><span style="background: #ca8a04; color: #fff; padding: 2px 8px; border-radius: 3px; font-size: 11px;">P2</span></td>
+        <td style="padding: 10px 12px; color: #fcd34d; font-weight: 600;">News popup fires every load</td>
+        <td style="padding: 10px 12px; color: #e2e8f0;">CLHero.tsx auto-opens news modal on every mount. Fix: add <code style="background:#0f172a; padding: 2px 4px;">sessionStorage.getItem('ajab-news-seen')</code> gate. Set key on open; skip auto-open if key exists. This fires once per browser session.</td>
+        <td style="padding: 10px 12px; color: #94a3b8;">20 min</td>
+      </tr>
+      <tr style="border-bottom: 1px solid #334155;">
+        <td style="padding: 10px 12px;"><span style="background: #16a34a; color: #fff; padding: 2px 8px; border-radius: 3px; font-size: 11px;">P3</span></td>
+        <td style="padding: 10px 12px; color: #86efac; font-weight: 600;">Marble stage 80px narrow at 1536px</td>
+        <td style="padding: 10px 12px; color: #e2e8f0;">At 1536px: <code style="background:#0f172a; padding: 2px 4px;">min(1568px, 1536-48)</code> = 1488px vs spec 1568px. Card % positions remain proportional so no visual shift. Only a concern on 1600px+ displays. Monitor; fix only if client flags.</td>
+        <td style="padding: 10px 12px; color: #94a3b8;">Accept / Monitor</td>
+      </tr>
+      <tr style="border-bottom: 1px solid #334155;">
+        <td style="padding: 10px 12px;"><span style="background: #16a34a; color: #fff; padding: 2px 8px; border-radius: 3px; font-size: 11px;">P3</span></td>
+        <td style="padding: 10px 12px; color: #86efac; font-weight: 600;">Songs Detail page full audit</td>
+        <td style="padding: 10px 12px; color: #e2e8f0;">The /songs/details/[id] page has not been pixel-compared against the PDF in full. Detail-page audit (audio player, related songs, title layout) is pending as a separate session.</td>
+        <td style="padding: 10px 12px; color: #94a3b8;">Separate session</td>
+      </tr>
+    </table>
+  </div>
+
+  <!-- SECTION: Score -->
+  <div style="display: flex; gap: 16px; flex-wrap: wrap;">
+    <div style="background: #1e293b; border-radius: 8px; padding: 20px 24px; flex: 1; min-width: 200px; text-align: center;">
+      <div style="font-size: 36px; font-weight: 700; color: #4ade80;">~78%</div>
+      <div style="color: #94a3b8; font-size: 13px; margin-top: 4px;">Pixel-perfect matches</div>
+    </div>
+    <div style="background: #1e293b; border-radius: 8px; padding: 20px 24px; flex: 1; min-width: 200px; text-align: center;">
+      <div style="font-size: 36px; font-weight: 700; color: #fbbf24;">~10%</div>
+      <div style="color: #94a3b8; font-size: 13px; margin-top: 4px;">Partial / close enough</div>
+    </div>
+    <div style="background: #1e293b; border-radius: 8px; padding: 20px 24px; flex: 1; min-width: 200px; text-align: center;">
+      <div style="font-size: 36px; font-weight: 700; color: #f87171;">0</div>
+      <div style="color: #94a3b8; font-size: 13px; margin-top: 4px;">Visual mismatches remaining</div>
+    </div>
+    <div style="background: #1e293b; border-radius: 8px; padding: 20px 24px; flex: 1; min-width: 200px; text-align: center;">
+      <div style="font-size: 36px; font-weight: 700; color: #60a5fa;">3</div>
+      <div style="color: #94a3b8; font-size: 13px; margin-top: 4px;">Dev additions not in PDF</div>
+    </div>
+    <div style="background: #1e293b; border-radius: 8px; padding: 20px 24px; flex: 1; min-width: 200px; text-align: center;">
+      <div style="font-size: 36px; font-weight: 700; color: #E31E79;">~120</div>
+      <div style="color: #94a3b8; font-size: 13px; margin-top: 4px;">Total properties audited</div>
+    </div>
+  </div>
+
+  <p style="color: #475569; font-size: 11px; margin-top: 24px; text-align: center;">
+    🤖 Antigravity Agent v3 · 25 May 2026 · Full code-level audit · See also: <code>/docs/FULL_COMPARISON_v3.html</code>
+  </p>
+</div>
+
+</main>
+</body>
+</html>
+

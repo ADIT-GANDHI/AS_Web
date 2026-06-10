@@ -1,0 +1,461 @@
+/* ─────────────────────────────────────────────
+   CL Home Page — Figma 581:308 (marble column + wavy tiles)
+───────────────────────────────────────────── */
+
+/* Marble — Figma 581:308 plate (1924×4475 native); one tile covers full home scroll.
+   Same width rule as cards: cap at 1951px artboard, scale height proportionally.
+   repeat-y only if content ever exceeds scaled tile height (seam-safe #ede8df). */
+.cl-home-page-root {
+  --clh-bg-w: min(100%, 1951px);
+  background:
+    url(/home-assets/home_bg.png) center top / var(--clh-bg-w) auto repeat-y,
+    #ede8df;
+  min-height: 100dvh;
+  position: relative;
+  overflow-x: hidden;
+}
+
+/* Flex column keeps the footer at the bottom of the page stack (after cards). */
+.cl-home-layout {
+  display: flex;
+  flex-direction: column;
+  min-height: 100dvh;
+}
+
+.cl-home-layout > footer.footer-bg {
+  flex-shrink: 0;
+  /* Do not set margin-top: auto — it overrides Footer.css negative margin and kills the
+     PDF “wave tucks under last card” overlap (~35px in Figma). */
+}
+
+/* [Claude] these changes have been recommended by claude —
+   Top padding reduced from 68px to 16px to match PDF: PDF first card starts ~78px from artboard
+   top (header ~60px + ~18px gap). Previous 68px pushed first card to y=259px in browser. */
+.clh-page {
+  position: relative;
+  width: 100%;
+  /* Works with footer margin-top (~-160px @ 1920): net ~40px wave overlap ≈ Figma. */
+  padding: 16px 0 clamp(72px, calc(120 / 1920 * 100vw), 120px);
+  font-weight: 300;
+}
+
+/* Figma marble content column (581:313) — card x positions are relative to this, not the viewport.
+   [Claude] these changes have been recommended by claude —
+   Stage width now matches the PDF artboard ratio (1568/1920 = 81.67vw).
+   Previous formula (100vw - 48px) gave 1392px at 1440px viewport vs PDF's 1176px — too wide,
+   causing all cards to drift ±40-80px from their PDF positions.
+   New formula: at 1440px → 1176px, at 1920px → 1568px (exact match). */
+.clh-marble-stage {
+  /* PDF / Figma: 1920 artboard, 1568px marble. Card width + gap track marble linearly.
+     Type uses clamp(…) so 1440 stays readable without widening cards. */
+  --clh-marble-w: min(1568px, calc(1568 / 1920 * 100vw));
+  --clh-gap: calc(192 / 1568 * var(--clh-marble-w));
+  --clh-card-w-wide: calc(440 / 1568 * var(--clh-marble-w));
+  --clh-card-w-poem: calc(420 / 1568 * var(--clh-marble-w));
+  /* Shorter media + lap vs full PDF export (299px @ 1920) — reduces overall card height */
+  --clh-media-h: calc(248 / 1568 * var(--clh-marble-w));
+  --clh-sheet-lap: calc(50 / 1568 * var(--clh-marble-w));
+  --clh-desc-lines: 4;
+  /* +2px vs PDF base sizes; extra boost on narrow marble for 1440 readability */
+  --clh-fs-title: clamp(22px, calc(6px + 22 / 1568 * var(--clh-marble-w)), 24px);
+  --clh-lh-title: clamp(26px, calc(6px + 26 / 1568 * var(--clh-marble-w)), 28px);
+  --clh-fs-subtitle: clamp(19px, calc(5px + 18 / 1568 * var(--clh-marble-w)), 20px);
+  --clh-lh-subtitle: clamp(22px, calc(5px + 21 / 1568 * var(--clh-marble-w)), 23px);
+  --clh-fs-meta: clamp(15px, calc(4px + 14 / 1568 * var(--clh-marble-w)), 16px);
+  --clh-lh-meta: clamp(17px, calc(4px + 17 / 1568 * var(--clh-marble-w)), 19px);
+  --clh-fs-desc: clamp(15px, calc(4px + 14.5 / 1568 * var(--clh-marble-w)), 16.5px);
+  --clh-lh-desc: clamp(21px, calc(4px + 21 / 1568 * var(--clh-marble-w)), 23px);
+  --clh-fs-cta: 12px;
+  --clh-lh-cta: 14px;
+  --clh-fs-poem: clamp(17px, calc(4px + 16 / 1568 * var(--clh-marble-w)), 18px);
+  --clh-lh-poem: clamp(21px, calc(4px + 20 / 1568 * var(--clh-marble-w)), 22px);
+  width: var(--clh-marble-w);
+  margin: 0 auto;
+}
+
+.clh-cards {
+  display: flex;
+  flex-direction: column;
+  gap: var(--clh-gap);
+}
+
+.clh-card-row {
+  display: flex;
+  width: 100%;
+}
+
+/* Figma 581:308 — card x inside 1568px marble (absoluteTransform vs marble bg):
+   song 466 | poem right-inset 191 | reflection 343 | people right-inset 282 | film 486
+   [Claude] these changes have been recommended by claude —
+   Reverted padding values to original Figma positions. A previous session had added +80
+   to every value to compensate for wider 380px cards. Cards are now ~330px (true 0.75 scale)
+   so original Figma positions are correct again. */
+.clh-card-row--song {
+  justify-content: flex-start;
+  padding-left: calc(466 / 1568 * 100%);
+}
+.clh-card-row--poem {
+  justify-content: flex-end;
+  padding-right: calc(191 / 1568 * 100%);
+}
+.clh-card-row--reflection {
+  justify-content: flex-start;
+  padding-left: calc(343 / 1568 * 100%);
+}
+.clh-card-row--people {
+  justify-content: flex-end;
+  padding-right: calc(282 / 1568 * 100%);
+}
+.clh-card-row--film {
+  justify-content: flex-start;
+  padding-left: calc(486 / 1568 * 100%);
+}
+
+/* Card — predefined media box + one wavy sheet (Figma 581:377) */
+/* [Claude] these changes have been recommended by claude —
+   media height: fluid clamp so image slot scales with viewport.
+   At 1440px → 13vw = 187px; at 1920px → 250px. */
+.clh-card {
+  --clh-media-gap: 2px;
+  /* home_tile_with_both_waves.png (503px): visible white body 482px @ inset 3px left */
+  --clh-sheet-native-w: 503;
+  --clh-sheet-body-w: 482;
+  --clh-sheet-body-inset-l: 3;
+  --clh-sheet-native-h: 485;
+  --clh-sheet-bottom-scallop: 22; /* transparent scallop rows at bottom of tile PNG */
+  flex-shrink: 0;
+  box-sizing: border-box;
+  background: transparent;
+  padding: 0;
+  overflow: visible;
+}
+
+.clh-song-card,
+.clh-reflection-card,
+.clh-people-card,
+.clh-film-card {
+  width: var(--clh-card-w-wide);
+  max-width: 100%;
+}
+
+.clh-poem-card {
+  width: var(--clh-card-w-poem);
+  max-width: 100%;
+}
+
+.clh-card-stack {
+  position: relative;
+  width: 100%;
+  max-width: 100%;
+  line-height: 0;
+  overflow: visible;
+  filter: drop-shadow(0 6px 14px rgba(0, 0, 0, 0.12));
+}
+
+/* Transparent shell — white mat only on media (slot); sheet PNG scallops show marble below */
+.clh-card-surface {
+  box-sizing: border-box;
+  width: 100%;
+  padding: var(--clh-media-gap);
+  padding-bottom: 0;
+  background: transparent;
+  overflow: visible;
+}
+
+/* Photo width matches scaled sheet white body (not full PNG width — avoids side overflow) */
+.clh-media-slot {
+  position: relative;
+  z-index: 1;
+  box-sizing: border-box;
+  width: calc(100% * var(--clh-sheet-body-w) / var(--clh-sheet-native-w));
+  margin-left: calc(100% * var(--clh-sheet-body-inset-l) / var(--clh-sheet-native-w));
+  margin-right: calc(
+    100% * (var(--clh-sheet-native-w) - var(--clh-sheet-body-inset-l) - var(--clh-sheet-body-w)) /
+      var(--clh-sheet-native-w)
+  );
+  height: var(--clh-media-h);
+  padding: var(--clh-media-gap);
+  overflow: hidden;
+  line-height: 0;
+  background: #fff;
+}
+
+.clh-media-slot img,
+.clh-media-slot video {
+  display: block;
+  width: 100%;
+  height: 100%;
+  max-width: 100%;
+  object-fit: cover;
+  object-position: center top;
+  border: 0;
+}
+
+.clh-media-slot iframe {
+  display: block;
+  width: 100%;
+  height: 100%;
+  border: 0;
+}
+
+.clh-card-surface .clh-card-sheet {
+  position: relative;
+  z-index: 2;
+  width: 100%;
+  overflow: visible;
+  margin-top: calc(-1 * var(--clh-sheet-lap));
+  --clh-sheet-pad-top: 14px;
+  --clh-sheet-pad-bottom: 18px;
+}
+
+/* Text sets height; wavy PNG is absolute so its intrinsic aspect ratio cannot add empty space. */
+.clh-card-sheet {
+  position: relative;
+  display: block;
+  width: 100%;
+  max-width: 100%;
+  line-height: normal;
+  box-sizing: border-box;
+  overflow: hidden;
+  --clh-sheet-pad-x: clamp(12px, calc(14 / 1568 * var(--clh-marble-w)), 16px);
+  --clh-sheet-pad-right: clamp(14px, calc(18 / 1568 * var(--clh-marble-w)), 20px);
+  --clh-sheet-pad-top: clamp(14px, calc(18 / 1568 * var(--clh-marble-w)), 22px);
+  --clh-sheet-pad-bottom: clamp(14px, calc(18 / 1568 * var(--clh-marble-w)), 22px);
+}
+
+.clh-card-sheet-shape {
+  position: absolute;
+  inset: 0;
+  display: block;
+  width: 100%;
+  height: 100%;
+  margin: 0;
+  padding: 0;
+  object-fit: fill;
+  pointer-events: none;
+  user-select: none;
+  z-index: 0;
+}
+
+.clh-card-body {
+  position: relative;
+  z-index: 1;
+  width: 100%;
+  box-sizing: border-box;
+  padding: var(--clh-sheet-pad-top) var(--clh-sheet-pad-right) var(--clh-sheet-pad-bottom)
+    var(--clh-sheet-pad-x);
+  display: flex;
+  flex-direction: column;
+  overflow: visible;
+  font-family: var(--ajab-font-sans);
+  font-weight: 300;
+  font-size: var(--clh-fs-meta);
+  line-height: var(--clh-lh-meta);
+  color: var(--ajab-ink-500);
+}
+
+.clh-card-title {
+  font-family: var(--ajab-font-serif);
+  font-weight: 400;
+  font-size: var(--clh-fs-title);
+  line-height: var(--clh-lh-title);
+  letter-spacing: 0;
+  color: var(--ajab-pink-primary);
+  margin: 0 0 4px;
+}
+
+.clh-card-subtitle {
+  font-family: var(--ajab-font-serif);
+  font-style: italic;
+  font-weight: 400;
+  font-size: var(--clh-fs-subtitle);
+  line-height: var(--clh-lh-subtitle);
+  letter-spacing: 0;
+  color: var(--ajab-ink-500);
+  margin: 0 0 4px;
+}
+
+.clh-card-meta {
+  font-family: var(--ajab-font-sans);
+  font-weight: 300;
+  font-size: var(--clh-fs-meta);
+  line-height: var(--clh-lh-meta);
+  color: var(--ajab-ink-500);
+  letter-spacing: 0;
+  margin: 0;
+}
+.clh-card-meta-label { color: var(--ajab-ink-500); }
+.clh-card-meta-name { color: var(--ajab-ink-500); font-weight: 300; }
+
+.clh-card-divider {
+  height: 1px;
+  background: var(--ajab-pink-primary);
+  margin: 10px 0 8px;
+  width: 100%;
+}
+
+.clh-card-desc {
+  font-family: var(--ajab-font-sans);
+  font-weight: 300;
+  font-size: var(--clh-fs-desc);
+  line-height: var(--clh-lh-desc);
+  letter-spacing: 0;
+  color: var(--ajab-ink-500);
+  margin: 0;
+  display: -webkit-box;
+  /* autoprefixer: ignore next */
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: var(--clh-desc-lines);
+  line-clamp: var(--clh-desc-lines);
+  overflow: hidden;
+}
+
+.clh-card-cta {
+  display: inline-block;
+  font-family: var(--ajab-font-sans);
+  font-weight: 300;
+  font-size: var(--clh-fs-cta);
+  line-height: var(--clh-lh-cta);
+  color: var(--ajab-pink-primary);
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  text-decoration: none;
+  cursor: pointer;
+  text-align: right;
+  width: 100%;
+  margin-top: 5px;
+  flex-shrink: 0;
+}
+
+/* Whole card is a link — reset anchor styles */
+a.clh-card {
+  display: block;
+  text-decoration: none;
+  color: inherit;
+  cursor: pointer;
+}
+
+/* Poem tile — Figma 581:319; full top scallop visible */
+.clh-poem-card .clh-card-sheet {
+  --clh-sheet-pad-top: clamp(18px, calc(24 / 1568 * var(--clh-marble-w)), 28px);
+  --clh-sheet-pad-bottom: clamp(14px, calc(18 / 1568 * var(--clh-marble-w)), 20px);
+}
+
+.clh-poem-card .clh-card-body {
+  text-align: center;
+}
+
+.clh-poem-text {
+  font-family: var(--ajab-font-serif);
+  font-style: italic;
+  font-weight: 400;
+  font-size: var(--clh-fs-poem);
+  line-height: var(--clh-lh-poem);
+  letter-spacing: 0;
+  color: var(--ajab-ink-500);
+  white-space: pre-line;
+  margin: 0 0 8px;
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: var(--clh-desc-lines);
+  line-clamp: var(--clh-desc-lines);
+  overflow: hidden;
+}
+
+/* Verse + translation: 3 + 2 lines so nothing is clipped mid-glyph */
+.clh-poem-card .clh-card-body:has(.clh-poem-translation) .clh-poem-text {
+  -webkit-line-clamp: 3;
+  line-clamp: 3;
+}
+
+.clh-poem-spacer {
+  display: none;
+}
+
+.clh-poem-translation {
+  font-family: var(--ajab-font-serif);
+  font-weight: 500;
+  font-style: italic;
+  font-size: var(--clh-fs-poem);
+  line-height: var(--clh-lh-poem);
+  letter-spacing: 0;
+  color: var(--ajab-ink-950);
+  white-space: pre-line;
+  margin: 0 0 8px;
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+  line-clamp: 2;
+  overflow: hidden;
+  /* Avoid clipped Devanagari ascenders when line-clamp trims */
+  padding-bottom: 2px;
+}
+
+.clh-poem-divider {
+  height: 1px;
+  background: var(--ajab-pink-primary);
+  width: 100%;
+  margin: 0 0 10px;
+}
+
+.clh-poem-poet {
+  font-family: var(--ajab-font-sans);
+  font-weight: 300;
+  font-size: var(--clh-fs-meta);
+  line-height: var(--clh-lh-meta);
+  color: var(--ajab-ink-500);
+  text-align: center;
+  letter-spacing: 0;
+  margin: 0;
+}
+.clh-poem-poet .pink { color: var(--ajab-pink-primary); }
+
+/* Staggered layout collapses to centred single-column only on narrow tablets/phones */
+@media screen and (max-width: 900px) {
+  .clh-page { padding: 40px 16px 80px; }
+
+  .clh-marble-stage {
+    --clh-gap: 60px;
+    --clh-card-w-wide: min(100%, 323px);
+    --clh-card-w-poem: min(100%, 323px);
+    --clh-media-h: 224px;
+    --clh-sheet-lap: 49px;
+    --clh-fs-title: 22px;
+    --clh-lh-title: 26px;
+    --clh-fs-subtitle: 18px;
+    --clh-lh-subtitle: 21px;
+    --clh-fs-meta: 14px;
+    --clh-lh-meta: 17px;
+    --clh-fs-desc: 14.5px;
+    --clh-lh-desc: 21px;
+    --clh-fs-cta: 12px;
+    --clh-lh-cta: 14px;
+    --clh-fs-poem: 16px;
+    --clh-lh-poem: 20px;
+  }
+
+  .clh-song-card,
+  .clh-poem-card,
+  .clh-reflection-card,
+  .clh-people-card,
+  .clh-film-card {
+    width: 100%;
+    max-width: 323px;
+  }
+
+  .clh-card-row--song,
+  .clh-card-row--poem,
+  .clh-card-row--reflection,
+  .clh-card-row--people,
+  .clh-card-row--film {
+    justify-content: center;
+    padding: 0;
+  }
+
+  .clh-card-sheet {
+    --clh-sheet-pad-x: 16px;
+    --clh-sheet-pad-right: 20px;
+    --clh-sheet-pad-top: 24px;
+    --clh-sheet-pad-bottom: 36px;
+  }
+}

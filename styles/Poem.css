@@ -1,0 +1,44 @@
+/* Poem Css start */
+.poem-card-box-wrapper {
+  max-width: 470px;
+  box-sizing: border-box;
+}
+.poem-card-box-wrapper .border-top-pink {
+  max-width: 300px;
+  width: 100%;
+  font-style: italic;
+}
+.poem-card-box-wrapper .card-text {
+  font-family: var(--ajab-font-serif) !important;
+  font-weight: 400 !important;
+  font-style: italic !important;
+  font-size: var(--ajab-fs-h5) !important;
+  line-height: 100% !important;
+  letter-spacing: 0 !important;
+  color: var(--ajab-ink-500) !important;
+  max-width: 300px;
+  margin: 35px 0 26px;
+}
+.poem-card-box-wrapper .justify-self-stretch {
+  width: 100%;
+  justify-content: end;
+  display: flex;
+  margin: 36px 0 0;
+}
+.no-media-padding .justify-center.flex {
+  display: flex;
+  justify-content: flex-end;
+  width: 100%;
+}
+.peopm-heading {
+  font-family: var(--ajab-font-serif);
+  font-weight: 500;
+  font-style: italic;
+  font-size: var(--ajab-fs-h5);
+  line-height: 19px;
+  letter-spacing: 0;
+  color: var(--ajab-ink-950) !important;
+  max-width: 320px;
+}
+
+/* Poem Css end */

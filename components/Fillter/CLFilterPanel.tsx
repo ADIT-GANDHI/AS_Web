@@ -1,0 +1,547 @@
+'use client';
+
+import { AnimatePresence, motion } from 'framer-motion';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { createPortal } from 'react-dom';
+import type {
+  ListingFilterCategory,
+  ListingFilterPanelProps,
+} from '@/components/shared/listingFilterTypes';
+import {
+  FILTER_DRAWER_HEIGHT,
+  FILTER_DRAWER_TOP,
+  FILTER_DRAWER_Z_BACKDROP,
+  FILTER_DRAWER_Z_PANEL,
+} from '@/lib/filterDrawerLayout';
+import { FILTER_PANEL_SHAPE } from '@/lib/resolveCmsAssetUrl';
+
+export type { ListingFilterCategory, ListingFilterPanelProps };
+
+type FilterType = ListingFilterCategory;
+
+const DEFAULT_CATEGORY_LABELS: Record<FilterType, string> = {
+  Singer: 'Singer',
+  Poet: 'Poet',
+  Theme: 'Theme',
+};
+
+function cleanList(list: any[]) {
+  return list
+    .filter((value) => value && value !== null && value !== '')
+    .filter((value, index, array) => array.indexOf(value) === index);
+}
+
+// Hardcoded filter data — API call bypassed for UI testing
+const MOCK_FILTERS = {
+  Singer: [
+    'Abdullah Ismail Jat',
+    'Amolak Ram',
+    'Arun Goyal',
+    'Asariya Khima Jagariya',
+    'Babu Khan Bagadwa',
+    'Babulal Ranaji',
+    'Bhakshu Fakir',
+    'Bharmal Vagha',
+    'Bindhumalini & Vedanth',
+    'Dayaram Saroliya',
+    'Hans Raj Hans',
+    'Parvati Baul',
+    'Prahlad Singh Tipanya',
+    'Shaukat Ali',
+    'Wadali Brothers',
+    'Zila Khan',
+    'Abida Parveen',
+    'Alam Lohar',
+  ],
+  Poet: [
+    'Kabir',
+    'Lalon Fakir',
+    'Mirabai',
+    'Bulleh Shah',
+    'Rumi',
+    'Tukaram',
+    'Surdas',
+    'Shah Hussain',
+    'Farid ud-Din Attar',
+    'Lal Ded',
+    'Shams Tabrizi',
+    'Waris Shah',
+  ],
+  Theme: [],
+};
+
+// Figma typography tokens for the Songs filter panel.
+const FONT = "'Merriweather Sans', sans-serif";
+
+export default function CLFilterPanel({
+  onFilterSelect,
+  onRemoveFilter,
+  onClearAll,
+  selectedSingers = [],
+  selectedPoets = [],
+  selectedThemes = [],
+  availableSingers,
+  availablePoets,
+  availableThemes,
+  categoryLabels = DEFAULT_CATEGORY_LABELS,
+  maxFilters = 5,
+  useSongsMockFallback = false,
+  hideTrigger = false,
+  open: openProp,
+  onOpenChange,
+  singleListMode = false,
+}: ListingFilterPanelProps) {
+  // Derives whether any filter is currently active — used for trigger colour
+  const hasActiveFilters = selectedSingers.length > 0 || selectedPoets.length > 0 || selectedThemes.length > 0;
+  const [openUncontrolled, setOpenUncontrolled] = useState(false);
+  const open = openProp ?? openUncontrolled;
+  const setOpen = useCallback(
+    (value: boolean | ((prev: boolean) => boolean)) => {
+      const next = typeof value === 'function' ? value(open) : value;
+      if (onOpenChange) onOpenChange(next);
+      else setOpenUncontrolled(next);
+    },
+    [onOpenChange, open]
+  );
+  const [mounted, setMounted] = useState(false);
+  const [activeCategory, setActiveCategory] = useState<FilterType>('Singer');
+
+  // Issue 11: List of singers should continue till the end of the screen.
+  // We use a dynamic calculation based on clientHeight instead of hardcoded LIST_MAX_H.
+  const [listMaxHeight, setListMaxHeight] = useState(480);
+  const scrollRef = useRef<HTMLDivElement>(null);
+  const [thumbTop, setThumbTop] = useState(0);
+  const [thumbHeight, setThumbHeight] = useState(480);
+
+  const filterLists = useMemo(() => {
+    const pick = (available: string[] | undefined, mock: string[]) => {
+      if (available !== undefined && available.length > 0) return available;
+      return useSongsMockFallback ? mock : available ?? [];
+    };
+    return {
+      Singer: pick(availableSingers, MOCK_FILTERS.Singer),
+      Poet: pick(availablePoets, MOCK_FILTERS.Poet),
+      Theme: pick(availableThemes, MOCK_FILTERS.Theme),
+    };
+  }, [availableSingers, availablePoets, availableThemes, useSongsMockFallback]);
+
+  const selectedFilters = useMemo(
+    () => [
+      ...selectedSingers.map((value: string) => ({ type: 'Singer' as const, value })),
+      ...selectedPoets.map((value: string) => ({ type: 'Poet' as const, value })),
+      ...selectedThemes.map((value: string) => ({ type: 'Theme' as const, value })),
+    ],
+    [selectedSingers, selectedPoets, selectedThemes]
+  );
+
+  const handleFilterSelect = useCallback(
+    (type: FilterType, value: string) => {
+      const isSelected =
+        type === 'Singer'
+          ? selectedSingers.includes(value)
+          : type === 'Poet'
+            ? selectedPoets.includes(value)
+            : selectedThemes.includes(value);
+      if (!isSelected && selectedFilters.length >= maxFilters) return;
+      onFilterSelect(type, value);
+    },
+    [maxFilters, onFilterSelect, selectedFilters.length, selectedPoets, selectedSingers, selectedThemes]
+  );
+
+  const recalcThumb = useCallback(() => {
+    const el = scrollRef.current;
+    if (!el) return;
+    const { scrollTop, scrollHeight, clientHeight } = el;
+    setListMaxHeight(clientHeight);
+    if (scrollHeight <= clientHeight) {
+      setThumbHeight(clientHeight);
+      setThumbTop(0);
+      return;
+    }
+    const th = Math.max(24, (clientHeight / scrollHeight) * clientHeight);
+    const tp = (scrollTop / (scrollHeight - clientHeight)) * (clientHeight - th);
+    setThumbHeight(th);
+    setThumbTop(tp);
+  }, []);
+
+  // Recalculate when panel opens, when content or category changes, and when the window resizes.
+  useEffect(() => {
+    if (!open) return;
+    recalcThumb();
+    window.addEventListener('resize', recalcThumb);
+    return () => {
+      window.removeEventListener('resize', recalcThumb);
+    };
+  }, [open, filterLists, activeCategory, recalcThumb]);
+
+  // Only render overlay after hydration (fixed layers are client-only).
+  useEffect(() => setMounted(true), []);
+
+  useEffect(() => {
+    if (!open) return;
+    const prev = document.body.style.overflow;
+    document.body.style.overflow = 'hidden';
+    return () => {
+      document.body.style.overflow = prev;
+    };
+  }, [open]);
+
+  const categories: FilterType[] = singleListMode ? ['Singer'] : ['Singer', 'Poet', 'Theme'];
+  const labelFor = (cat: FilterType) => categoryLabels[cat] ?? cat;
+  const showScrollbar =
+    open && scrollRef.current
+      ? scrollRef.current.scrollHeight > scrollRef.current.clientHeight
+      : thumbHeight < listMaxHeight;
+
+  return (
+    <div className="relative inline-block">
+      {/* ── Trigger button ── */}
+      {/* colour: grey (#828282) when no filters active, pink when any filter selected — matches PDF spec */}
+      {!hideTrigger && (
+      <button
+        onClick={() => setOpen((v) => !v)}
+        style={{
+          color: hasActiveFilters ? '#E31E79' : '#828282',
+          fontFamily: FONT,
+          fontWeight: 300,
+          fontSize: '18px',   /* --ajab-fs-button = 21px per design tokens */
+          lineHeight: '100%',
+          letterSpacing: '0.04em',
+          background: 'transparent',
+          border: 'none',
+          cursor: 'pointer',
+          padding: 0,
+          transition: 'color 0.2s ease',
+        }}
+      >
+        Filters
+      </button>
+      )}
+
+      {mounted &&
+        createPortal(
+          <>
+            {/* Hide native scrollbar; we render our own custom one */}
+            <style>{`
+          .ajab-filter-list::-webkit-scrollbar { display: none; }
+          .ajab-filter-list { -ms-overflow-style: none; scrollbar-width: none; }
+        `}</style>
+            <AnimatePresence>
+              {open && (
+                <>
+                  {/* Backdrop — below header only (header stays visible + clickable). */}
+                  <div
+                    style={{
+                      position: 'fixed',
+                      top: FILTER_DRAWER_TOP,
+                      left: 0,
+                      right: 0,
+                      bottom: 0,
+                      zIndex: FILTER_DRAWER_Z_BACKDROP,
+                      background: 'transparent',
+                    }}
+                    onClick={() => setOpen(false)}
+                  />
+
+                  {/* Portaled drawer — full viewport height below header (escapes page overflow clip). */}
+                  <motion.div
+                  style={{
+                    position: 'fixed',
+                    top: FILTER_DRAWER_TOP,
+                    left: 0,
+                    width: '422px',
+                    height: FILTER_DRAWER_HEIGHT,
+                    minHeight: FILTER_DRAWER_HEIGHT,
+                    boxSizing: 'border-box',
+                    display: 'flex',
+                    flexDirection: 'column',
+                    fontFamily: FONT,
+                    zIndex: FILTER_DRAWER_Z_PANEL,
+                    overflow: 'hidden',
+                    pointerEvents: 'auto',
+                  }}
+                  initial={{ x: '-100%', opacity: 0 }}
+                  animate={{ x: 0, opacity: 1 }}
+                  exit={{ x: '-100%', opacity: 0 }}
+                  transition={{ type: 'spring', stiffness: 140, damping: 22 }}
+                >
+                  {/* Opaque white base — prevents page texture bleeding through the wavy edge */}
+                  <div
+                    aria-hidden="true"
+                    style={{
+                      position: 'absolute',
+                      inset: 0,
+                      background: '#FFFFFF',
+                      pointerEvents: 'none',
+                    }}
+                  />
+                  {/* Wavy right edge */}
+                  <img
+                    src={FILTER_PANEL_SHAPE}
+                    alt=""
+                    aria-hidden="true"
+                    style={{
+                      position: 'absolute',
+                      inset: 0,
+                      width: '422px',
+                      height: '100%',
+                      minHeight: '100%',
+                      objectFit: 'fill',
+                      pointerEvents: 'none',
+                      userSelect: 'none',
+                    }}
+                  />
+                  <div
+                    style={{
+                      position: 'relative',
+                      zIndex: 1,
+                      display: 'flex',
+                      flexDirection: 'column',
+                      flex: '1 1 auto',
+                      minHeight: 0,
+                    }}
+                  >
+                  <div style={{ padding: '20px 44px 0', flex: '0 0 auto' }}>
+                    <div style={{ height: '1px', background: '#B1B1B1' }} />
+                    <div
+                      style={{
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'space-between',
+                        padding: '20px 0 18px',
+                        gap: '8px',
+                      }}
+                    >
+                      <div
+                        style={{
+                          display: 'flex',
+                          alignItems: 'center',
+                          flexWrap: 'nowrap',
+                          gap: 0,
+                          minWidth: 0,
+                          flex: 1,
+                        }}
+                      >
+                        <span
+                          style={{
+                            fontFamily: FONT,
+                            fontSize: '16px',
+                            fontWeight: 400,
+                            color: '#333333',
+                            marginRight: '16px',
+                            whiteSpace: 'nowrap',
+                            flexShrink: 0,
+                          }}
+                        >
+                          Filter by
+                        </span>
+
+                        {!singleListMode &&
+                          categories.map((cat, idx) => (
+                            <span key={cat} style={{ display: 'inline-flex', alignItems: 'center' }}>
+                              <button
+                                onClick={() => setActiveCategory(cat)}
+                                style={{
+                                  fontFamily: FONT,
+                                  fontSize: '16px',
+                                  fontWeight: 300,
+                                  color: activeCategory === cat ? '#E31E79' : '#333333',
+                                  background: 'none',
+                                  border: 'none',
+                                  cursor: 'pointer',
+                                  padding: 0,
+                                  whiteSpace: 'nowrap',
+                                }}
+                              >
+                                {labelFor(cat)}
+                              </button>
+                              {idx < categories.length - 1 && (
+                                <span
+                                  style={{
+                                    color: '#333333',
+                                    fontSize: '16px',
+                                    fontWeight: 300,
+                                    margin: '0 6px',
+                                  }}
+                                >
+                                  |
+                                </span>
+                              )}
+                            </span>
+                          ))}
+                      </div>
+
+                      {/* Close × */}
+                      <button
+                        onClick={() => setOpen(false)}
+                        aria-label="Close filters"
+                        style={{
+                          color: '#E6257A',
+                          fontSize: '22px',
+                          lineHeight: 1,
+                          background: 'none',
+                          border: 'none',
+                          cursor: 'pointer',
+                          padding: '0 2px',
+                        }}
+                      >
+                        ×
+                      </button>
+                    </div>
+                    <div style={{ height: '1px', background: '#B1B1B1' }} />
+                  </div>
+
+                  {selectedFilters.length > 0 && (
+                    <div
+                      style={{
+                        padding: '12px 44px 0',
+                        display: 'flex',
+                        flexWrap: 'wrap',
+                        gap: '8px',
+                        flex: '0 0 auto',
+                      }}
+                    >
+                      {selectedFilters.map(({ type, value }) => (
+                        <button
+                          key={`${type}-${value}`}
+                          type="button"
+                          onClick={() => onRemoveFilter(type, value)}
+                          style={{
+                            fontFamily: FONT,
+                            fontSize: '14px',
+                            fontWeight: 300,
+                            color: '#E31E79',
+                            background: 'rgba(227, 30, 121, 0.07)',
+                            border: '1px solid rgba(227, 30, 121, 0.35)',
+                            borderRadius: '99px',
+                            padding: '4px 10px',
+                            cursor: 'pointer',
+                          }}
+                        >
+                          {value} ×
+                        </button>
+                      ))}
+                    </div>
+                  )}
+
+                  {/* ── Filter list ── */}
+                  <div style={{ position: 'relative', paddingLeft: '44px', paddingRight: '72px', flex: '1 1 0%', minHeight: 0, display: 'flex', flexDirection: 'column' }}>
+                    <div
+                      ref={scrollRef}
+                      className="ajab-filter-list"
+                      onScroll={recalcThumb}
+                      style={{
+                        overflowY: 'scroll',
+                        flex: '1 1 0%',
+                        minHeight: 0,
+                        paddingTop: '14px',
+                        paddingBottom: '24px',
+                        width: '258px',
+                      }}
+                    >
+                      <ul style={{ listStyle: 'none', margin: 0, padding: 0 }}>
+                        {filterLists[activeCategory].map((item: any) => {
+                          const isSelected =
+                            activeCategory === 'Singer'
+                              ? selectedSingers.includes(item)
+                              : activeCategory === 'Poet'
+                                ? selectedPoets.includes(item)
+                                : selectedThemes.includes(item);
+                          return (
+                            <li
+                              key={item}
+                              onClick={() => handleFilterSelect(activeCategory, item)}
+                              style={{
+                                fontFamily: FONT,
+                                fontWeight: isSelected ? 400 : 300,
+                                fontSize: '17px',
+                                lineHeight: '1.3',
+                                color: isSelected ? '#E31E79' : '#6F6F72',
+                                cursor: 'pointer',
+                                padding: '13px 0',
+                                display: 'flex',
+                                alignItems: 'center',
+                              }}
+                            >
+                              <span>{item}</span>
+                            </li>
+                          );
+                        })}
+                        {filterLists[activeCategory].length === 0 && (
+                          <li style={{ color: '#a7a7a7', padding: '12px 0', fontSize: '15px' }}>
+                            No filters available
+                          </li>
+                        )}
+                      </ul>
+                    </div>
+
+                    {/* Custom scrollbar */}
+                    {(thumbHeight < listMaxHeight || showScrollbar) && listMaxHeight > 0 && (
+                      <div
+                        style={{
+                          position: 'absolute',
+                          top: '24px',
+                          right: '44px',
+                          width: '6px',
+                          height: `${listMaxHeight - 48}px`,
+                          background: '#e0e0e0',
+                          borderRadius: '3px',
+                        }}
+                      >
+                        <div
+                          style={{
+                            position: 'absolute',
+                            top: `${(thumbTop / listMaxHeight) * (listMaxHeight - 48)}px`,
+                            width: '6px',
+                            height: `${(thumbHeight / listMaxHeight) * (listMaxHeight - 48)}px`,
+                            background: '#999999',
+                            borderRadius: '3px',
+                            transition: 'top 0.05s linear',
+                          }}
+                        />
+                      </div>
+                    )}
+                  </div>
+
+                  {selectedFilters.length > 0 && onClearAll && (
+                    <div
+                      style={{
+                        padding: '16px 44px 24px',
+                        borderTop: '1px solid #E0E0E0',
+                        flex: '0 0 auto',
+                      }}
+                    >
+                      <button
+                        type="button"
+                        onClick={() => {
+                          onClearAll();
+                          setOpen(false);
+                        }}
+                        style={{
+                          fontFamily: FONT,
+                          fontSize: '14px',
+                          fontWeight: 300,
+                          letterSpacing: '0.08em',
+                          color: '#E31E79',
+                          background: 'none',
+                          border: 'none',
+                          cursor: 'pointer',
+                          textTransform: 'uppercase',
+                          padding: 0,
+                        }}
+                      >
+                        Clear all
+                      </button>
+                    </div>
+                  )}
+                  </div>
+                </motion.div>
+              </>
+              )}
+            </AnimatePresence>
+          </>,
+          document.body
+        )}
+    </div>
+  );
+}

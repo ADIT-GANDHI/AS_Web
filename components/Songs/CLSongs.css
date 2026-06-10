@@ -1,0 +1,756 @@
+/* ─────────────────────────────────────────────
+   CL Songs — pixel-matched to Figma
+   All selectors scoped with .cl- prefix
+───────────────────────────────────────────── */
+
+:root {
+  --ajab-card-radius: 2px; /* reduced card curves from 4px to 2px for a premium crisp look */
+}
+
+/* ── Root wrapper — Songs listing layered bg (AllSONGS_2june2026).
+   Marble + triangles + tamburas; marble tile is vertically mirrored for seamless repeat-y.
+   • `#ede8df` — cream fill behind transparent edges / between tiles.
+*/
+.cl-songs-page-root {
+  min-height: 100dvh;
+  position: relative;
+  overflow-x: hidden;
+  background-color: #ede8df;
+}
+
+.cl-songs-page-root:has(.cl-songs-page) {
+  background-color: #ede8df;
+}
+
+/* Listing: shell height = content only (no min-h-screen gap below footer). */
+.cl-songs-page-root--listing {
+  display: flex;
+  flex-direction: column;
+  min-height: 100dvh;
+}
+
+.cl-songs-page-root--listing .cl-songs-page-shell {
+  /* Content-sized only — flex: 1 was stretching the shell past the footer. */
+  flex: 0 0 auto;
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+}
+
+/* Layered listing bg (SongsListingBackground) — artboard 1440×3900 design export */
+.cl-songs-bg-layers {
+  --cl-songs-bg-artboard-w: 1440;
+  --cl-songs-bg-marble-unit: 3900;
+  --cl-songs-bg-marble-mirror-unit: 7800;
+  --cl-songs-bg-triangles-unit: 2370;
+  --cl-songs-bg-tamburas-unit: 2603;
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  z-index: 0;
+  pointer-events: none;
+  overflow: hidden;
+}
+
+/* One mirrored 3900px module (marble + triangles + tamburas pre-composited). */
+.cl-songs-bg-sheet {
+  position: absolute;
+  inset: 0;
+  background-color: #ede8df;
+  background-image: url(/songs-assets/songs-bg-composite-mirror.png);
+  background-repeat: repeat-y;
+  background-size: 100% auto;
+  background-position: left top;
+  pointer-events: none;
+}
+
+/* ── Header on songs listing + song detail (`/songs`, `/songs/details/…`)
+
+   Do **not** override the default `Header.tsx` row: logo and `<nav>` already
+   share one `flex` row with `gap-10`, so links sit **beside** the logo.
+
+   An earlier version of this file set `flex: 1` on the left group and
+   `flex: 1` + `justify-content: center` on `<nav>`, which **centred** the
+   links in the wide space between logo and ABOUT. That behaviour is
+   intentionally **not** applied here. */
+/* ── Inner page wrapper — content area (no bg, sits on root marble).
+   Padding scales smoothly via clamp() so there's no visual jump at the
+   media-query boundaries.
+
+   Bottom padding ≈ 6.25 vw → ~ 120 px @ 1920 design, ~ 96 px @ 1536 laptop,
+   ~ 64 px @ 1024 tablet — leaves enough marble breathing room under the
+   last card row before the footer wave starts.  Capped at 160 px so 4 K
+   monitors don't get an absurd gap. */
+.cl-songs-page {
+  position: relative;
+  width: 100%;
+  /* PDF: intro text starts ~32px below header (y=222 in 1919×2437 PDF, header ~190px).
+     2vw hits 32px at 1600px viewport and scales smoothly. */
+  /* PDF: intro starts 32px below header (y=222, header≈190 in 1919px).
+     At 1536px scale that's ~26px. Use a small clamp so it works down to mobile. */
+  padding: 0 0 clamp(100px, 8vw, 150px);
+  font-weight: 300;
+}
+
+/* ── Footer z-index — songs pages only.
+   The composite bg image (songs_main_page.png) and Footer.png share the
+   same 1920-wide design canvas, so the footer at 100 % width aligns
+   naturally with the marble panel inside the composite — no width
+   override needed.
+
+   We just ensure the footer stacks above the marble bg so its wave
+   overlaps cleanly. */
+body:has(.cl-songs-page) footer.footer-bg,
+body:has(.cld-page) footer.footer-bg,
+body:has(.cl-home-page-root) footer.footer-bg {
+  position: relative;
+  z-index: 10;
+}
+
+/* Drop 100vw full-bleed when a vertical scrollbar is present — `50% - 50vw` shifts
+   the footer right once the page is tall enough to scroll (after API/content load). */
+body:has(.cld-page) footer.footer-bg,
+body:has(.cl-home-page-root) footer.footer-bg {
+  width: 100%;
+  margin-left: 0;
+  margin-right: 0;
+  max-width: none;
+}
+
+/* ── Footer text constrained inside the marble width.
+   Per the Figma reference: the dark footer chrome itself spans full
+   viewport (Footer.png is 1920 wide) but the TEXT columns (About / Stay
+   Connected / Nav) sit inside the same horizontal band as the marble
+   above — i.e. with ~10 vw white-gutter equivalent on each side.  Without
+   this, the right-most nav column ("REFLECTIONS / PEOPLE / FILMS …")
+   bumps into the footer's right edge, past the tree silhouette.
+   Scoped to Songs pages only. */
+/* [Claude] these changes have been recommended by claude — the body:has() scoped width overrides that USED to live here have been moved to `styles/Footer.css` as the unconditional default for .footer-inner / .footer-border. This guarantees consistency on every page (search, poems, about, ajab-news, glossary, etc.), not just pages that import CLSongs.css. */
+
+/* ── Tree silhouette: now BAKED INTO Footer.png itself (new 14 May 2026
+   export — Footer.png 1920×728 includes the tree on the larger right peak).
+   The previous separate `::after` overlay rule using Fotter_tree.png has been
+   removed because it would double-render the tree.  If you ever need to
+   replace the tree position, swap the Footer.png asset — don't add it back
+   here as an overlay. */
+
+/* ── Floating buttons — exact Figma sizes (up: 42×43, share: 49×49).
+   Scoped to Songs listing + detail pages only. */
+html body:has(.cl-songs-page) .floating-actions .floating-action-btn.scroll-top-btn,
+html body:has(.cl-songs-page) .floating-actions button.floating-action-btn.scroll-top-btn,
+html body:has(.cld-page) .floating-actions .floating-action-btn.scroll-top-btn,
+html body:has(.cld-page) .floating-actions button.floating-action-btn.scroll-top-btn,
+html body:has(.cl-home-page-root) .floating-actions .floating-action-btn.scroll-top-btn,
+html body:has(.cl-home-page-root) .floating-actions button.floating-action-btn.scroll-top-btn,
+html body:has(.glossary-page-root) .floating-actions .floating-action-btn.scroll-top-btn,
+html body:has(.glossary-page-root) .floating-actions button.floating-action-btn.scroll-top-btn {
+  width: 42px !important;
+  min-width: 42px !important;
+  max-width: 42px !important;
+  height: 43px !important;
+  min-height: 43px !important;
+  max-height: 43px !important;
+  border-radius: 8px !important;
+}
+
+html body:has(.cl-songs-page) .floating-actions .share-btn,
+html body:has(.cl-songs-page) .floating-actions button.share-btn,
+html body:has(.cld-page) .floating-actions .share-btn,
+html body:has(.cld-page) .floating-actions button.share-btn,
+html body:has(.cl-home-page-root) .floating-actions .share-btn,
+html body:has(.cl-home-page-root) .floating-actions button.share-btn,
+html body:has(.glossary-page-root) .floating-actions .share-btn,
+html body:has(.glossary-page-root) .floating-actions button.share-btn {
+  width: 49px !important;
+  min-width: 49px !important;
+  max-width: 49px !important;
+  height: 49px !important;
+  min-height: 49px !important;
+  max-height: 49px !important;
+  border-radius: 8px !important;
+}
+
+/* ── Footer inner content: Footer.css padding-top (180px) already clears
+   the wave. Remove any extra top margin so content sits immediately below
+   the wave. Scoped to Songs pages only. */
+body:has(.cl-songs-page) footer.footer-bg .footer-inner,
+body:has(.cld-page) footer.footer-bg .footer-inner,
+body:has(.cl-home-page-root) footer.footer-bg .footer-inner {
+  margin-top: 0 !important;
+  /* Slight extra inset below the wave — songs/detail/home (Figma parity). */
+  padding-top: 28px;
+}
+
+.cl-songs-inner {
+  max-width: var(--ajab-songs-inner-max-w);
+  margin: 0 auto;
+  padding: 0 50px;
+}
+
+/* ── Intro paragraph — Lora Italic / var(--ajab-ink-600).
+   • FONT SIZE:  change the px value on `font-size` below (currently 19px).
+   • COLOR:      change `color` below, or edit --ajab-ink-600 in globals.css.
+                 Current value: #575756 (dark charcoal). Grey it up by changing
+                 to e.g. #828282 (--ajab-ink-300) or #9C9B9B (--ajab-ink-200).
+   • PUSH UP:    adjust padding-top on `.cl-songs-page` above (currently 0).
+   • COLUMN:     adjust `max-width` below (currently 68vw). ── */
+.cl-songs-intro {
+  color: var(--ajab-ink-600);
+  /* ← COLOUR IS HERE — see globals.css :root for hex */
+  font-family: var(--ajab-font-serif);
+  font-weight: 400;
+  font-style: italic;
+  font-size: 16.5px;
+  /* ← FONT SIZE IS HERE — was 20px (PDF), nudged to 19px */
+  line-height: 1.3;
+  letter-spacing: 0;
+  /* PDF Lora uses fi/fl/ffi ligatures, compressing ~2% of character widths.
+     Enable them in the web font to match the PDF's 4-line wrap. */
+  font-variant-ligatures: common-ligatures;
+  font-feature-settings: "liga" 1, "calt" 1;
+  text-align: center;
+  /* Web Lora renders wider than PDF embedded Lora. 68vw gives ~115 chars/line
+     so 409-char text reflows to 4 lines. Caps at 800px (constrain readability). */
+  max-width: clamp(530px, 60vw, 830px);
+  width: 100%;
+  padding: 0;
+  margin: 0 auto clamp(20px, 2.5vw, 34px);
+}
+
+/* ── Count row: "201 Songs" ──
+   Horizontal padding aligns with the marble panel edges.
+   16vw matches the PDF exactly at 1919px design width (x=307 = 16%). ── */
+.cl-songs-count-row {
+  position: relative;
+  padding: 0 clamp(80px, 16vw, 307px);
+  margin: 0 0 14px;
+  text-align: left;
+}
+
+.cl-songs-count {
+  color: var(--ajab-ink-900);
+  font-family: var(--ajab-font-serif);
+  font-weight: 400;
+  font-style: normal;
+  /* PDF measured: 22.1px Lora-Regular (was 24px) */
+  font-size: 22px;
+  line-height: 100%;
+  letter-spacing: 0;
+  margin: 0;
+  padding: 0;
+}
+
+/* ── Filter bar row — full-width, direct child of cl-songs-page.
+   Same 16vw horizontal padding as count row — aligns to marble edges. ── */
+.cl-filter-bar {
+  display: flex;
+  align-items: center;
+  gap: 0;
+  /* Separator line matches PDF: x=289–1629 in 1919px page = 15.1vw inset each side.
+     Gradient fades outside the marble content zone so it never b leeds into white margins. */
+  border-top: none;
+  padding: 14px clamp(60px, 15vw, 307px) 14px;
+  position: relative;
+  flex-wrap: nowrap;
+  overflow: visible; /* Prevent clipping of absolute filter dropdown drawer */
+  scrollbar-width: none;
+}
+
+.cl-filter-bar::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: clamp(60px, 15.1vw, 290px);
+  right: clamp(60px, 15.1vw, 290px);
+  height: 1px;
+  background: var(--ajab-ink-100);
+  pointer-events: none;
+}
+
+.cl-filter-bar::-webkit-scrollbar {
+  display: none;
+}
+
+.cl-filter-trigger-wrap {
+  flex-shrink: 0;
+}
+
+/* Pipe separator between "Filters" and "All".
+   PDF measured: 17.8px MerriweatherSans-Regular, color #828282.
+   In PDF the pipe is NOT pink — it's the same grey as "All" and the letters.
+   Tight margins to match PDF where "Filters" and "| All" are closely spaced. */
+.cl-filter-sep {
+  color: var(--ajab-ink-300);
+  font-family: var(--ajab-font-sans);
+  font-size: 17px;
+  font-weight: 200;
+  margin: 0 6px;
+  flex-shrink: 0;
+  line-height: 1;
+}
+
+/* ── A–Z row — spread evenly across remaining width (matches Figma) ── */
+.cl-az-row {
+  display: flex;
+  flex: 1;
+  flex-wrap: nowrap;
+  align-items: center;
+  justify-content: space-between;
+  flex-shrink: 1;
+  padding-right: 20px;
+}
+
+.cl-az-btn {
+  color: var(--ajab-ink-300);
+  font-family: var(--ajab-font-sans);
+  /* PDF measured: 17.8px MerriweatherSans-Light → 18px */
+  font-size: 17px;
+  font-weight: 300;
+  font-style: normal;
+  line-height: 100%;
+  letter-spacing: 0.04em;
+  padding: 0;
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  transition: color 0.15s;
+  flex-shrink: 0;
+}
+
+/* "All" button — PDF: MerriweatherSans-Regular (400), visibly heavier than A–Z Light (300).
+   margin-right 24px creates the visible gap seen in the PDF between "All" and "A". */
+.cl-az-btn--all {
+  margin-right: 40px;
+  margin-left: 2px;
+  color: var(--ajab-ink-300);
+  font-weight: 300;
+}
+
+.cl-az-btn.active {
+  color: var(--ajab-pink-primary);
+  font-weight: 400;
+}
+
+/* When "All" is active, color it pink and reduce its boldness to 300. */
+.cl-az-btn--all.active {
+  color: var(--ajab-pink-primary) !important;
+  font-weight: 300 !important;
+}
+
+.cl-az-btn:hover {
+  color: var(--ajab-pink-primary);
+}
+
+.cl-az-btn.is-empty,
+.cl-az-btn:disabled {
+  color: var(--ajab-ink-200);
+  cursor: default;
+  pointer-events: none;
+}
+
+.cl-az-btn.is-empty:hover,
+.cl-az-btn:disabled:hover {
+  color: var(--ajab-ink-200);
+}
+
+/* Glossary and other letter-only listings — no Filters trigger */
+.cl-filter-bar--letters-only .cl-az-btn--all {
+  margin-left: 0;
+}
+
+/* ── Active filter chip strip — renders between filter bar and the grid when
+   one or more Singer / Poet / Theme filters are selected. Chips are always
+   visible so the user knows what’s active without reopening the panel.
+   Mirrors the same clamp() padding as .cl-filter-bar so left-edge aligns. ── */
+.cl-active-chips-bar {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 12px;
+  padding: 12px clamp(80px, 16vw, 307px) 8px;
+  /* subtle bottom separator to visually separate chips from the grid */
+  border-bottom: 1px solid var(--ajab-ink-100);
+  margin-bottom: 4px;
+}
+
+.cl-active-chips-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  flex: 1;
+}
+
+/* Individual chip — Lora italic name + pink × button */
+.cl-active-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: rgba(227, 30, 121, 0.07);
+  border: 1px solid rgba(227, 30, 121, 0.35);
+  border-radius: 99px;
+  padding: 4px 10px 4px 12px;
+  transition: background 0.15s;
+}
+
+.cl-active-chip:hover {
+  background: rgba(227, 30, 121, 0.13);
+}
+
+.cl-active-chip-label {
+  font-family: var(--ajab-font-serif);
+  font-weight: 400;
+  font-style: italic;
+  font-size: 14px;
+  color: var(--ajab-pink-primary);
+  line-height: 1.2;
+  white-space: nowrap;
+}
+
+.cl-active-chip-remove {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 16px;
+  font-weight: 400;
+  line-height: 1;
+  color: var(--ajab-pink-primary);
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 0 2px;
+  opacity: 0.75;
+  transition: opacity 0.15s;
+}
+
+.cl-active-chip-remove:hover {
+  opacity: 1;
+}
+
+/* “Clear All” link — only shows when 2+ filters active */
+.cl-active-chips-clear {
+  font-family: var(--ajab-font-sans);
+  font-weight: 300;
+  font-size: 13px;
+  letter-spacing: 0.04em;
+  color: var(--ajab-pink-primary);
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 4px 0;
+  white-space: nowrap;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+  opacity: 0.8;
+  transition: opacity 0.15s;
+  flex-shrink: 0;
+}
+
+.cl-active-chips-clear:hover {
+  opacity: 1;
+}
+
+/* ── Song card grid — Figma-exact spacing.
+   Card width token raised: clamp(180px, 17.7vw, 280px) → hits 280px at
+   ~1581px viewport (vs old 15vw which only hit 288px at ≥1920px).
+   Grid max-w updated to 3×280 + 2×66 = 972 → rounded up to 1020px. ── */
+.cl-song-grid {
+  display: grid;
+  grid-template-columns: repeat(3, var(--ajab-card-w));
+  column-gap: var(--ajab-grid-col-gap);
+  row-gap: var(--ajab-grid-row-gap);
+  justify-content: center;
+  align-items: start;
+  max-width: var(--ajab-grid-max-w);
+  margin: 30px auto 64px;
+}
+
+/* Laptop ≤ 1280px — reduce column gap so the 3-col grid still fits */
+@media screen and (max-width: 1280px) {
+  .cl-song-grid {
+    column-gap: 40px;
+  }
+}
+
+/* Narrow laptop ≤ 1024px — further reduce gap and width budget */
+@media screen and (max-width: 1024px) {
+  .cl-song-grid {
+    column-gap: 24px;
+    padding: 0 20px;
+  }
+}
+
+.cl-song-grid-item {
+  max-width: var(--ajab-card-w);
+  width: 100%;
+  position: relative;
+  display: flex;
+  align-items: stretch;
+  justify-content: center;
+}
+
+/* Whole card is one `<a>` — stretch so the hit area matches the WavyCard, not a sliver. */
+.cl-song-card-link {
+  display: block;
+  width: 100%;
+  max-width: var(--ajab-card-w);
+  margin: 0 auto;
+  text-decoration: none;
+  color: inherit;
+  outline: none;
+  cursor: pointer;
+  position: relative;
+  z-index: 2;
+  -webkit-tap-highlight-color: rgba(227, 30, 121, 0.15);
+  touch-action: manipulation;
+}
+
+/* Thumbnail sits on top in paint order; let clicks register on the link, not image drag. */
+.cl-song-card-link .wc-thumb img {
+  pointer-events: none;
+  -webkit-user-drag: none;
+  user-select: none;
+}
+
+.cl-song-card-link:focus-visible .cl-song-card {
+  box-shadow: 0 0 0 2px var(--ajab-pink-primary), var(--ajab-card-shadow, 0 4px 14px rgba(0, 0, 0, 0.10));
+}
+
+/* ── Songs listing card overrides ──
+   The wavy paper shell, thumbnail wrapper and bottom drop-shadow now live
+   in components/shared/WavyCard.css. We only set Song-specific tokens
+   here. The card no longer enforces a fixed min-height — heights are
+   content-driven and rows top-align (see .cl-song-grid). The body keeps
+   a small min-height so cards with very short content (e.g. no poet)
+   still leave room for the wavy bottom decoration. */
+.cl-song-card {
+  --wc-width: var(--ajab-card-w);
+  /* PDF spec thumb: 141px × 280px card. Proportional clamp: 8.9vw hits 137px at
+     1536px and 141px at ~1584px — matching the spec at standard laptop widths.
+     Min raised to 100px so cards don't look disproportionate at mid tablet. */
+  --wc-thumb-h: clamp(100px, 8.9vw, 141px);
+  --wc-shadow: var(--ajab-card-shadow);
+  --wc-radius: var(--ajab-card-radius);
+}
+
+/* Min-height reserves space for 2 title + 2 subtitle + 2 meta lines so short
+   cards don't look skinny next to tall neighbours (6-line max = ~145px body). */
+.cl-song-card-body {
+  min-height: 145px;
+}
+
+/* ── Pink title — Lora 24 / var(--ajab-pink-primary). Max 2 lines. */
+.cl-song-card-title {
+  color: var(--ajab-pink-primary);
+  font-family: var(--ajab-font-serif);
+  font-weight: 400;
+  font-style: normal;
+  font-size: var(--ajab-fs-h5);
+  line-height: var(--ajab-lh-base);
+  letter-spacing: 0;
+  word-break: break-word;
+  overflow-wrap: anywhere;
+  margin: 0 0 0px;
+  /* increased by 1pt/2px (was -2px) */
+  line-height: 1.25;
+  /* slightly tighter line height */
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+/* ── Italic subtitle (tokens) — Figma 361:717: Lora Italic 20 / var(--ajab-ink-300).
+   min-height 24 preserves the vertical slot when the API row has no
+   translation, so the meta block doesn't slide up. */
+.cl-song-card-subtitle {
+  color: var(--ajab-ink-300);
+  font-family: var(--ajab-font-serif);
+  font-weight: 400;
+  font-style: italic;
+  font-size: var(--ajab-fs-body-lg);
+  line-height: 1.05;
+  /* reduced line-height by 2pt/px (was 1.2) */
+  letter-spacing: 0;
+  margin: 0 0 5px;
+  /* reduced margin bottom to 5px (was 7px) */
+  min-height: 24px;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.cl-song-card-subtitle:empty {
+  margin-bottom: 5px;
+}
+
+/* ── Meta lines: sings / poet (tokens) — Figma 361:718: Merriweather
+   Sans Light 16 / var(--ajab-ink-700). Single-line per meta; ellipsis on overflow. */
+.cl-song-card-meta {
+  font-family: var(--ajab-font-sans);
+  font-size: var(--ajab-fs-body-sm);
+  line-height: var(--ajab-lh-base);
+  letter-spacing: 0;
+  color: var(--ajab-ink-700);
+  font-weight: 300;
+  font-style: normal;
+  margin: 0;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.cl-song-card-meta:last-child {
+  margin-bottom: 0;
+}
+
+.cl-song-card-meta-label {
+  color: var(--ajab-ink-700);
+  font-weight: 300;
+}
+
+.cl-song-card-meta-value {
+  color: var(--ajab-ink-700);
+  font-weight: 300;
+}
+
+/* ── Empty / load-more ── */
+.cl-no-results {
+  text-align: center;
+  color: var(--ajab-ink-300);
+  font-family: var(--ajab-font-sans);
+  font-size: var(--ajab-fs-body);
+  grid-column: 1 / -1;
+}
+
+.cl-load-more {
+  text-align: center;
+  margin-top: 24px;
+  padding: 16px;
+  color: var(--ajab-ink-300);
+  font-family: var(--ajab-font-sans);
+  font-size: var(--ajab-fs-body-sm);
+}
+
+.cl-load-more-wrap {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-top: 0;
+  margin-bottom: 24px;
+  position: relative;
+  z-index: 100; /* stack safely above background patterns */
+}
+
+.cl-load-more-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-family: var(--ajab-font-sans);
+  font-size: var(--ajab-fs-button); /* matches header nav link exactly (21px) */
+  font-weight: 300; /* light font style */
+  letter-spacing: 0; /* matches header nav link exactly */
+  color: var(--ajab-pink-primary);
+  background: transparent;
+  border: none;
+  border-radius: 0;
+  padding: 0;
+  cursor: pointer;
+  text-transform: none;
+  transition: opacity 0.2s ease;
+}
+
+.cl-load-more-btn:hover:not(:disabled) {
+  background: transparent;
+  color: var(--ajab-pink-primary);
+  opacity: 0.8;
+}
+
+.cl-load-more-btn:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+
+/* ── Force SONGS link active styling + count ONLY on Songs listing/detail ── */
+/* (Not on reflections/films/people/etc., even though they share .cl-songs-page layout) */
+body:has(.cl-songs-listing-page) .nav-link--songs,
+body:has(.cld-page) .nav-link--songs {
+  color: var(--ajab-pink-primary) !important;
+  /* Switch from center to baseline so the count shares the same text
+     baseline as "SONGS" and looks truly inline. */
+  align-items: baseline;
+}
+
+body:has(.cl-songs-listing-page) .nav-link--songs::after,
+body:has(.cld-page) .nav-link--songs::after {
+  content: none;
+}
+
+/* When listing/detail set a live total via SongsNavCountContext, hide the static ::after
+   and show the count from Header (inline span) instead. */
+body:has(.cl-songs-listing-page) .nav-link--songs.nav-link--songs-count-live::after,
+body:has(.cld-page) .nav-link--songs.nav-link--songs-count-live::after {
+  content: none;
+}
+
+body:has(.cl-songs-listing-page) .nav-link--songs .nav-link-songs-count,
+body:has(.cld-page) .nav-link--songs .nav-link-songs-count {
+  margin-left: 1px;
+  color: var(--ajab-pink-primary);
+  font: inherit;
+  font-size: 0.55em;
+}
+
+/* ── Floating actions — vertically centered on Songs listing AND detail (matches Figma).
+   `html body` beats CustomStyle.css `.floating-actions { bottom: 80px !important }`. */
+html body:has(.cl-songs-page) .floating-actions,
+html body:has(.cl-songs-listing-page) .floating-actions,
+html body:has(.cld-page) .floating-actions,
+html body:has(.cl-home-page-root) .floating-actions {
+  top: 50% !important;
+  bottom: auto !important;
+  transform: translateY(-50%) !important;
+}
+
+@media (max-width: 640px) {
+  html body:has(.cl-songs-page) .floating-actions,
+  html body:has(.cl-songs-listing-page) .floating-actions,
+  html body:has(.cld-page) .floating-actions,
+  html body:has(.cl-home-page-root) .floating-actions {
+    top: 50% !important;
+    bottom: auto !important;
+    transform: translateY(-50%) !important;
+    right: 12px !important;
+  }
+}
+
+/* ── Responsive — 2 columns at 1024px ── */
+@media screen and (max-width: 1024px) {
+  .cl-song-grid {
+    grid-template-columns: repeat(2, 280px);
+    column-gap: 40px;
+  }
+
+  .cl-songs-inner {
+    padding: 0 24px;
+  }
+}
+
+/* ── Responsive — 1 column at 767px ── */
+@media screen and (max-width: 767px) {
+  .cl-song-grid {
+    grid-template-columns: 1fr;
+    justify-items: center;
+    gap: 32px;
+  }
+
+  .cl-songs-intro {
+    font-size: 17px;
+  }
+
+  .cl-az-btn {
+    font-size: var(--ajab-fs-body-sm);
+    padding: 0 2px;
+  }
+}

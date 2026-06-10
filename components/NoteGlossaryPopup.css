@@ -1,0 +1,125 @@
+.note-popup-overlay {
+  position: fixed;
+  top: 54%;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  display: flex;
+  align-items: flex-start;
+  pointer-events: auto;
+  background: transparent;
+  z-index: 1000;
+}
+
+.note-popup-overlay.left {
+  justify-content: flex-start;
+}
+
+.note-popup-overlay.right {
+  justify-content: flex-end;
+}
+
+.note-popup-card {
+  position: absolute;
+  top: 0;
+  width: min(290px, calc(100vw - 48px));
+  min-width: 260px;
+  max-width: 290px;
+  padding: 22px 24px 30px;
+  border-radius: 14px 14px 18px 14px;
+  background: linear-gradient(180deg, #fff 0%, #fbfaf8 100%);
+  box-shadow: 0 14px 32px rgba(72, 54, 42, 0.14);
+  transform: translateY(-50%);
+  text-align: left;
+  overflow: visible;
+  font-family: var(--ajab-font-sans);
+}
+
+.note-popup-card.left {
+  margin-left: 26px;
+}
+
+.note-popup-card.right {
+  margin-right: 26px;
+}
+
+.note-popup-card::after {
+  content: '';
+  position: absolute;
+  right: 14px;
+  bottom: -11px;
+  width: 24px;
+  height: 24px;
+  background: linear-gradient(135deg, #fff 0%, #f4f1ec 100%);
+  clip-path: polygon(0 0, 100% 0, 100% 100%);
+  box-shadow: 7px 7px 14px rgba(72, 54, 42, 0.05);
+}
+
+.note-popup-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  margin-bottom: 14px;
+  color: #4a4a4a;
+  font-size: var(--ajab-fs-body);
+  font-weight: 600;
+}
+
+.note-popup-header button {
+  border: 0;
+  background: transparent;
+  color: var(--ajab-pink-related);
+  cursor: pointer;
+  font-size: var(--ajab-fs-h6);
+  line-height: 1;
+  padding: 0;
+}
+
+.note-popup-body {
+  max-height: min(360px, 60vh);
+  overflow-y: auto;
+  color: #7a7774;
+  font-size: var(--ajab-fs-tag);
+  line-height: 1.6;
+  padding-right: 4px;
+}
+
+.note-popup-body.text {
+  white-space: pre-line;
+}
+
+.note-popup-body p {
+  margin: 0 0 8px;
+}
+
+.note-popup-body::-webkit-scrollbar {
+  width: 6px;
+}
+
+.note-popup-body::-webkit-scrollbar-thumb {
+  background: rgba(237, 30, 121, 0.3);
+  border-radius: 999px;
+}
+
+@media (max-width: 767px) {
+  .note-popup-overlay {
+    top: auto;
+    bottom: 24px;
+    height: auto;
+    align-items: flex-end;
+  }
+
+  .note-popup-card {
+    position: relative;
+    top: auto;
+    transform: none;
+    width: min(215px, calc(100vw - 32px));
+    max-width: 215px;
+  }
+
+  .note-popup-card.left,
+  .note-popup-card.right {
+    margin: 0 16px;
+  }
+}

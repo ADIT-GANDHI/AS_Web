@@ -1,0 +1,151 @@
+/* ─────────────────────────────────────────────
+   WavyPaperPopup — shared base for any popup that needs the wavy paper-card
+   look (Song Notes, Glossary, etc.).
+
+   ── INLINE variant (Song Notes) ──
+   REV 14 May 2026: replaced the previous 3-PNG composition
+   (song-notes-top / body / bottom) + the right-side paper-fold ::after
+   strip with a SINGLE Figma export — `/songs-assets/song_notes.png`
+   (353 × 450, with alpha).  The new export has the wavy bottom edge,
+   top shadow and right edge ALL baked into one asset, so the card
+   renders cleanly at any size with no rebuild artefacts.
+
+   ── ANCHORED variant (Glossary) ──
+   Still uses the original 3-PNG composition because that popup has a
+   different aspect (wide+short) and re-tiles vertically; we'll migrate
+   it separately if/when Figma provides a matching single export.
+
+   Variants control sizing/position:
+     .wp-popup--inline  → in-flow card (e.g. Song Notes pinned to a column)
+     .wp-popup--anchored → fixed/right-anchored sheet (e.g. Glossary)
+───────────────────────────────────────────── */
+
+.wp-popup {
+  position: relative;
+  box-sizing: border-box;
+  border-radius: 0;
+  box-shadow: none;
+}
+
+/* Inline variant — Song Notes (single PNG, full card baked in). */
+.wp-popup--inline {
+  width: 332px;
+  min-height: 432px;
+  padding: 32px 32px 64px 28px;
+  background: url('/songs-assets/song_notes.png') center / 100% 100% no-repeat;
+}
+
+/* Anchored variant — used when the popup is a fixed right-rail card (Glossary).
+   Anchor offsets stay in the consumer (so Songs can use a different right
+   offset than Poems if needed); we only set sensible defaults.
+
+   Must set `position: fixed` here: the base `.wp-popup` uses `position: relative`,
+   which otherwise wins over a utility `fixed` class depending on stylesheet order,
+   and the sheet would sit in normal flow (often below the footer). */
+.wp-popup--anchored {
+  position: fixed;
+  width: 332px;
+  min-height: 320px;
+  /* Stay inside the viewport so the sheet does not extend under the footer visually. */
+  max-height: min(60vh, calc(100svh - 120px));
+  padding: 52px 32px 64px;
+  overflow-y: auto;
+  scrollbar-width: thin;
+  scrollbar-color: #c9c9c9 transparent;
+  /* Poems glossary/notes + song glossary anchored sheets — wavy paper card art. */
+  background: url('/poem-notes-glossary.png') center / 100% 100% no-repeat;
+  background-color: transparent;
+}
+
+/* Right-side paper-fold accent — REMOVED 14 May 2026: the new song_notes.png
+   asset has the right-edge subtle shadow baked into the image, so the
+   separate grey strip is no longer needed.  Anchored variant didn't use this
+   accent, so this only affects the Song Notes inline card. */
+
+/* Header row — title sits flush left at the natural baseline; close button
+   is absolutely placed so it lines up with the wavy top art at exactly the
+   pixel position Figma defined (right 17 / top 32 for inline). */
+.wp-popup-header {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  align-items: center;
+  margin-bottom: 12px;
+}
+
+.wp-popup-title {
+  font-family: var(--ajab-font-serif);
+  font-weight: 400;
+  font-size: var(--ajab-fs-h5);
+  color: var(--ajab-ink-300);
+  margin: 0;
+}
+
+.wp-popup-close {
+  position: absolute;
+  background: none;
+  border: none;
+  padding: 0;
+  cursor: pointer;
+  color: var(--ajab-pink-card);
+  line-height: 1;
+  z-index: 2;
+}
+
+/* Inline close offsets — Figma 361:1581 places the X path at relative
+   (304, 32) inside the 332 × 432 card.  The path's bounding box is
+   11 × 12, but the rendered ✕ in Figma reads as ~16 × 16 because the
+   strokes have non-zero width.  We use a 24 × 24 button (bigger click
+   target) with a 16 × 16 SVG inside it, matched stroke-weight 2.5 to
+   reproduce the Figma visual exactly. */
+.wp-popup--inline .wp-popup-close {
+  top: 26px;
+  right: 14px;
+  width: 24px;
+  height: 24px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+.wp-popup--inline .wp-popup-close svg {
+  width: 16px;
+  height: 16px;
+  stroke-width: 2.5;
+}
+
+/* Anchored close offsets — pulled in slightly so the X sits inside the
+   wavy top art instead of the white margin. */
+.wp-popup--anchored .wp-popup-close {
+  top: 34px;
+  right: 28px;
+  color: #E31E79;
+}
+
+.wp-popup-body {
+  position: relative;
+  z-index: 1;
+  font-family: var(--ajab-font-sans);
+  font-weight: 300;
+  font-size: var(--ajab-fs-body-sm);
+  line-height: 1.5;
+  color: var(--ajab-ink-500);
+}
+
+/* Anchored variant uses slightly larger inset/leading so paragraph copy
+   reads comfortably inside the narrower 300 px sheet. */
+.wp-popup--anchored .wp-popup-body {
+  font-family: 'Merriweather Sans', sans-serif;
+  font-weight: 300;
+  font-size: 15px;
+  line-height: 1.6;
+  color: #6D6F71;
+}
+.wp-popup--anchored .wp-popup-title {
+  font-family: 'Lora', serif;
+  font-weight: 400;
+  font-size: 24px;
+  color: #828282;
+  margin: 0 0 16px;
+  position: relative;
+  z-index: 1;
+}

@@ -1,0 +1,74 @@
+/* ─────────────────────────────────────────────
+   GlossaryStrip — shared bottom-of-page wavy pill strip that lists
+   glossary terms with their meanings (e.g. "Shoonya void", "Ulat reverse").
+
+   Background: /glossary-pill-bg.png — the wavy pill artwork from Figma's
+   "Rectangle 361:1569" image-fill (1015 × 180).
+
+   Typography:
+     word    → Lora Regular 24, var(--ajab-ink-900)
+     meaning → Lora Italic  20, var(--ajab-ink-300)
+     highlighted word → var(--ajab-pink-primary) (e.g. last term "Shahar")
+
+   Layout: rows are explicit so the wrap point doesn't drift with viewport
+   width. Songs/Poems/Reflections/Films all use the 2 + 3 split (2 terms
+   on the first row, 3 on the second) — render two .gs-row children.
+───────────────────────────────────────────── */
+
+.gs-strip {
+  position: relative;
+  max-width: 1015px;
+  margin: 56px auto 80px;
+  padding: 48px 40px;
+  font-family: var(--ajab-font-serif);
+  color: var(--ajab-ink-900);
+  text-align: center;
+  background: url('/glossary-pill-bg.png') center / 100% 100% no-repeat;
+}
+
+.gs-row {
+  display: flex;
+  justify-content: center;
+  flex-wrap: nowrap;
+  gap: 36px;
+}
+
+.gs-row + .gs-row {
+  margin-top: 8px;
+}
+
+.gs-term {
+  display: inline-block;
+  margin: 0;
+}
+
+.gs-term-word {
+  font-family: var(--ajab-font-serif);
+  font-weight: 400;
+  font-size: var(--ajab-fs-h5);
+  color: var(--ajab-ink-900);
+  margin-right: 6px;
+}
+
+.gs-term-meaning {
+  font-family: var(--ajab-font-serif);
+  font-style: italic;
+  font-size: var(--ajab-fs-body-lg);
+  color: var(--ajab-ink-300);
+}
+
+.gs-term.is-highlighted .gs-term-word {
+  color: var(--ajab-pink-related);
+}
+
+/* Responsive — single row collapse on narrow viewports */
+@media screen and (max-width: 767px) {
+  .gs-strip {
+    padding: 32px 20px;
+    margin: 40px auto 60px;
+  }
+  .gs-row {
+    flex-wrap: wrap;
+    gap: 18px 24px;
+  }
+}

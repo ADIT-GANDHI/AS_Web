@@ -1,0 +1,444 @@
+/* ─────────────────────────────────────────────────────────────────────────────
+   Ajab News — CL version
+   Figma ref: node 1:18663  (frame 1951 × 3007)
+   White panel: 1440 px wide centred; header height = 192 px (--ajab-header-height)
+   Image slot: 853 px wide (Figma clip-path group); aspect 853:480
+   Text column: ≈1113 px wide (Figma body text block at 1440 px panel)
+   ───────────────────────────────────────────────────────────────────────────── */
+
+/* ── Page mandala background ─────────────────────────────────────────────── */
+/* Selector uses :has() so .full-background (parent) targets itself when it
+   contains .cl-news-page (child) — the inverse of the old broken selector
+   ".cl-news-page .full-background" which never matched.                      */
+.full-background:has(.cl-news-page) {
+  background: url(/news-assets/ajab-news-bg.png) top center / 100% auto repeat-y;
+}
+
+/* ── PDF-proportional layout tokens (Figma 1:18663 · artboard 1920 pt) ─────── */
+.cl-news-page {
+  --news-artboard-w: 1920;
+  --news-panel-w: min(1440px, 100vw);
+  --news-col-x: 447;
+  --news-col-right: 1472;
+  --news-col-w-pt: 1025;
+  /* 1472 − 447 */
+  --news-img-w-pt: 853;
+  --news-img-x: 534;
+  --news-img-right: 1387;
+  --news-img-offset: calc((var(--news-img-x) - var(--news-col-x)) / var(--news-col-w-pt) * 100%);
+  --news-img-width: calc((var(--news-img-right) - var(--news-img-x)) / var(--news-col-w-pt) * 100%);
+  --news-img-right-inset: calc((var(--news-col-right) - var(--news-img-right)) / var(--news-col-w-pt) * 100%);
+  --news-gap-logo-title: calc(86 / var(--news-artboard-w) * var(--news-panel-w));
+  --news-gap-title-image: calc(25 / var(--news-artboard-w) * var(--news-panel-w));
+  --news-gap-image-caption: calc(8 / var(--news-artboard-w) * var(--news-panel-w));
+  --news-gap-caption-heading: calc(32 / var(--news-artboard-w) * var(--news-panel-w));
+  --news-gap-heading-body: calc(10 / var(--news-artboard-w) * var(--news-panel-w));
+  --news-gap-section: calc(36 / var(--news-artboard-w) * var(--news-panel-w));
+}
+
+/* ── White wavy panel ─────────────────────────────────────────────────────── */
+.news-inner-container {
+  background: transparent;
+  margin-top: -192px;
+  padding-top: 172px;
+  padding-bottom: 160px;
+  max-width: var(--news-panel-w);
+  width: 100%;
+  margin-left: auto;
+  margin-right: auto;
+  font-weight: 300;
+  position: relative;
+  box-sizing: border-box;
+}
+
+/* ── Logo / title area ────────────────────────────────────────────────────── */
+.news-logo-area {
+  text-align: center;
+  padding-bottom: var(--news-gap-logo-title);
+}
+
+.news-border {
+  background: transparent url(/news-border.svg) center top;
+  height: 2px;
+  max-width: 280px;
+  margin: 8px auto 0;
+}
+
+.border-dotted-seprator {
+  background: transparent url(/news-border.svg) left top repeat-x;
+  background-size: auto 2px;
+  height: 2px;
+  width: 100%;
+  margin-top: var(--news-gap-section);
+  margin-bottom: var(--news-gap-section);
+}
+
+/* ── Content column — PDF x = 447 … 1472 inside 1920 pt artboard ─────────── */
+.custom-inner-container {
+  max-width: var(--news-panel-w);
+  width: 100%;
+  margin: 0 auto;
+  padding-left: calc(var(--news-col-x) / var(--news-artboard-w) * 100%);
+  padding-right: calc((var(--news-artboard-w) - var(--news-col-right)) / var(--news-artboard-w) * 100%);
+  box-sizing: border-box;
+}
+
+/* Shared column width — all blocks span the inset content rail */
+.news-above-title-row,
+.news-card-slider-row,
+.news-image-caption,
+.news-detals-row,
+.news-thumb-row,
+.news-see-more-wrap {
+  width: 100%;
+  max-width: none;
+  margin-left: 0;
+  margin-right: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+.news-above-title-row {
+  width: var(--news-img-width);
+  margin-left: var(--news-img-offset);
+  margin-right: auto;
+  text-align: left;
+  margin-bottom: 8px; /* reduced distance between image and header */
+}
+
+.news-above-main-title {
+  font-family: var(--ajab-font-serif);
+  font-weight: 300;
+  /* reduced font-weight to match the design */
+  font-size: 22px;
+  /* reduced font-size */
+  color: #4d4d4d;
+  line-height: 1.2;
+}
+
+.news-above-by-label {
+  font-family: var(--ajab-font-sans);
+  font-weight: 300;
+  font-size: 13px;
+  color: #666;
+}
+
+.news-above-by-value {
+  font-family: var(--ajab-font-sans);
+  font-weight: 400;
+  font-size: 13px;
+  color: var(--ajab-pink-primary);
+}
+
+/* ── Image container — 853 pt wide, centred in 1025 pt text column ───────── */
+.news-card-slider-row {
+  position: relative;
+}
+
+.news-image-wrap {
+  width: var(--news-img-width);
+  margin-left: var(--news-img-offset);
+  margin-right: auto;
+  aspect-ratio: 853 / 480;
+  overflow: hidden;
+  margin-bottom: var(--news-gap-image-caption);
+  border-right: 5px solid #fff;  /* white border only on right */
+  border-bottom: 5px solid #fff; /* white border only on bottom */
+  box-sizing: border-box;
+}
+
+.news-image-wrap img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+.news-banner-shadow {
+  box-shadow: 0 0 12px rgba(0, 0, 0, 0.14);
+  background: #fff;
+}
+
+.news-image-caption {
+  width: var(--news-img-width);
+  margin-left: var(--news-img-offset);
+  margin-right: auto;
+  margin-bottom: var(--news-gap-caption-heading);
+  text-align: left;
+  font-family: var(--ajab-font-sans);
+  /* converted from serif to sans-serif */
+  font-style: normal;
+  /* made normal text, not italic */
+  font-weight: 300;
+  font-size: 12px;
+  line-height: 1.4;
+  color: #6d6e71;
+}
+
+/* ── Slider arrows — positioned beautifully at the start & end boundaries of the text column ─ */
+.news-slider-prev,
+.news-slider-next {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 0;
+  z-index: 10;
+}
+
+.news-slider-prev {
+  left: 0;
+  transform: translateY(-50%);
+}
+
+.news-slider-next {
+  right: 0;
+  transform: translateY(-50%);
+}
+
+.news-slider-prev svg,
+.news-slider-next svg {
+  width: 16px;
+  height: 32px;
+}
+
+.news-detals-row {
+  margin: 0;
+}
+
+/* ── Heading below image ──────────────────────────────────────────────────── */
+/* [Claude] these changes have been recommended by claude — font scaled 0.85: 28 → 24 px.
+   Heading→body gap tightened from 16 → 10 px to match PDF rhythm (body paragraph hugs
+   its heading tightly). */
+.custom-heading-font {
+  font-family: var(--ajab-font-serif);
+  font-weight: 300;
+  font-size: 22px;
+  color: #4d4d4d;
+  line-height: 1.2;
+  margin: 0 0 var(--news-gap-heading-body);
+}
+
+.news-subtitle-italic {
+  font-family: var(--ajab-font-serif);
+  font-style: italic;
+  font-weight: 400;
+  font-size: 18px;
+  color: #6d6e71;
+  margin-left: 8px;
+}
+
+/* ── Body text ────────────────────────────────────────────────────────────── */
+.leading-relaxed {
+  color: var(--ajab-ink-500);
+  font-family: var(--ajab-font-sans);
+  font-weight: 300;
+  font-size: 14px;
+  line-height: 1.6;
+}
+
+.news-text-wrap {
+  width: 100%;
+}
+
+.news-line-content {
+  margin: 0;
+}
+
+/* [Claude] Collapse to exactly 3 lines */
+.news-line-content.collapsed {
+  display: -webkit-box;
+  -webkit-line-clamp: 5;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.news-line-content.expanded {
+  display: block;
+}
+
+.news-toggle-btn {
+  margin-top: 6px;
+}
+
+.pink-text {
+  color: var(--ajab-pink-primary);
+  font-family: var(--ajab-font-sans);
+  font-size: 14px;
+  font-weight: 300;
+}
+
+/* ─────────────────────────────────────────────────────────────────────────────
+   SECTION 3 — thumbnail (small image left, text right)
+   Figma: 280 × 156 px thumbnail | Lora 26 px heading | body text beside
+   ───────────────────────────────────────────────────────────────────────────── */
+.news-thumb-row {
+  display: flex;
+  align-items: flex-start;
+  gap: calc(28 / var(--news-artboard-w) * var(--news-panel-w));
+}
+
+.news-thumb-img {
+  flex: 0 0 calc(280 / var(--news-artboard-w) * var(--news-panel-w));
+  width: calc(280 / var(--news-artboard-w) * var(--news-panel-w));
+  height: calc(156 / var(--news-artboard-w) * var(--news-panel-w));
+  overflow: hidden;
+  box-shadow: 0 0 8px rgba(0, 0, 0, 0.12);
+  background: #f5f5f5;
+}
+
+.news-thumb-img img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+.news-thumb-content {
+  flex: 1;
+  min-width: 0;
+}
+
+.news-thumb-content p,
+.news-thumb-content .leading-relaxed {
+  font-size: 13px !important;
+  line-height: 1.5;
+}
+
+.news-thumb-content .news-subtitle-italic {
+  font-size: 16px !important;
+}
+
+.news-thumb-heading {
+  font-family: var(--ajab-font-serif);
+  font-weight: 400;
+  font-size: 20px;
+  color: #4d4d4d;
+  line-height: 1.2;
+  margin: 0 0 14px;
+}
+
+/* ── "See more" button ────────────────────────────────────────────────────── */
+.news-see-more-wrap {
+  margin-top: var(--news-gap-section);
+  text-align: center;
+}
+
+.news-see-more-btn {
+  font-family: var(--ajab-font-sans);
+  font-weight: 400;
+  font-size: 14px;
+  letter-spacing: 0.06em;
+  color: var(--ajab-pink-primary);
+  background: none;
+  border: 1px solid var(--ajab-pink-primary);
+  border-radius: 4px;
+  padding: 8px 28px;
+  cursor: pointer;
+  transition: background 0.15s, color 0.15s;
+}
+
+.news-see-more-btn:hover {
+  background: var(--ajab-pink-primary);
+  color: #fff;
+}
+
+/* p global (scoped via CLNews.css import) */
+p {
+  font-size: 14px;
+  color: var(--ajab-ink-500);
+}
+
+/* ── Responsive — ≤ 1280 px (keep PDF rail; stack thumb on small screens) ─── */
+@media screen and (max-width: 1280px) {
+  .custom-heading-font {
+    font-size: 20px;
+  }
+
+  .news-above-main-title {
+    font-size: 20px;
+  }
+
+  .news-thumb-heading {
+    font-size: 20px;
+  }
+
+  .leading-relaxed {
+    font-size: 13px;
+  }
+
+  .news-image-caption {
+    font-size: 11.5px;
+  }
+}
+
+/* ── Responsive — ≤ 768 px  (tablet / mobile) ─────────────────────────────── */
+@media screen and (max-width: 768px) {
+  .cl-news-page {
+    --news-panel-w: 100vw;
+  }
+
+  .news-inner-container {
+    margin-top: -90px;
+    padding-top: calc(90px + 2rem);
+    padding-bottom: 30px;
+  }
+
+  .custom-inner-container {
+    padding-left: 16px;
+    padding-right: 16px;
+  }
+
+  .news-card-slider-row {
+    padding: 0 44px;
+  }
+
+  .news-slider-prev {
+    left: 4px;
+  }
+
+  .news-slider-next {
+    right: 4px;
+  }
+
+  .news-thumb-row {
+    flex-direction: column;
+  }
+
+  /* [Claude] mobile fonts scaled 0.85 */
+  .custom-heading-font {
+    font-size: 17px;
+  }
+
+  .news-above-main-title {
+    font-size: 17px;
+  }
+
+  .news-thumb-heading {
+    font-size: 16px;
+  }
+
+  .news-subtitle-italic {
+    font-size: 14px;
+  }
+
+  .leading-relaxed {
+    font-size: 12px;
+  }
+
+  .news-thumb-img {
+    width: 100%;
+    height: auto;
+    aspect-ratio: 16/9;
+    flex: none;
+  }
+}
+
+/* ── Floating action buttons — vertically centred (matches all other pages) ── */
+body:has(.cl-news-page) .floating-actions {
+  top: 50% !important;
+  bottom: auto !important;
+  transform: translateY(-50%) !important;
+}

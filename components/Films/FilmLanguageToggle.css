@@ -1,0 +1,65 @@
+/* Film Language Toggle */
+.film-lang-toggle {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0;
+  margin-top: 14px;
+  flex-wrap: wrap;
+  row-gap: 6px;
+}
+
+.film-lang-toggle-item-wrap {
+  display: inline-flex;
+  align-items: center;
+}
+
+.film-lang-sep {
+  color: #c7c7c7;
+  font-size: 13px;
+  font-weight: 300;
+  margin: 0 10px;
+  user-select: none;
+}
+
+/* [Claude] these changes have been recommended by claude —
+   PDF shows "HINDI | ENGLISH | KANNADA" — uppercase, all pink, no pill background.
+   Active state is slightly bolder but no grey pill. */
+.film-lang-btn {
+  border: 0;
+  background: transparent;
+  font-family: var(--ajab-font-sans);
+  font-size: var(--ajab-fs-tag);
+  font-weight: 300;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  padding: 2px 8px;
+  cursor: pointer;
+  color: var(--ajab-pink-primary);
+  border-radius: 0;
+  transition: opacity 0.2s ease;
+}
+
+.film-lang-btn:hover:not(:disabled) {
+  opacity: 0.75;
+}
+
+.film-lang-btn.active,
+.film-lang-btn:disabled {
+  font-weight: 400;
+  color: var(--ajab-pink-primary);
+  background: transparent;
+  cursor: default;
+  opacity: 1;
+}
+
+@media screen and (max-width: 768px) {
+  .film-lang-btn {
+    font-size: var(--ajab-fs-micro);
+    padding: 3px 8px;
+  }
+
+  .film-lang-sep {
+    margin: 0 6px;
+  }
+}

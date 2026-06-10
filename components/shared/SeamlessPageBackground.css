@@ -1,0 +1,40 @@
+/* Height-synced mirror repeat-y (see SeamlessPageBackground.tsx). */
+
+.seamless-bg-layers {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  z-index: 0;
+  pointer-events: none;
+  overflow: hidden;
+}
+
+.seamless-bg-sheet {
+  position: absolute;
+  left: 0;
+  width: 100%;
+  background-color: var(--seamless-fallback, #ffffff);
+  background-image: var(--seamless-image);
+  background-repeat: repeat-y;
+  background-position: center top;
+  /* width + height set inline (integer px) to avoid subpixel repeat gaps */
+  pointer-events: none;
+}
+
+/* Primary tile stack */
+.seamless-bg-sheet--base {
+  top: 0;
+  height: 100%;
+}
+
+/*
+ * Overlap pass: same tiles shifted up so the next cycle starts slightly early,
+ * hiding 1px compression / scale seams at repeat boundaries.
+ */
+.seamless-bg-sheet--overlap {
+  top: calc(-1 * var(--seamless-overlap, 24px));
+  height: calc(100% + var(--seamless-overlap, 24px));
+  background-position: center calc(-1 * var(--seamless-overlap, 24px));
+  opacity: 1;
+}

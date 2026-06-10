@@ -1,0 +1,76 @@
+/* ===== Ajab Shahar Logo Loader ===== */
+
+/* [Claude] these changes have been recommended by claude — full opaque white per spec:
+   "full white bg with only logo in the middle" */
+.loader-overlay {
+  position: fixed;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #ffffff;
+  z-index: 9999;
+}
+
+/* Songs listing/detail: keep chrome visible — parent must be `position: relative` (e.g. main). */
+.loader-overlay--panel {
+  position: absolute;
+  z-index: 5;
+}
+
+.loader-logo-wrap {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 16px;
+  animation: loaderFadeIn 0.3s ease;
+}
+
+.loader-logo {
+  width: 120px;
+  height: 120px;
+  animation: loaderBird 1.8s ease-in-out infinite;
+}
+
+/* Bird flying animation — gentle float + subtle scale */
+@keyframes loaderBird {
+  0% {
+    transform: translateY(0) scale(1);
+    opacity: 0.7;
+  }
+  25% {
+    transform: translateY(-12px) scale(1.05);
+    opacity: 1;
+  }
+  50% {
+    transform: translateY(-6px) scale(1.02);
+    opacity: 0.9;
+  }
+  75% {
+    transform: translateY(-14px) scale(1.06);
+    opacity: 1;
+  }
+  100% {
+    transform: translateY(0) scale(1);
+    opacity: 0.7;
+  }
+}
+
+@keyframes loaderFadeIn {
+  from {
+    opacity: 0;
+    transform: scale(0.9);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+/* Responsive */
+@media screen and (max-width: 768px) {
+  .loader-logo {
+    width: 80px;
+    height: 80px;
+  }
+}

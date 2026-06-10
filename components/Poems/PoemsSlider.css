@@ -1,0 +1,356 @@
+/* components/Poems/PoemsSlider.css */
+.poems-slider {
+  width: 100%;
+  max-width: 750px;
+  aspect-ratio: 1 / 1;
+  height: 750px;
+  margin: 30px auto;
+  padding: 0 1rem;
+  background-color: rgba(255, 255, 255, 0.8);
+  border-radius: 50%;
+  border: 34px solid rgba(255, 255, 255, 0.5);
+  position: relative;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  transform: translateY(-24px);
+}
+
+.poem-volume-trigger {
+  position: absolute;
+  top: 100px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 10;
+}
+
+.poem-music-popover {
+  position: absolute;
+  top: -10px;
+  left: calc(100% + 120px);
+  width: 260px;
+  padding: 14px 16px 16px;
+  border-radius: 14px;
+  background: rgba(255, 255, 255, 0.98);
+  box-shadow: 0 12px 30px rgba(60, 60, 60, 0.16);
+  backdrop-filter: blur(10px);
+}
+
+.poem-music-progress {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 10px;
+}
+
+.poem-music-elapsed,
+.poem-music-total {
+  font-size: 10px;
+  color: #9a9a9a;
+  font-family: var(--ajab-font-sans);
+  min-width: 28px;
+}
+.poem-music-total {
+  text-align: right;
+  color: #7a7a7a;
+}
+
+.poem-music-bar {
+  flex: 1;
+  height: 3px;
+  background: #eaeaea;
+  border-radius: 2px;
+  overflow: hidden;
+  position: relative;
+}
+.poem-music-bar-fill {
+  width: 22%;
+  height: 100%;
+  background: var(--ajab-pink-related);
+  border-radius: 2px;
+}
+
+.poem-music-controls {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 14px;
+  margin-bottom: 12px;
+}
+.poem-music-ctrl {
+  border: 0;
+  background: transparent;
+  cursor: pointer;
+  padding: 2px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+.poem-music-play {
+  border: 0;
+  background: #fff;
+  border-radius: 50%;
+  width: 34px;
+  height: 34px;
+  box-shadow: 0 2px 8px rgba(237, 30, 121, 0.25);
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.poem-music-tracklist {
+  display: grid;
+  gap: 10px;
+}
+
+.poem-music-track {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.poem-music-track img {
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  object-fit: cover;
+  flex-shrink: 0;
+}
+
+.poem-music-track-meta {
+  flex: 1;
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+}
+
+.poem-music-track-name {
+  color: #4a4a4a;
+  font-size: var(--ajab-fs-micro);
+  font-weight: 500;
+  line-height: 1.2;
+  font-family: var(--ajab-font-sans);
+}
+
+.poem-music-track-time {
+  color: #a7a7a7;
+  font-size: 10px;
+  line-height: 1.1;
+  font-family: var(--ajab-font-sans);
+}
+
+/* Header Section */
+.slider-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 2rem;
+  padding-bottom: 1rem;
+}
+
+.slider-title-section {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+/* Slider Controls */
+.slider-controls {
+  display: flex;
+  gap: 0.5rem;
+}
+.slider-controls .prev-btn {
+  position: absolute;
+  left: 0;
+  top: 45%;
+}
+.slider-controls .next-btn {
+  position: absolute;
+  right: 0;
+  top: 45%;
+}
+.slider-controls svg {
+  width: 22px;
+}
+.slider-controls svg:hover {
+  opacity: 0.8;
+}
+
+.slider-btn {
+  cursor: pointer;
+  transition: all 0.2s;
+  color: #4b5563;
+}
+
+/* Slider Content */
+.slider-content {
+  padding: 2rem;
+}
+
+.poem-card {
+  text-align: center;
+}
+
+/* Poem Text */
+.poem-text-content {
+  margin-top: 240px;
+  margin-bottom: 2rem;
+  max-height: 260px;
+  overflow-y: auto;
+  padding-right: 6px;
+}
+
+.poem-text-content::-webkit-scrollbar {
+  width: 4px;
+}
+
+.poem-text-content::-webkit-scrollbar-thumb {
+  background-color: rgba(255, 255, 255, 0.45);
+  border-radius: 999px;
+}
+
+.poem-hindi {
+  font-size: 1.1rem;
+  line-height: 1.55;
+  color: #1f2937;
+  margin-bottom: 0.75rem;
+  font-weight: 500;
+}
+
+.poem-transliteration {
+  color: var(--ajab-ink-500);
+  font-family: 'Inter', sans-serif;
+  font-weight: 400;
+  font-style: normal;
+  font-size: var(--ajab-fs-h3);
+  line-height: 100%;
+  letter-spacing: 0%;
+  max-width: 440px;
+}
+
+.poem-translation {
+  font-size: 0.85rem;
+  color: #4b5563;
+  line-height: 1.5;
+  margin-bottom: 0;
+}
+
+/* Poet Info */
+.poem-meta {
+  margin: 60px 0 120px;
+  color: var(--ajab-ink-500);
+}
+
+.poet-info {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  color: var(--ajab-ink-500);
+  font-family: var(--ajab-font-sans);
+  font-weight: 300;
+  font-style: normal;
+  font-size: var(--ajab-fs-body);
+  line-height: 100%;
+  letter-spacing: 0%;
+  margin-top: 40px;
+}
+
+.poet-name {
+  text-transform: uppercase;
+}
+
+/* Action Buttons */
+.poem-actions {
+  border-top: 1px solid var(--ajab-pink-primary);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 0.5rem;
+  padding-top: 22px;
+  max-width: 200px;
+  margin: 40px auto 0;
+}
+
+.action-btn {
+  background: none;
+  border: none;
+  color: var(--ajab-pink-primary);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  font-size: var(--ajab-fs-body);
+  cursor: pointer;
+  transition: color 0.2s;
+}
+
+.action-btn:hover {
+  color: #db2777;
+}
+
+.action-divider {
+  color: var(--ajab-ink-200);
+  font-weight: 300;
+}
+.language-button {
+  margin: 0 0 22px;
+}
+
+@media screen and (max-width: 1580px) {
+  .poem-transliteration {
+    font-size: var(--ajab-fs-h5);
+    max-width: 420px;
+  }
+  .poems-slider {
+    max-width: 700px;
+    min-height: 700px;
+    margin: 20px auto;
+  }
+
+  .poem-music-popover {
+    left: calc(100% + 96px);
+  }
+}
+/* Responsive Design */
+@media (max-width: 768px) {
+  .poems-slider {
+    padding: 0 0.5rem;
+  }
+
+  .slider-header {
+    flex-direction: column;
+    gap: 1rem;
+    align-items: flex-start;
+  }
+
+  .slider-title-section {
+    width: 100%;
+    justify-content: space-between;
+  }
+
+  .poems-count {
+    font-size: 1.5rem;
+  }
+
+  .slider-controls {
+    align-self: flex-end;
+  }
+
+  .slider-content {
+    padding: 1.5rem;
+  }
+
+  .poem-hindi {
+    font-size: 1.25rem;
+  }
+
+  .poem-transliteration {
+    font-size: 1rem;
+  }
+
+  .poem-music-popover {
+    top: 52px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: min(270px, calc(100vw - 40px));
+  }
+}

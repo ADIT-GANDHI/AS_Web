@@ -1,0 +1,211 @@
+.news-inner-container,
+.people-inner-container {
+  background: url(/news-white-bg.png) left top;
+  background-size: 100% auto;
+  padding: 6.5rem 0 7rem;
+  max-width: 1420px;
+  width: 100%;
+  text-align: left;
+  margin: -30px auto 0;
+  min-height: 1300px;
+  font-weight: 300;
+  z-index: -100;
+}
+
+.people-inner-container {
+  background: none;
+  margin-bottom: 120px;
+}
+.films-heading-text {
+  color: var(--ajab-ink-900);
+  font-family: var(--ajab-font-serif);
+  font-size: 27px;
+  font-weight: 400;
+  line-height: normal;
+  padding: 0 15px 8px;
+  border-bottom: 1px solid var(--ajab-ink-100);
+}
+
+.button-font {
+  font-size: var(--ajab-fs-caption);
+  font-weight: 300;
+}
+
+.films-about {
+  color: var(--ajab-ink-600);
+  background: transparent;
+  font-size: var(--ajab-fs-body-lg);
+  font-weight: 400;
+  line-height: normal;
+  max-width: 1068px;
+  margin: 0 auto 50px;
+}
+.sub-heading-intro {
+  color: var(--ajab-ink-800);
+  text-align: center;
+  font-family: var(--ajab-font-serif);
+  font-size: var(--ajab-fs-display);
+  font-weight: 400;
+  margin: 50px 0 20px;
+}
+.black-custom-color {
+  color: var(--ajab-ink-800);
+}
+
+.text-pink {
+  color: var(--ajab-pink-related);
+}
+.films-trailer {
+  font-size: var(--ajab-fs-body);
+}
+.films-trailer {
+  text-transform: uppercase;
+}
+.films-trailer span {
+  color: var(--ajab-ink-400);
+}
+
+.people-banner-shadow {
+  box-shadow: 0px 6px 16px 0px rgba(0, 0, 0, 0.4);
+  padding: 8px;
+  border-radius: 6px;
+}
+.films-separator {
+  border-color: var(--ajab-ink-100);
+}
+.card-separator {
+  border: none;
+  max-width: 1032px;
+  margin: 60px auto;
+  height: 1px;
+  background-image: repeating-linear-gradient(to right, var(--ajab-ink-200) 0px, var(--ajab-ink-200) 2px, transparent 2px, transparent 8px);
+}
+.films-page-heading {
+  color: var(--ajab-ink-600);
+  font-size: var(--ajab-fs-body);
+  font-weight: 400;
+  line-height: normal;
+  margin: 0 0 4px 0;
+  font-family: var(--ajab-font-serif);
+}
+
+.films-page-heading span {
+  color: var(--ajab-ink-400);
+  font-size: var(--ajab-fs-body);
+  font-weight: 400;
+  margin: 0 0 0 0.5rem;
+}
+.films-second-title {
+  color: var(--ajab-ink-400);
+  font-family: var(--ajab-font-sans);
+  font-size: 17px;
+  font-weight: 300;
+  margin-left: 10px;
+}
+.films-directed-title {
+  color: var(--ajab-ink-400);
+  font-size: var(--ajab-fs-body-sm);
+  margin: 4px 0 0;
+}
+.films-director-name {
+  color: var(--ajab-pink-primary);
+  font-family: var(--ajab-font-sans);
+  font-size: var(--ajab-fs-tag);
+  font-weight: 600;
+  letter-spacing: 0.5px;
+  text-transform: uppercase;
+}
+.films-date {
+  color: var(--ajab-ink-400);
+  font-size: 17px;
+  margin: 3px 0 0;
+}
+.search-result-text {
+  font-size: var(--ajab-fs-body);
+  line-height: 25px;
+  line-height: normal;
+  color: var(--ajab-ink-500);
+}
+
+.thumbnail-image {
+  filter: drop-shadow(7px 7px 10px rgba(0, 0, 0, 0.1));
+  padding: 0 5px 5px;
+  background: #fff;
+}
+.film-card-text {
+  color: var(--ajab-ink-400);
+}
+@media screen and (max-width: 1580px) {
+  .people-inner-container {
+    max-width: 1240px;
+  }
+  .films-about {
+    font-size: 19px;
+  }
+  .people-inner-card-container {
+    max-width: 1000px;
+    width: 100%;
+    margin: 0 auto;
+  }
+  .films-heading-text {
+    font-size: 25px;
+  }
+  .films-page-heading {
+    font-size: var(--ajab-fs-h4);
+  }
+  .sub-heading-intro {
+    font-size: var(--ajab-fs-h2);
+  }
+  .films-directed-title {
+    font-size: var(--ajab-fs-body-sm);
+  }
+  .films-page-heading span {
+    font-size: var(--ajab-fs-body-sm);
+  }
+  .films-date {
+    font-size: var(--ajab-fs-caption);
+  }
+  .films-trailer {
+    font-size: var(--ajab-fs-body-sm);
+  }
+}
+
+@media screen and (max-width: 768px) {
+  .people-inner-container {
+    padding: 4rem 0 4rem;
+    min-height: auto;
+  }
+
+  .films-about {
+    font-size: var(--ajab-fs-body-sm);
+    padding: 0 16px;
+  }
+
+  .films-heading-text {
+    font-size: var(--ajab-fs-h6);
+    padding: 0 10px 8px;
+  }
+
+  .sub-heading-intro {
+    font-size: var(--ajab-fs-h5);
+    margin: 30px 0 16px;
+  }
+
+  .people-banner-shadow {
+    padding: 4px;
+  }
+
+  .card-separator {
+    margin: 30px auto;
+  }
+
+  .films-page-heading {
+    font-size: var(--ajab-fs-body-lg);
+  }
+
+  .films-second-title {
+    font-size: var(--ajab-fs-tag);
+    margin-left: 0;
+    display: block;
+  }
+}

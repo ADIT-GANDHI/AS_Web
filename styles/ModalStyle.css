@@ -1,0 +1,175 @@
+.modal-container .bg-white,
+.modal-container .bg-white:hover {
+  box-shadow: none;
+}
+
+.modal-container .card-shape-top::before,
+.modal-container .card-shape-top::after {
+  display: none;
+}
+
+/* Ensure the modal container has proper spacing */
+.modal-container {
+  padding: 16px 0 0;
+}
+
+/* Style adjustments for content cards in modal */
+.modal-container .content-card {
+  border: none;
+  background: transparent;
+}
+.news-logo img {
+  max-width: 110px;
+  position: absolute;
+  left: -60px;
+  z-index: 10;
+  top: -29px;
+  filter: brightness(0) saturate(100%) invert(31%) sepia(0%) saturate(0%) hue-rotate(167deg) brightness(95%) contrast(90%);
+}
+.news-text img {
+  max-width: 150px;
+  position: absolute;
+  left: 35px;
+  z-index: 10;
+  top: 50%;
+}
+
+.card-text {
+  margin: 15px 0 12px;
+  box-shadow: none;
+}
+.news-pop-up-modal .card-shape-top {
+  margin: 15px 0 0;
+  padding: 0 5px;
+  box-sizing: border-box;
+}
+.card-heading {
+  color: var(--ajab-pink-primary);
+  font-family: Lora;
+  font-size: var(--ajab-fs-h1);
+  font-weight: 400;
+  line-height: normal;
+}
+
+.pop-up-margin-top {
+  margin: 150px 0 0;
+}
+.pop-up-custom-outter-spacing {
+  padding: 120px 0 0;
+}
+
+.border-top-pink {
+  box-sizing: border-box;
+}
+.news-pop-up-modal .card-shape-top .justify-end {
+  display: flex;
+  justify-content: flex-start;
+  margin-bottom: 28px;
+}
+.modal-content-inner {
+  top: 50%;
+  transform: translateY(-50%);
+}
+
+/* Figma 1:18458: Gulshan-e-Armaan title — Lora Regular 24 / var(--ajab-ink-800) */
+.news-pop-up-modal .card-heading {
+  color: var(--ajab-ink-800);
+  font-family: var(--ajab-font-serif);
+  font-size: var(--ajab-fs-h5);
+  font-weight: 400;
+  line-height: 1.2;
+  margin: 0;
+}
+
+/* Title row keeps title + "by KABIR PROJECT" on the same baseline */
+.news-pop-up-modal .news-title-row {
+  display: flex;
+  align-items: baseline;
+  flex-wrap: wrap;
+  column-gap: 10px;
+  margin-bottom: 8px;
+}
+
+.news-pop-up-modal .news-by-line {
+  font-family: var(--ajab-font-sans);
+  font-weight: 300;
+  font-size: var(--ajab-fs-tag);
+  color: var(--ajab-ink-500);
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+/* Figma 1:18460-65: description — Merriweather Sans Light 18 / var(--ajab-ink-500) */
+.news-pop-up-modal .news-content {
+  font-family: var(--ajab-font-sans);
+  font-weight: 300;
+  font-size: var(--ajab-fs-body);
+  line-height: 1.45;
+  color: var(--ajab-ink-500);
+}
+
+/* Figma 1:18466: EXPLORE CTA — Merriweather Sans Light 16 / var(--ajab-pink-primary)
+   Block-level so it always sits on its own line under the description. */
+.news-pop-up-modal .news-explore-cta {
+  display: block;
+  font-family: var(--ajab-font-sans);
+  font-weight: 300;
+  font-size: var(--ajab-fs-body-sm);
+  color: var(--ajab-pink-primary);
+  letter-spacing: 0.04em;
+  background: none;
+  border: 0;
+  padding: 0;
+  margin-top: 12px;
+  text-align: left;
+}
+
+.news-pop-up-modal .pink {
+  font-size: var(--ajab-fs-tag);
+}
+
+.news-pop-up-modal .modal-slider-wrap {
+  padding-bottom: 8px;
+}
+
+.news-pop-up-modal .news-item-content {
+  padding-left: 5px;
+  padding-right: 5px;
+}
+
+.news-pop-up-modal .news-text-block {
+  width: 100%;
+  max-width: 100%;
+  padding-left: 5px;
+  padding-right: 5px;
+  box-sizing: border-box;
+}
+
+.news-pop-up-modal .news-content {
+  word-break: break-word;
+}
+
+.news-pop-up-modal .news-content.collapsed {
+  display: -webkit-box;
+  -webkit-line-clamp: 4;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.news-pop-up-modal .news-content.expanded {
+  display: block;
+}
+
+.news-pop-up-modal .modal-image-wrap {
+  width: calc(100% - 10px);
+  margin-left: 5px;
+  margin-right: 5px;
+  overflow: hidden;
+  border-radius: 6px;
+  box-shadow: 0 0 12px rgba(0, 0, 0, 0.15);
+}
+
+.news-pop-up-modal .modal-image-wrap img {
+  max-width: 100%;
+  display: block;
+}

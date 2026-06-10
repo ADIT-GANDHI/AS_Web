@@ -1,0 +1,548 @@
+:root {
+  /* Header height is fixed at 192px (matches Figma reference). The header
+     background image (Header.png) is stretched to 100% × 100% of this height,
+     so the wave always spans the full viewport width regardless of breakpoint. */
+  --ajab-header-height: 191px;
+  /* Bottom padding positions the nav row in the upper third vs. the wave; keep
+     this value on every breakpoint — only horizontal padding may shrink. */
+  --ajab-header-pad-bottom: 104px;
+  /* Desktop: lower SONGS…FILMS + ABOUT/search/radio toward logo centre (red-line markup). */
+  --ajab-header-nav-drop: 26px;
+}
+
+header nav a,
+.about-text {
+  color: #1a1a1a;
+  font-family: var(--ajab-font-sans);
+  font-weight: 300;
+  font-style: normal;
+  /* PDF spec: nav links are ~14px — delicate, light weight.
+     --ajab-fs-button (21px) is correct for the Filter trigger and Load More,
+     but nav links should be smaller. Override here without changing the token. */
+  font-size: 14px;
+  line-height: 100%;
+  letter-spacing: 0.02em;
+}
+
+header nav a {
+  /* Base margin at ≥1600px desktop — increase here to widen gaps */
+  margin: 0 36px 0;
+}
+
+.radio-logo img {
+  margin: 0 0 0 5px;
+  max-width: 50px;
+  width: 100%;
+}
+
+/* Per-element Y nudges to match Figma 361:1254 exactly.
+
+   With the row's centre now at y=68 (text/search target), individual elements
+   need offsets to reach their Figma Y positions:
+     • Radio centre y=59 ⇒ shift UP by 9 px from row centre.
+     • Logo centre y=98.5 ⇒ shift DOWN by 30 px from row centre.
+
+   `transform: translateY()` keeps these as PRESENTATION-only adjustments
+   that do NOT affect layout flow (no margin collapsing, no shifting
+   neighbours).  */
+.radio-logo {
+  transform: translateY(-9px);
+}
+
+.logo {
+  /* PDF: logo dips into the wave — translateY pushes it down from the flex row
+     centre so the bottom of the circle overlaps the wave crest.
+     36px → 44px for a deeper dip that matches the PDF exactly. */
+  transform: translateY(44px);
+}
+
+.footer-right {
+  margin-top: 0;
+}
+
+.footer-heading-text {
+  color: var(--ajab-pink-primary);
+  font-size: var(--ajab-fs-h3);
+  font-family: var(--ajab-font-serif);
+  font-weight: 400;
+}
+
+.header-inner-container {
+  /* Position the nav + ABOUT + search row at the FIGMA-EXACT Y position.
+
+     Figma reference (file IJwbCASYYrrKaOSRDScXYV, node 361:1254 "Header"):
+       header element height           = 192 px
+       SONGS/POEMS/... text top        = y=53   (height 31, center y=68.5)
+       ABOUT text                      = y=53.4 (height 31, center y=69)
+       Search icon                     = y=51.5 (height 32, center y=67.5)
+       Radio icon group                = y=26   (height 66, center y=59)
+       Logo group                      = y=31   (height 135, center y=98.5)
+
+     The text trio (nav, ABOUT, search) all centre at ≈ y=68 — clearly in the
+     UPPER HALF of the header, NOT the geometric middle.  This is the
+     "feels close to the wave" symptom: a plain `justify-content: center`
+     over 192 px puts content at y=96 (middle), 28 px below Figma intent.
+
+     Solution: set padding-bottom so the flex column effectively centres
+     content at y=44 (Figma intent is y=68; an additional ~24 px upward
+     nudge was requested across iterations — the user reads y=56-60 as
+     still "too low against the wave", so we push the row firmly into the
+     upper third of the header).
+       (192 − paddingBottom) / 2 = 44   →   paddingBottom = 104 px
+
+     The logo and radio still need their own Y offsets to match Figma
+     exactly (logo lower, radio higher) — handled by per-element rules
+     further down. */
+  height: var(--ajab-header-height);
+  padding: 0 52px var(--ajab-header-pad-bottom);
+  box-sizing: border-box;
+  margin-top: 0;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+
+/* ABOUT button — mirrors nav link styles exactly so it sits flush on the same baseline.
+   `header button.about-text` is higher specificity than the grouped rule at line 13,
+   so these values always win even over Tailwind utilities. */
+header button.about-text {
+  /* Typography: identical to .nav-link (which uses var(--ajab-fs-button) = 21px,
+     NOT the 14px from `header nav a` — the class-level .nav-link rule wins
+     over the element-level rule, so nav links render at 21px, not 14px). */
+  font-family: var(--ajab-font-sans);
+  font-size: var(--ajab-fs-button) !important; /* same as .nav-link */
+  font-weight: 300;
+  font-style: normal;
+  line-height: 100%;
+  letter-spacing: 0;
+  text-transform: uppercase;
+  color: #1a1a1a;
+  /* Layout: identical to .nav-link */
+  height: 31px;
+  display: inline-flex;
+  align-items: baseline;
+  justify-content: center;
+  transform: translateY(2px);
+  /* Reset browser button defaults */
+  background: none;
+  border: none;
+  padding: 0;
+  cursor: pointer;
+}
+
+header button.about-text.active {
+  color: var(--ajab-pink-primary);
+}
+
+/* ABOUT wrapper alignment handled in Header.tsx via `md:flex md:items-center` */
+
+.nav-link {
+  height: 31px;
+  display: inline-flex;
+  /* baseline keeps ALL nav items on the same text baseline, so the (234)
+     count badge added to SONGS never causes a vertical jump */
+  align-items: baseline;
+  justify-content: center;
+  margin-top: 0;
+  font-family: var(--ajab-font-sans);
+  font-weight: 300;
+  font-style: normal;
+  font-size: var(--ajab-fs-button);
+  line-height: 100%;
+  letter-spacing: 0;
+}
+
+.nav-link--songs {
+  /* Reserve enough space so when (234) appears the link doesn't reflow
+     or shift neighbours — width accommodates the widest active state */
+  min-width: 84px;
+  width: auto;
+}
+
+/* [Claude] these changes have been recommended by claude —
+   Counts show on hover only; -count-live force-show rules removed so the count
+   never persists when the page is active (user requested hover-only behaviour). */
+
+/* SONGS count — hover only */
+.nav-link--songs .nav-link-songs-count {
+  opacity: 0;
+  transition: opacity 0.25s ease;
+  display: inline-block;
+  font-size: 0.55em;
+  margin-left: 1px;
+  color: var(--ajab-pink-primary);
+}
+
+.nav-link--songs:hover .nav-link-songs-count {
+  opacity: 1;
+}
+
+/* REFLECTIONS count — hover only */
+.nav-link--reflections .nav-link-reflections-count {
+  opacity: 0;
+  transition: opacity 0.25s ease;
+  display: inline-block;
+  font-size: 0.55em;
+  margin-left: 1px;
+  color: var(--ajab-pink-primary);
+}
+
+.nav-link--reflections:hover .nav-link-reflections-count {
+  opacity: 1;
+}
+
+/* [Claude] these changes have been recommended by claude — POEMS count, same pattern as songs/reflections */
+.nav-link--poems .nav-link-poems-count {
+  opacity: 0;
+  transition: opacity 0.25s ease;
+  display: inline-block;
+  font-size: 0.55em;
+  margin-left: 1px;
+  color: var(--ajab-pink-primary);
+}
+
+.nav-link--poems:hover .nav-link-poems-count,
+body:has(.clp-page) .nav-link--poems .nav-link-poems-count {
+  opacity: 1;
+}
+
+.nav-link--poems {
+  width: 87px;
+}
+
+.nav-link--reflections {
+  width: 163px;
+}
+
+.nav-link--people {
+  width: 92px;
+}
+
+.nav-link--films {
+  width: 72px;
+}
+
+.nav-link.active {
+  color: var(--ajab-pink-primary);
+}
+
+.logo {
+  /* PDF: logo hugs the left edge of the header — very small left margin.
+     80px was too far right; 16px matches the PDF where the circle
+     is close to but not flush against the viewport edge. */
+  margin: 0 0 0 16px;
+  width: 120px;
+  /* SVG native: 131×136 — we scale to 100px wide */
+  height: auto;
+}
+
+/* Header.png (1940 × 213) IS the entire header visual — white body + wavy edge.
+   background-size: 100% 100% stretches the image to fill the header element
+   (which is fixed at --ajab-header-height = 192px). The gentle wave shape
+   tolerates slight horizontal scaling without visible distortion, and this is
+   the only strategy that keeps the wave spanning the full viewport width at
+   every breakpoint — no horizontal clipping. */
+.gradient-bg {
+  width: 100%;
+  position: relative;
+  z-index: 10001; /* ensures it sits above the overlapping news container */
+}
+
+header {
+  background: url(/songs-assets/Header.png) no-repeat center top / 100% 100%;
+  box-shadow: none;
+  border-bottom: none;
+  /* Sticky keeps the chrome pinned; z-index above filter drawer (9999). */
+  position: sticky;
+  top: 0;
+  z-index: 10000;
+  width: 100%;
+}
+
+/* Main nav + right cluster (ABOUT, search, radio) — logo keeps its own .logo offset. */
+@media screen and (min-width: 768px) {
+
+  header nav.hidden.md\:flex,
+  header .header-inner-container .footer-right {
+    transform: translateY(var(--ajab-header-nav-drop));
+  }
+}
+
+/* The old separate wave image (.header-curve) is no longer needed — the wave
+   is baked into the header background above. */
+.header-curve {
+  display: none;
+}
+
+/* [Claude] these changes have been recommended by claude — overlay is absolute so the card flows with the page (NOT fixed): when user scrolls, the card scrolls along with the rest of the page content, no internal scrollbar */
+.header-search-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  min-height: 100vh;
+  z-index: 60;
+  background: transparent;
+}
+
+.header-search-panel {
+  /* Panel sits 220px from document top — clearly below the 192px sticky header */
+  width: min(620px, calc(100vw - 32px));
+  margin: 220px auto 60px;
+}
+
+/* ONE unified card: search input at top + results below — NO internal scroll, card extends to its natural height */
+.header-search-card {
+  background: #ffffff;
+  border-radius: 18px;
+  border: 1px solid #e0e0e0;
+  box-shadow: 0 8px 28px rgba(0, 0, 0, 0.13);
+  overflow: hidden;
+}
+
+/* Input row — top portion of the card */
+.header-search-input-row {
+  display: flex;
+  align-items: center;
+  padding: 14px 20px;
+  gap: 12px;
+}
+
+.header-search-input-icon {
+  flex-shrink: 0;
+  width: 26px;
+  height: 26px;
+  opacity: 0.55;
+}
+
+.header-search-input {
+  flex: 1;
+  border: none;
+  background: transparent;
+  font-size: 22px;
+  color: var(--ajab-ink-700);
+  font-family: var(--ajab-font-serif);
+  padding: 0;
+}
+
+.header-search-input::placeholder {
+  color: #b0b0b0;
+  font-family: var(--ajab-font-serif);
+  font-style: italic;
+}
+
+.header-search-input:focus {
+  outline: none;
+}
+
+/* Results area — sits below the input row. NO max-height / NO internal scroll: card extends naturally, overlay handles any overflow */
+.header-search-results {
+  border-top: 1px solid #ebebeb;
+}
+
+/* Each category block — thin top divider separates sections.
+   [Claude] these changes have been recommended by claude — left padding aligns labels/results with the input text column (after the search icon): 20px input-row padding + 26px icon + 12px gap = 58px */
+.header-search-section {
+  padding: 10px 20px 12px 58px;
+  border-top: 1px solid #ebebeb;
+}
+
+.header-search-section:first-child {
+  border-top: none;
+}
+
+/* Category label: small, pink, uppercase — on its OWN line above results */
+.header-search-section-label {
+  display: block;
+  color: var(--ajab-pink-related);
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.6px;
+  font-family: var(--ajab-font-sans);
+  margin-bottom: 4px;
+  line-height: 1.4;
+}
+
+/* Result title: large dark serif — block, full width, below the label */
+.header-search-item {
+  display: block;
+  width: 100%;
+  text-align: left;
+  border: 0;
+  background: transparent;
+  color: var(--ajab-ink-700);
+  font-size: 20px;
+  line-height: 1.35;
+  font-family: var(--ajab-font-serif);
+  cursor: pointer;
+  padding: 2px 0;
+  text-decoration: none;
+}
+
+.header-search-item:hover {
+  color: var(--ajab-pink-related);
+}
+
+.header-search-empty,
+.header-search-loading {
+  padding: 16px 18px;
+  color: var(--ajab-ink-500);
+  font-size: var(--ajab-fs-body);
+}
+
+/* Make nav-link widths flexible at all sizes so they never overflow */
+@media screen and (min-width: 769px) {
+
+  .nav-link--songs,
+  .nav-link--poems,
+  .nav-link--reflections,
+  .nav-link--people,
+  .nav-link--films {
+    width: auto;
+  }
+
+  header nav.hidden.md\:flex {
+    column-gap: 0;
+  }
+}
+
+@media screen and (max-width: 1600px) and (min-width: 769px) {
+
+
+
+  header nav a {
+    /* At ≤1600px keep comfortable spacing — raised from 10px to 22px */
+    margin: 0 22px;
+  }
+
+  .logo {
+    margin: 0 0 0 50px;
+    transform: translateY(45px) !important;
+  }
+
+  .header-inner-container {
+    padding: 0 32px var(--ajab-header-pad-bottom) 8px;
+  }
+}
+
+@media screen and (max-width: 1366px) and (min-width: 769px) {
+
+
+
+  header nav a {
+    margin: 0 8px;
+  }
+
+  .logo {
+    margin: 0 0 0 6px;
+    transform: translateY(24px) !important;
+  }
+
+  .header-inner-container {
+    padding: 0 24px var(--ajab-header-pad-bottom) 6px;
+  }
+
+  .footer-right {
+    gap: 14px;
+  }
+}
+
+@media screen and (max-width: 1200px) and (min-width: 769px) {
+
+
+
+  header nav a {
+    margin: 0 6px;
+  }
+
+  .logo {
+    margin: 0 0 0 4px;
+    width: 84px !important;
+    height: auto !important;
+    transform: translateY(18px) !important;
+  }
+
+  .header-inner-container {
+    padding: 0 14px var(--ajab-header-pad-bottom) 4px;
+  }
+
+  .footer-right {
+    gap: 10px;
+  }
+
+  .radio-logo img {
+    max-width: 38px;
+  }
+}
+
+@media screen and (max-width: 1024px) and (min-width: 769px) {
+
+
+
+  header nav a {
+    margin: 0 4px;
+  }
+
+  .logo {
+    margin: 0 0 0 2px;
+    width: 72px !important;
+    transform: translateY(10px) !important;
+  }
+
+  .header-inner-container {
+    padding: 0 8px var(--ajab-header-pad-bottom) 2px;
+  }
+
+  .footer-right {
+    gap: 6px;
+  }
+
+  .radio-logo img {
+    max-width: 32px;
+  }
+}
+
+@media screen and (min-width: 768px) {
+  header {
+    transition: none;
+    /* Do not force position: relative here — it overrides Tailwind `sticky`
+       and breaks pin + compositing, which can show a 1px bright seam while scrolling. */
+    z-index: 10000;
+  }
+
+  header::after {
+    content: none;
+  }
+
+  /* .headerArt {
+    background: url(/user/img/common/directives/header/header.png) 100% -1px no-repeat;
+    transition: none;
+    margin-top: -1px;
+    height: 90px;
+    position: relative;
+    z-index: 800;
+    width: 812px;
+    float: right;
+  } */
+}
+
+@media screen and (max-width: 768px) {
+  .header-search-panel {
+    margin-top: 110px;
+  }
+
+  .header-search-input {
+    height: 52px;
+    font-size: 22px;
+  }
+
+  .header-search-card {
+    width: min(290px, calc(100vw - 52px));
+    margin-left: 0;
+  }
+
+  .header-search-item {
+    font-size: 14px;
+  }
+}

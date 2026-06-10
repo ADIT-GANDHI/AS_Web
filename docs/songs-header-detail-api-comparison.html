@@ -1,0 +1,282 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Songs header & detail — API vs UI comparison</title>
+  <style>
+    :root {
+      --bg: #0f172a;
+      --panel: #1e293b;
+      --muted: #94a3b8;
+      --text: #e2e8f0;
+      --accent: #e31e79;
+      --border: #334155;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: system-ui, -apple-system, Segoe UI, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      line-height: 1.55;
+      font-size: 15px;
+    }
+    header.doc-h {
+      max-width: 960px;
+      margin: 0 auto;
+      padding: 28px 20px 8px;
+    }
+    header.doc-h h1 {
+      font-size: 1.35rem;
+      font-weight: 650;
+      margin: 0 0 10px;
+    }
+    header.doc-h p { color: var(--muted); margin: 0.4em 0; font-size: 0.92rem; }
+    a { color: #7dd3fc; }
+    code {
+      background: var(--panel);
+      padding: 2px 7px;
+      border-radius: 4px;
+      font-size: 0.88em;
+      border: 1px solid var(--border);
+    }
+    main { max-width: 960px; margin: 0 auto; padding: 12px 20px 48px; }
+    section {
+      background: var(--panel);
+      border-radius: 12px;
+      padding: 18px 20px;
+      margin-bottom: 18px;
+      border: 1px solid var(--border);
+    }
+    section h2 {
+      font-size: 1.05rem;
+      margin: 0 0 12px;
+      color: #f1f5f9;
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 0.88rem;
+    }
+    th, td {
+      text-align: left;
+      padding: 10px 12px;
+      border-bottom: 1px solid var(--border);
+      vertical-align: top;
+    }
+    th { color: #cbd5e1; font-weight: 600; width: 28%; }
+    tr:last-child td, tr:last-child th { border-bottom: none; }
+    .pill {
+      display: inline-block;
+      background: #334155;
+      color: #e2e8f0;
+      padding: 2px 8px;
+      border-radius: 999px;
+      font-size: 0.78rem;
+      margin-right: 6px;
+    }
+    .warn { color: #fcd34d; }
+    ul.compact { margin: 8px 0 0; padding-left: 1.2rem; color: var(--muted); font-size: 0.9rem; }
+    ul.compact li { margin: 0.35em 0; }
+    .kbd {
+      font-family: ui-monospace, monospace;
+      background: #0f172a;
+      padding: 2px 6px;
+      border-radius: 4px;
+      border: 1px solid var(--border);
+    }
+  </style>
+</head>
+<body>
+  <header class="doc-h">
+    <h1>Songs header &amp; song detail — API vs UI comparison</h1>
+    <p>
+      Companion to <a href="./songs-listing-ui-comparison.html">songs-listing-ui-comparison.html</a>.
+      Summarises how <code>GET /Api/explore_songs</code> and related calls map to
+      <code>/songs/details/[id]</code> and the global header, plus how to reach the dev server locally.
+    </p>
+  </header>
+
+  <main>
+    <section id="localhost">
+      <h2>Local dev server (when localhost does not load)</h2>
+      <p style="color: var(--muted); font-size: 0.92rem; margin-top: 0;">
+        The app is started with Next bound to all interfaces so you can try several URLs.
+      </p>
+      <table>
+        <thead>
+          <tr><th>Try this URL</th><th>When to use it</th></tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><code>http://127.0.0.1:3000</code></td>
+            <td>First choice if <code>localhost</code> fails (DNS / hosts / VPN quirks).</td>
+          </tr>
+          <tr>
+            <td><code>http://localhost:3000</code></td>
+            <td>Default Next message; should match 127.0.0.1 unless something rewrites hosts.</td>
+          </tr>
+          <tr>
+            <td><code>http://&lt;your-LAN-IPv4&gt;:3000</code></td>
+            <td>From another device on the same Wi‑Fi: run <span class="kbd">ipconfig</span> (Windows) and use the IPv4 address shown for your active adapter.</td>
+          </tr>
+        </tbody>
+      </table>
+      <p style="color: var(--muted); font-size: 0.9rem; margin-bottom: 0;">
+        <strong class="warn">Command used in this repo:</strong>
+        <code>npx next dev --hostname 0.0.0.0 --port 3000</code>
+        — if port 3000 is already in use, stop the other process or use
+        <code>--port 3001</code> and open that port instead.
+      </p>
+      <ul class="compact">
+        <li>Confirm the terminal shows <code>✓ Ready</code> (or compiled without errors) before opening the browser.</li>
+        <li>Disable VPN or corporate proxy temporarily if the page never finishes loading.</li>
+        <li>Windows Firewall may prompt to allow Node — choose allow for private networks.</li>
+      </ul>
+    </section>
+
+    <section id="api-env">
+      <h2>Why you still see <code>(201)</code> or broken thumbnails</h2>
+      <p style="color: var(--muted); font-size: 0.92rem; margin-top: 0;">
+        The browser must reach the same host that serves <code>GET /Api/list</code> <strong>and</strong> CMS paths like
+        <code>/images/…</code>. That origin is <code>AJAB_API_BASE</code> in <code>lib/ajabEnv.ts</code>.
+      </p>
+      <table>
+        <thead>
+          <tr><th>Env variable</th><th>Role</th></tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><code>NEXT_PUBLIC_AJAB_API_BASE</code></td>
+            <td>Highest priority. Example: <code>https://ajab.designanddevelopment.in/admin</code> (no trailing slash). Used for <code>/Api/…</code> and for <code>/images/…</code> thumbs.</td>
+          </tr>
+          <tr>
+            <td><code>NEXT_PUBLIC_API_URL</code></td>
+            <td>If set and <code>AJAB_API_BASE</code> is not, the app strips a trailing <code>/Api/</code> and uses the remainder as the CMS root (e.g. <code>https://host/admin/Api/</code> → <code>https://host/admin</code>).</td>
+          </tr>
+        </tbody>
+      </table>
+      <p style="color: var(--muted); font-size: 0.9rem;">
+        <strong class="warn">Verify in DevTools:</strong> open <strong>Network</strong>, reload <code>/songs</code>. You should see
+        <code>…/Api/list?…</code> with status <strong>200</strong> and JSON <code>{"status":true,"total":…}</code>.
+        If the request is <strong>404</strong> or returns HTML, the app falls back to <strong>mock songs</strong> and forces nav count <strong>201</strong>.
+        Thumbnails from the list use paths such as <code>/images/TN-….jpg</code>; those are joined to <code>AJAB_API_BASE</code> only for those CMS prefixes — so the base <strong>must</strong> match the server that actually hosts <code>/images</code>.
+      </p>
+    </section>
+
+    <section id="header-count">
+      <h2>Header — <span class="pill">SONGS</span> suffix <code>(N)</code></h2>
+      <table>
+        <thead>
+          <tr><th>Behaviour</th><th>Source</th></tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>Live count inline, e.g. <code>(211)</code></td>
+            <td>
+              <code>SongsNavCountContext</code>: set from <code>/Api/list</code> on the songs listing, or a lightweight
+              <code>/Api/list?page=1&amp;limit=1</code> on song detail. CSS class <code>nav-link--songs-count-live</code> hides the static <code>::after</code>.
+            </td>
+          </tr>
+          <tr>
+            <td>Static design fallback <code>(201)</code></td>
+            <td>
+              On songs pages only, via <code>CLSongs.css</code> on <code>.nav-link--songs::after</code>, when no live total is in context (e.g. API did not return <code>total</code>).
+            </td>
+          </tr>
+          <tr>
+            <td>Non-songs routes</td>
+            <td>No pink count suffix on SONGS (no <code>body:has(.cl-songs-page)</code> / <code>.cld-page</code>).</td>
+          </tr>
+        </tbody>
+      </table>
+    </section>
+
+    <section id="explore-map">
+      <h2><code>GET /Api/explore_songs</code> → detail page regions</h2>
+      <p style="color: var(--muted); font-size: 0.9rem; margin-top: 0;">
+        Implemented in <code>CLSongDetailsPage.tsx</code>. Many fields accept objects (via <code>getText</code>) or strings.
+        HTML-heavy strings are passed through <code>htmlToPlainText</code> for safe plain display.
+      </p>
+      <table>
+        <thead>
+          <tr><th>API / data keys (examples)</th><th>UI region</th></tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><code>Songtitle_transliteration</code>, <code>songTitleTransliteration</code>, <code>umbrellaTitle</code>, <code>umbrellaTitleText</code>, <code>song_title</code>, <code>english_translation</code></td>
+            <td>Hero title, large title block, video title, version card title fallback chain.</td>
+          </tr>
+          <tr>
+            <td><code>singer_name</code>, <code>singer</code></td>
+            <td>“sings …” row (uppercase).</td>
+          </tr>
+          <tr>
+            <td><code>poet</code></td>
+            <td>“poet …” under main title (uppercase).</td>
+          </tr>
+          <tr>
+            <td><code>year</code>, <code>Year</code>, <code>song_year</code></td>
+            <td>Header meta line with location; version card year in parentheses.</td>
+          </tr>
+          <tr>
+            <td><code>location</code>, <code>song_location</code></td>
+            <td>Header meta line.</td>
+          </tr>
+          <tr>
+            <td><code>about</code>, <code>meta_description</code>, <code>metaDescription</code>, <code>song_description</code></td>
+            <td>Description paragraph (truncated + “more”).</td>
+          </tr>
+          <tr>
+            <td><code>songLyricsTranslated</code>, <code>song_lyrics_translated</code>, <code>songLyrics</code>, <code>lyrics</code>, <code>songLyricsNotes</code></td>
+            <td>Lyrics stanzas (split on blank lines after HTML flattening).</td>
+          </tr>
+          <tr>
+            <td><code>songnotes</code>, <code>song_notes</code></td>
+            <td>NOTES popup (<code>WavyPaperPopup</code>).</td>
+          </tr>
+          <tr>
+            <td><code>youtube_video_id</code>, <code>youtubeVideoId</code></td>
+            <td><code>LiteYouTubeEmbed</code> when a resolvable id is present.</td>
+          </tr>
+          <tr>
+            <td><code>thumbnailUrl</code>, <code>thumbnail_url</code> (relative paths)</td>
+            <td>Prefixed with <code>AJAB_API_BASE</code> for version cards and related thumbs.</td>
+          </tr>
+        </tbody>
+      </table>
+    </section>
+
+    <section id="versions-related">
+      <h2>Other endpoints on the detail route</h2>
+      <table>
+        <thead>
+          <tr><th>Endpoint</th><th>Current app behaviour</th></tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><code>GET /Api/song_versions</code></td>
+            <td>
+              <strong class="warn">Not called</strong> for now (staging often returns HTTP 500). The versions strip uses a
+              <strong>single card</strong> built from the same <code>explore_songs</code> payload so the UI stays stable.
+            </td>
+          </tr>
+          <tr>
+            <td><code>GET /Api/related?song_id=…</code></td>
+            <td>Related section tabs and list; thumbnails resolved against API base; blurbs flattened from HTML.</td>
+          </tr>
+        </tbody>
+      </table>
+    </section>
+
+    <section id="quick-links">
+      <h2>Quick test URLs (after dev server is up)</h2>
+      <ul class="compact" style="color: var(--text);">
+        <li><code>http://127.0.0.1:3000/songs</code> — listing + nav total from list API</li>
+        <li><code>http://127.0.0.1:3000/songs/details/5</code> — detail + related + nav total probe</li>
+      </ul>
+    </section>
+  </main>
+</body>
+</html>
