@@ -390,15 +390,15 @@ html body:has(.clp-page-root-wrap) .floating-actions {
   pointer-events: auto;
 }
 
-/* Audio button — listing halo uses a smaller control than the legacy 113px circle. */
+/* Audio button — listing halo: compact circle per client review. */
 .clp-page:not(.clp-page--detail) .clp-audio-btn {
-  width: min(88px, calc(var(--clp-halo-size) * 0.08));
-  height: min(88px, calc(var(--clp-halo-size) * 0.08));
+  width: min(72px, calc(var(--clp-halo-size) * 0.065));
+  height: min(72px, calc(var(--clp-halo-size) * 0.065));
 }
 
 .clp-page:not(.clp-page--detail) .clp-audio-btn svg {
-  width: 28px;
-  height: 28px;
+  width: 22px;
+  height: 22px;
 }
 
 /* Audio button — sits at the top inside the white circle. */
@@ -419,22 +419,28 @@ html body:has(.clp-page-root-wrap) .floating-actions {
 }
 .clp-audio-btn:hover { background: var(--ajab-pink-primary); color: #fff; }
 
-/* Poem text — Figma 362:3338: Lora Italic 28 #6d6e71 */
+/* Poem text — [Claude] these changes have been recommended by claude:
+   PDF page 1 shows a small compact couplet inside the circle with no visible
+   scrollbar; 28px + a grey scrollbar track read as oversized clutter, so the
+   listing now uses the same 19px treatment as the detail page. */
 .clp-poem-text {
   font-family: var(--ajab-font-serif);
   font-style: italic;
   font-weight: 400;
-  font-size: 28px;
-  line-height: 1.55;
+  font-size: 19px;
+  line-height: 1.7;
   color: #6d6e71;
   margin: 0 0 calc(var(--clp-halo-size) * 0.032);
   white-space: pre-line;
   text-align: center;
-  max-width: 520px;
-  max-height: 320px;
+  max-width: 440px;
+  max-height: 360px;
   overflow-y: auto;
-  scrollbar-width: thin;
-  scrollbar-color: #6d6e71 transparent;
+  scrollbar-width: none;
+}
+.clp-poem-text::-webkit-scrollbar {
+  width: 0;
+  background: transparent;
 }
 
 /* Poet attribution — Figma 362:3343: Mwthr Sans Light 18 #6d6e71 */
@@ -506,17 +512,43 @@ html body:has(.clp-page-root-wrap) .floating-actions {
 
 .clp-notes-glossary .sep { color: var(--ajab-ink-200); }
 
-/* Down chevron (>>) - "next poem" indicator */
-.clp-next-chevron {
+.clp-poem-catalog {
+  width: min(920px, calc(100% - 48px));
+  margin: 0 auto 40px;
+  padding: 0 24px;
   display: flex;
-  justify-content: center;
-  margin-top: calc(var(--clp-artboard-h) * -0.018);
-  margin-bottom: calc(var(--clp-artboard-h) * 0.008);
-  cursor: pointer;
-  color: var(--ajab-pink-primary);
-  transition: transform 0.2s;
+  flex-direction: column;
+  gap: 0;
+  border-top: 1px solid var(--ajab-ink-100);
 }
-.clp-next-chevron:hover { transform: translateY(4px); }
+
+.clp-poem-catalog-item {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 14px 0;
+  border-bottom: 1px solid #ececec;
+  text-decoration: none;
+  color: inherit;
+}
+
+.clp-poem-catalog-item:hover .clp-poem-catalog-title {
+  color: var(--ajab-pink-primary);
+}
+
+.clp-poem-catalog-title {
+  font-family: var(--ajab-font-serif);
+  font-size: var(--ajab-fs-body);
+  color: var(--ajab-ink-700);
+}
+
+.clp-poem-catalog-poet {
+  font-family: var(--ajab-font-sans);
+  font-weight: 300;
+  font-size: var(--ajab-fs-tag);
+  color: var(--ajab-ink-400);
+  text-transform: uppercase;
+}
 
 /* ── Related Section ── */
 .clp-related {

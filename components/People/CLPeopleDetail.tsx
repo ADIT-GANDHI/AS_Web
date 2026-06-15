@@ -17,7 +17,9 @@ import {
   asRelatedContent,
   type RelatedContent,
 } from '@/lib/mapRelatedResponse';
+import KeywordCloud from '@/components/shared/KeywordCloud';
 import RepeatingPageBackground from '@/components/shared/RepeatingPageBackground';
+import { keywordsFromRelatedBucket } from '@/lib/parseKeywords';
 import { PEOPLE_DETAIL_BG } from '@/lib/pageBackgroundTiles';
 import '@/styles/CustomStyle.css';
 import '@/components/Songs/CLSongs.css';
@@ -143,6 +145,11 @@ export default function CLPeopleDetail({ id }: { id?: string }) {
     return d[activeTab] || [];
   }, [activeTab, related]);
 
+  const keywordTerms = useMemo(
+    () => keywordsFromRelatedBucket((related.data.keywords || []) as unknown[]),
+    [related.data.keywords]
+  );
+
   if (loading) return <LoadingShell />;
 
   if (!person) {
@@ -215,6 +222,8 @@ export default function CLPeopleDetail({ id }: { id?: string }) {
                 </p>
               )}
             </div>
+
+            <KeywordCloud terms={keywordTerms} className="clped-keyword-cloud cld-detail-body-align" />
 
             {/* Related */}
             <section className="cld-related clped-related">

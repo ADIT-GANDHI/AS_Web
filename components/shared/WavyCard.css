@@ -54,12 +54,12 @@
    (matches the original Songs card decoration exactly). */
 .wc-card::after {
   content: '';
-  background: url('/song-card-bottom-shadow.png') no-repeat center / 100% 100%;
-  width: 108%;
+  background: url('/song-card-bottom-shadow-edited.png') no-repeat center / 100% 100%;
+  width: 102%;
   height: 36px;
   position: absolute;
   bottom: -32px;
-  left: -5px;
+  left: -2px;
   z-index: 1;
   pointer-events: none;
 }

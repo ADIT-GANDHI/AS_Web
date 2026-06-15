@@ -172,7 +172,7 @@ export const GLOSSARY_TERMS_LINE_1 = [
 export const GLOSSARY_TERMS_LINE_2 = [
   { term: 'Alakh', meaning: 'Unseeable' },
   { term: 'Darpan', meaning: 'Mirror' },
-  { term: 'Shahar', meaning: 'City', highlighted: true },
+  { term: 'Shahar', meaning: 'City' },
 ];
 
 // Back-compat: flattened version used by other modules (Poems, Reflections,

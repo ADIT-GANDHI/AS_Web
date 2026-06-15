@@ -1,8 +1,11 @@
 'use client';
 
 import Loader from '@/components/Loader';
-import { useCallback, useContext, useEffect, useMemo, useState } from 'react';
+import Footer from '@/components/Footer';
+import Header from '@/components/Header';
+import { useCallback, useContext, useEffect, useMemo, useRef, useState } from 'react';
 import LoadMoreButton from '@/components/shared/LoadMoreButton';
+import SongsListingBackground from '@/components/Songs/SongsListingBackground';
 import { MOCK_SONGS, SONGS_FILTER, SONGS_INTRO } from './CLconstants';
 import ListingFilterBar from '@/components/shared/ListingFilterBar';
 import CLSongCard from './CLSongCard';
@@ -70,11 +73,6 @@ function formatSongListItem(item: Record<string, unknown>) {
     (Array.isArray(item.singer_names) ? item.singer_names[0] : item.singer_names) ||
     '';
   const rawPoet = item.poet || item.poet_display || '';
-  const rawKeywords =
-    (typeof item.meta_keywords === 'string' ? item.meta_keywords : '') ||
-    (typeof item.metaKeyword === 'string' ? item.metaKeyword : '') ||
-    '';
-
   return {
     id: String(item.id || ''),
     Songtitle_transliteration: String(
@@ -84,7 +82,6 @@ function formatSongListItem(item: Record<string, unknown>) {
     singer: String(rawSinger).replace(/\s+/g, ' ').trim(),
     poet: String(rawPoet).replace(/\s+/g, ' ').trim(),
     thumbnailUrl: String(item.thumbnailUrl || item.thumbnail_url || ''),
-    meta_keywords: rawKeywords.replace(/\s+/g, ' ').trim(),
   };
 }
 
@@ -99,31 +96,20 @@ function sortSongsByTitle<T extends { Songtitle_transliteration?: string }>(song
 function buildFilterOptionsFromSongs(songs: ReturnType<typeof formatSongListItem>[]) {
   const singersSet = new Set<string>();
   const poetsSet = new Set<string>();
-  const themesSet = new Set<string>();
 
   songs.forEach((song) => {
     addFilterPartsFromField(song.singer, singersSet);
     addFilterPartsFromField(song.poet, poetsSet);
-
-    const kw = song.meta_keywords.trim();
-    if (kw) {
-      kw.split(/[&,]/).forEach((part: string) => {
-        const cleaned = part.replace(/\s+/g, ' ').trim();
-        if (cleaned && cleaned.toLowerCase() !== 'null' && cleaned.toLowerCase() !== 'undefined') {
-          collectFilterOptions([cleaned], themesSet);
-        }
-      });
-    }
   });
 
   return {
     singers: Array.from(singersSet).sort(),
     poets: Array.from(poetsSet).sort(),
-    themes: Array.from(themesSet).sort(),
   };
 }
 
 export default function CLSongsIndex() {
+  const pageShellRef = useRef<HTMLDivElement>(null);
   const { setSongsNavTotal } = useContext(SongsNavCountContext);
   const [activeFilter, setActiveFilter] = useState(SONGS_FILTER[0]);
 
@@ -201,7 +187,7 @@ export default function CLSongsIndex() {
         setAllSongs((prev) => {
           const merged = reset
             ? formattedSongs
-            : sortSongsByTitle(mergeCatalogById(prev, formattedSongs));
+            : mergeCatalogById(prev, formattedSongs);
           return merged;
         });
 
@@ -237,11 +223,27 @@ export default function CLSongsIndex() {
   }, [fetchSongsPage]);
 
   useEffect(() => {
-    const { singers, poets, themes } = buildFilterOptionsFromSongs(allSongs);
+    const { singers, poets } = buildFilterOptionsFromSongs(allSongs);
     setAvailableSingers(singers);
     setAvailablePoets(poets);
-    setAvailableThemes(themes);
   }, [allSongs]);
+
+  useEffect(() => {
+    const fetchSongFilterThemes = async () => {
+      try {
+        const res = await fetch(`${AJAB_API_BASE}/Api/song_filters`, { cache: 'no-store' });
+        if (!res.ok) return;
+        const json = await res.json();
+        const themes = (json?.data?.them || json?.data?.theme || [])
+          .map((t: { word_transliteration?: string }) => t.word_transliteration || '')
+          .filter(Boolean);
+        if (themes.length) setAvailableThemes(themes);
+      } catch {
+        /* Theme list empty until CMS populates song_filters */
+      }
+    };
+    void fetchSongFilterThemes();
+  }, []);
 
   // Client-side dynamic filtering
   const filteredSongs = useMemo(() => {
@@ -266,10 +268,8 @@ export default function CLSongsIndex() {
       result = result.filter((song) => fieldMatchesFilters(song.poet || '', poetNames));
     }
 
-    // 4. Theme Filter (Keywords)
-    if (themeNames.length > 0) {
-      result = result.filter((song) => fieldMatchesFilters(song.meta_keywords || '', themeNames));
-    }
+    // Theme filter labels come from `/Api/song_filters` (glossary words), not SEO meta_keywords.
+    // Per-song theme links are not on list rows yet — skip client-side theme matching.
 
     return result;
   }, [allSongs, activeFilter, singerNames, poetNames, themeNames]);
@@ -278,18 +278,19 @@ export default function CLSongsIndex() {
     return filteredSongs.slice(0, visibleCount);
   }, [filteredSongs, visibleCount]);
 
-  const hasMore = catalogHasMore(
-    allSongs.length,
-    visibleCount,
-    filteredSongs.length,
-    catalogTotal
-  );
-
   const hasActiveFilters =
     activeFilter !== SONGS_FILTER[0] ||
     singerNames.length > 0 ||
     poetNames.length > 0 ||
     themeNames.length > 0;
+
+  const hasMore = catalogHasMore(
+    allSongs.length,
+    visibleCount,
+    filteredSongs.length,
+    catalogTotal,
+    { filtersActive: hasActiveFilters }
+  );
 
   const headingCount = hasActiveFilters
     ? filteredSongs.length
@@ -315,73 +316,85 @@ export default function CLSongsIndex() {
     setVisibleCount(SONGS_PER_PAGE);
   }, [activeFilter, singerNames, poetNames, themeNames]);
 
+  if (isLoading) {
+    return <Loader />;
+  }
+
   return (
-    <div className="cl-songs-page cl-songs-listing-page">
-      {isLoading ? (
-        <Loader variant="panel" />
-      ) : (
-        <>
-          <p className="cl-songs-intro">{SONGS_INTRO}</p>
+    <div className="cl-songs-page-root cl-songs-page-root--listing">
+      <SongsListingBackground containerRef={pageShellRef} />
+      <div ref={pageShellRef} className="cl-songs-page-shell">
+        <Header />
+        <main className="relative z-10">
+          <div className="cl-songs-page cl-songs-listing-page">
+            <p className="cl-songs-intro">{SONGS_INTRO}</p>
 
-          <div className="cl-songs-count-row">
-            <h1 className="cl-songs-count">{headingCount} Songs</h1>
-          </div>
+            <div className="cl-songs-count-row">
+              <h1 className="cl-songs-count">{headingCount} Songs</h1>
+            </div>
 
-          <ListingFilterBar
-            allActive={activeFilter === SONGS_FILTER[0] && singerNames.length === 0 && poetNames.length === 0 && themeNames.length === 0}
-            onAllClick={() => {
-              setActiveFilter(SONGS_FILTER[0]);
-              handleClearAllFilters();
-            }}
-            panel={{
-              onFilterSelect: handleFilterSelect,
-              onRemoveFilter: handleRemoveFilter,
-              onClearAll: handleClearAllFilters,
-              selectedSingers: singerNames,
-              selectedPoets: poetNames,
-              selectedThemes: themeNames,
-              availableSingers,
-              availablePoets,
-              availableThemes,
-              maxFilters: MAX_FILTERS,
-              useSongsMockFallback: true,
-            }}
-            azRow={
-              <div className="cl-az-row">
-                {SONGS_FILTER.slice(1).map((filter) => (
-                  <button
-                    key={filter}
-                    onClick={() => setActiveFilter(filter)}
-                    className={`cl-az-btn${activeFilter === filter ? ' active' : ''}`}
-                  >
-                    {filter}
-                  </button>
-                ))}
-              </div>
-            }
-          />
-
-          <div className="cl-song-grid">
-            {displayedSongs.length > 0 ? (
-              displayedSongs.map((song) => (
-                <div key={song.id} className="cl-song-grid-item">
-                  <CLSongCard {...song} />
+            <ListingFilterBar
+              allActive={
+                activeFilter === SONGS_FILTER[0] &&
+                singerNames.length === 0 &&
+                poetNames.length === 0 &&
+                themeNames.length === 0
+              }
+              onAllClick={() => {
+                setActiveFilter(SONGS_FILTER[0]);
+                handleClearAllFilters();
+              }}
+              panel={{
+                onFilterSelect: handleFilterSelect,
+                onRemoveFilter: handleRemoveFilter,
+                onClearAll: handleClearAllFilters,
+                selectedSingers: singerNames,
+                selectedPoets: poetNames,
+                selectedThemes: themeNames,
+                availableSingers,
+                availablePoets,
+                availableThemes,
+                maxFilters: MAX_FILTERS,
+                useSongsMockFallback: true,
+              }}
+              azRow={
+                <div className="cl-az-row">
+                  {SONGS_FILTER.slice(1).map((filter) => (
+                    <button
+                      key={filter}
+                      onClick={() => setActiveFilter(filter)}
+                      className={`cl-az-btn${activeFilter === filter ? ' active' : ''}`}
+                    >
+                      {filter}
+                    </button>
+                  ))}
                 </div>
-              ))
-            ) : (
-              <p className="cl-no-results">No songs found matching active filters.</p>
+              }
+            />
+
+            <div className="cl-song-grid">
+              {displayedSongs.length > 0 ? (
+                displayedSongs.map((song) => (
+                  <div key={song.id} className="cl-song-grid-item">
+                    <CLSongCard {...song} />
+                  </div>
+                ))
+              ) : (
+                <p className="cl-no-results">No songs found matching active filters.</p>
+              )}
+            </div>
+
+            {hasMore && (
+              <LoadMoreButton
+                onClick={handleLoadMore}
+                ariaLabel="Load more songs"
+                disabled={loadingMore}
+              />
             )}
           </div>
-
-          {hasMore && (
-            <LoadMoreButton
-              onClick={handleLoadMore}
-              ariaLabel="Load more songs"
-              disabled={loadingMore}
-            />
-          )}
-        </>
-      )}
+        </main>
+        <Footer />
+      </div>
     </div>
   );
 }

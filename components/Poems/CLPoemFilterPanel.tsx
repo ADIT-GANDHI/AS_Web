@@ -4,7 +4,10 @@ import { AnimatePresence, motion } from 'framer-motion';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
 import { AJAB_API_BASE } from '@/lib/ajabEnv';
+import { dedupeOrderedStrings } from '@/lib/dedupeStrings';
 import {
+  FILTER_DRAWER_BACKDROP_TOP,
+  FILTER_DRAWER_CONTENT_INSET_TOP,
   FILTER_DRAWER_HEIGHT,
   FILTER_DRAWER_TOP,
   FILTER_DRAWER_Z_BACKDROP,
@@ -43,6 +46,9 @@ function poemPreviewTranslation(poem: { english?: string }) {
 const FONT = "'Merriweather Sans', sans-serif";
 const FILTER_W = 'var(--clp-filter-w, 508px)';
 
+/** Poems: outer shell has no transform so header (z-index 10000) stacks above full wavy panel. */
+const POEMS_FILTER_BODY_CLASS = 'ajab-poems-filter-drawer-open';
+
 export default function CLPoemFilterPanel({
   onSelectPoet,
   onSelectTheme,
@@ -68,10 +74,12 @@ export default function CLPoemFilterPanel({
         if (!res.ok) return;
         const json = await res.json();
         const data = json?.data || {};
-        const poets = (data.poets || []).map((p: any) => p.poet_name || '').filter(Boolean);
-        const themes = (data.themes || [])
-          .map((t: any) => t.word_transliteration || '')
-          .filter(Boolean);
+        const poets = dedupeOrderedStrings(
+          (data.poets || []).map((p: any) => p.poet_name || '')
+        );
+        const themes = dedupeOrderedStrings(
+          (data.themes || []).map((t: any) => t.word_transliteration || '')
+        );
         if (poets.length || themes.length) {
           setFilters({
             Poet: poets.length ? poets : FALLBACK_FILTERS.Poet,
@@ -89,8 +97,10 @@ export default function CLPoemFilterPanel({
     if (!open) return;
     const prev = document.body.style.overflow;
     document.body.style.overflow = 'hidden';
+    document.body.classList.add(POEMS_FILTER_BODY_CLASS);
     return () => {
       document.body.style.overflow = prev;
+      document.body.classList.remove(POEMS_FILTER_BODY_CLASS);
     };
   }, [open]);
 
@@ -166,7 +176,7 @@ export default function CLPoemFilterPanel({
                 <div
                   style={{
                     position: 'fixed',
-                    top: FILTER_DRAWER_TOP,
+                    top: FILTER_DRAWER_BACKDROP_TOP,
                     left: 0,
                     right: 0,
                     bottom: 0,
@@ -176,7 +186,8 @@ export default function CLPoemFilterPanel({
                   onClick={() => setOpen(false)}
                 />
 
-                <motion.div
+                {/* Fixed shell top:0 — slide animation on inner layer only (keeps header above). */}
+                <div
                   className="clp-filter-panel"
                   style={{
                     position: 'fixed',
@@ -186,11 +197,20 @@ export default function CLPoemFilterPanel({
                     height: FILTER_DRAWER_HEIGHT,
                     minHeight: FILTER_DRAWER_HEIGHT,
                     boxSizing: 'border-box',
+                    overflow: 'hidden',
+                    zIndex: FILTER_DRAWER_Z_PANEL,
+                    pointerEvents: 'none',
+                  }}
+                >
+                <motion.div
+                  style={{
+                    width: '100%',
+                    height: '100%',
+                    boxSizing: 'border-box',
                     display: 'flex',
                     flexDirection: 'column',
                     fontFamily: FONT,
                     overflow: 'hidden',
-                    zIndex: FILTER_DRAWER_Z_PANEL,
                     pointerEvents: 'auto',
                   }}
                   initial={{ x: '-100%', opacity: 0 }}
@@ -231,12 +251,14 @@ export default function CLPoemFilterPanel({
                       flexDirection: 'column',
                       flex: '1 1 auto',
                       minHeight: 0,
+                      paddingTop: FILTER_DRAWER_CONTENT_INSET_TOP,
+                      boxSizing: 'border-box',
                     }}
                   >
                     <div
                       style={{
                         padding:
-                          'var(--clp-filter-pad-top, 68px) var(--clp-filter-pad-x, 45px) 0',
+                          'var(--clp-filter-pad-top, 20px) var(--clp-filter-pad-x, 45px) 0',
                         flex: '0 0 auto',
                       }}
                     >
@@ -382,9 +404,9 @@ export default function CLPoemFilterPanel({
                           </ul>
                         ) : (
                           <ul style={{ listStyle: 'none', margin: 0, padding: 0 }}>
-                            {list.map((item) => (
+                            {list.map((item, index) => (
                               <li
-                                key={item}
+                                key={`${activeCategory}-${index}-${item}`}
                                 onClick={() => handleItemClick(item)}
                                 style={{
                                   fontFamily: FONT,
@@ -447,6 +469,7 @@ export default function CLPoemFilterPanel({
                     </div>
                   </div>
                 </motion.div>
+                </div>
               </>
             )}
           </AnimatePresence>,

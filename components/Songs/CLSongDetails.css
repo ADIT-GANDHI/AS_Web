@@ -451,26 +451,25 @@
   color: var(--ajab-pink-primary);
 }
 
-.cld-description-scroll {
-  max-height: 7.5em;
-  overflow-y: auto;
-  margin-top: 0.35em;
-  padding-right: 6px;
-  scrollbar-width: thin;
-  scrollbar-color: rgba(177, 177, 177, 0.55) transparent;
+/* PDF: first ~3 lines visible; full text on "...more" — no nested scrollbar. */
+.cld-description-body--clamped {
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 3;
+  overflow: hidden;
 }
 
-.cld-description-scroll::-webkit-scrollbar {
-  width: 5px;
-}
-
-.cld-description-scroll::-webkit-scrollbar-thumb {
-  background: rgba(177, 177, 177, 0.55);
-  border-radius: 4px;
-}
-
-.cld-description-scroll::-webkit-scrollbar-track {
-  background: transparent;
+.cld-description-more {
+  margin-top: 4px;
+  padding: 0;
+  border: 0;
+  background: none;
+  cursor: pointer;
+  font-family: var(--ajab-font-sans);
+  font-weight: 300;
+  font-size: 14px;
+  line-height: 1;
+  color: var(--ajab-pink-primary);
 }
 
 /* ── Language toggle — Figma 361:1480

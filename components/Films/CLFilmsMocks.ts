@@ -169,7 +169,7 @@ export const FILM_GLOSSARY = [
   { term: 'Ulat', meaning: 'Upside Down' },
   { term: 'Alakh', meaning: 'Unseeable' },
   { term: 'Darpan', meaning: 'Mirror' },
-  { term: 'Shahar', meaning: 'City', highlighted: true },
+  { term: 'Shahar', meaning: 'City' },
 ];
 
 // [Claude] updated to match live API total from Api/film_list

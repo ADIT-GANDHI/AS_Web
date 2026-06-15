@@ -6,9 +6,8 @@
    "Rectangle 361:1569" image-fill (1015 × 180).
 
    Typography:
-     word    → Lora Regular 24, var(--ajab-ink-900)
+     word    → Lora Regular 24, var(--ajab-ink-900); pink on hover (link TBD)
      meaning → Lora Italic  20, var(--ajab-ink-300)
-     highlighted word → var(--ajab-pink-primary) (e.g. last term "Shahar")
 
    Layout: rows are explicit so the wrap point doesn't drift with viewport
    width. Songs/Poems/Reflections/Films all use the 2 + 3 split (2 terms
@@ -40,6 +39,13 @@
 .gs-term {
   display: inline-block;
   margin: 0;
+  padding: 0;
+  border: none;
+  background: transparent;
+  font: inherit;
+  color: inherit;
+  cursor: pointer;
+  text-align: inherit;
 }
 
 .gs-term-word {
@@ -48,6 +54,7 @@
   font-size: var(--ajab-fs-h5);
   color: var(--ajab-ink-900);
   margin-right: 6px;
+  transition: color 0.15s ease;
 }
 
 .gs-term-meaning {
@@ -57,8 +64,13 @@
   color: var(--ajab-ink-300);
 }
 
-.gs-term.is-highlighted .gs-term-word {
+.gs-term:hover .gs-term-word,
+.gs-term:focus-visible .gs-term-word {
   color: var(--ajab-pink-related);
+}
+
+a.gs-term {
+  text-decoration: none;
 }
 
 /* Responsive — single row collapse on narrow viewports */

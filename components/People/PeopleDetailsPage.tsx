@@ -50,7 +50,7 @@ export default function PeopleDetailsPage({
       .join(' ') ||
     'Untitled Person';
 
-  const subtitle = getText(personData?.category_name) || getText(personData?.category_type) || getText(personData?.meta_keywords);
+  const subtitle = getText(personData?.category_name) || getText(personData?.category_type);
   // Use about column for about section
   const rawAboutHtml = personData?.about || personData?.profile || '';
   const aboutHtml = rawAboutHtml.replace(/<p[^>]*>[\s]*(?:Contact:|Know more:)[\s\S]*?<\/p>/gi, '');

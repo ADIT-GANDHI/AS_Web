@@ -71,6 +71,7 @@ _*/*
 *\_Localhost_Comparison/
 *\_Client_Review*/
 *\_Client_Review*.zip
+*.zip
 *\_Verification*/
 Token_Audits/
 _audit-pages/

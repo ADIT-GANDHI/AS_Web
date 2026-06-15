@@ -52,7 +52,7 @@ from pdf_guide_coords import (  # noqa: E402
 from module_pdf_paths import MODULE_PDFS, ensure_module_pdfs  # noqa: E402
 
 BASE_URL = os.environ.get("PLAYWRIGHT_BASE_URL", "http://127.0.0.1:3000").rstrip("/")
-SONG_ID = os.environ.get("CAPTURE_SONG_ID", "233")
+SONG_ID = os.environ.get("CAPTURE_SONG_ID", "260")
 REFLECTION_ID = os.environ.get("CAPTURE_REFLECTION_ID", "3")
 PEOPLE_ID = os.environ.get("CAPTURE_PEOPLE_ID", "94")
 FILM_ID = os.environ.get("CAPTURE_FILM_ID", "13")
@@ -148,7 +148,7 @@ def make_search_typeahead_prepare(query: str):
         page.wait_for_selector(".clh-page", timeout=120_000)
         dismiss_news_popup(page)
         page.get_by_role("button", name="Toggle search").click()
-        page.wait_for_selector(".header-search-overlay", timeout=30_000)
+        page.wait_for_selector(".header-search-overlay", timeout=60_000)
         page.fill(".header-search-input", query)
         page.wait_for_timeout(2500)
 
@@ -208,7 +208,10 @@ def scroll_page(page) -> None:
 
 
 def click_filters(page, label: str = "Filters") -> None:
-    page.wait_for_selector(".cl-filter-bar", timeout=60_000)
+    page.wait_for_selector(
+        ".clp-page, .cl-songs-page, .clr-page, .clpe-page",
+        timeout=120_000,
+    )
     trigger = page.locator(".cl-filter-trigger-wrap button").first
     if not trigger.count():
         trigger = page.get_by_role("button", name=re.compile(rf"^{re.escape(label)}$", re.I)).first
@@ -428,7 +431,7 @@ def prepare_radio_playlists(page) -> None:
 
     default_prepare(page)
     page.wait_for_selector(".radio-page-root", timeout=120_000)
-    page.wait_for_selector(".radio-playlists-panel", timeout=60_000)
+    page.wait_for_selector(".radio-playlists-list", timeout=60_000)
     page.wait_for_selector(".radio-panel--queue", timeout=60_000)
     time.sleep(0.6)
 

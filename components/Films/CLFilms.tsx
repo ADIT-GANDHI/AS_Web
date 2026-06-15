@@ -83,6 +83,15 @@ export default function CLFilms() {
               films: bucket.films,
             })
           );
+          /* [Claude] these changes have been recommended by claude —
+             PDF page 1 order: "Journeys with Kabir" section first, then
+             "Ajab Mulakatein". API insertion order had them reversed. */
+          const SERIES_ORDER = ['Journeys with Kabir', 'Ajab Mulakatein'];
+          liveSeriesList.sort((a, b) => {
+            const ai = SERIES_ORDER.indexOf(a.title);
+            const bi = SERIES_ORDER.indexOf(b.title);
+            return (ai === -1 ? SERIES_ORDER.length : ai) - (bi === -1 ? SERIES_ORDER.length : bi);
+          });
           if (liveSeriesList.length) setSeries(liveSeriesList);
         }
       } catch {
@@ -137,7 +146,22 @@ export default function CLFilms() {
                       onClick={() => router.push(`/films/details/${f.id}`)}
                     >
                       <div className="clf-entry-thumb">
-                        {f.thumbnailUrl && <img src={f.thumbnailUrl} alt={f.title} />}
+                        {f.thumbnailUrl && (
+                          /* [Claude] these changes have been recommended by claude —
+                             some CMS thumbnail URLs 404; swap broken images for a
+                             quiet cream placeholder instead of the broken-image icon */
+                          <img
+                            src={f.thumbnailUrl}
+                            alt={f.title}
+                            onError={(e) => {
+                              const t = e.currentTarget;
+                              t.onerror = null;
+                              t.style.objectFit = 'contain';
+                              t.style.background = '#f0ece5';
+                              t.src = "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='280' height='158' viewBox='0 0 280 158'%3E%3Crect width='280' height='158' fill='%23f0ece5'/%3E%3Ccircle cx='140' cy='74' r='22' fill='none' stroke='%23E31E79' stroke-width='1.5' opacity='0.5'/%3E%3Cpath d='M132 74 L132 65 L150 74 L132 83 Z' fill='%23E31E79' opacity='0.5'/%3E%3C/svg%3E";
+                            }}
+                          />
+                        )}
                       </div>
                       <div className="clf-entry-body">
                         <div className="clf-entry-titlerow">

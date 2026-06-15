@@ -5,7 +5,7 @@ import logo from '../public/logo.svg';
 
 export type LoaderVariant = 'fullscreen' | 'panel';
 
-/** `panel` = cover only the positioned parent (e.g. `<main>`), so header/footer stay visible. */
+/** Default `fullscreen` = opaque white viewport + logo only. `panel` = rare inline overlay. */
 export default function Loader({ variant = 'fullscreen' }: { variant?: LoaderVariant }) {
   const cls = variant === 'panel' ? 'loader-overlay loader-overlay--panel' : 'loader-overlay';
   return (

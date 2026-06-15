@@ -11,18 +11,25 @@ export function mergeCatalogById<T extends { id: string }>(prev: T[], next: T[])
   return merged;
 }
 
+export type CatalogHasMoreOptions = {
+  /** When true, only show Load More if filtered rows remain hidden (PDF: no button for a single filtered tile). */
+  filtersActive?: boolean;
+};
+
 /**
  * Whether the listing should still show “Load more”:
  * - more filtered rows already fetched but not yet visible, or
- * - more rows available from the API.
+ * - more rows available from the API (unfiltered catalog only).
  */
 export function catalogHasMore(
   loadedCount: number,
   visibleCount: number,
   filteredCount: number,
-  total: number | null
+  total: number | null,
+  options?: CatalogHasMoreOptions
 ): boolean {
   if (visibleCount < filteredCount) return true;
+  if (options?.filtersActive) return false;
   if (total != null && loadedCount < total) return true;
   return false;
 }

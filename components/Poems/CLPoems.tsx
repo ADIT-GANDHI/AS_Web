@@ -89,6 +89,9 @@ export default function CLPoems() {
     setSelectedThemes((prev) =>
       prev.includes(v) ? prev.filter((x) => x !== v) : [...prev, v]
     );
+  const [showPoemList, setShowPoemList] = useState(false);
+  const [filterPanelKey, setFilterPanelKey] = useState(0);
+
   const clearAllFilters = () => {
     setSelectedPoets([]);
     setSelectedThemes([]);
@@ -96,10 +99,13 @@ export default function CLPoems() {
 
   const handleSeeAll = () => {
     clearAllFilters();
+    setShowPoemList(true);
     setActiveIdx(0);
     setShowNotes(false);
     setShowGlossary(false);
     setShowPlayer(false);
+    setFilterPanelKey((k) => k + 1);
+    void fetchPoemsPage(1, true);
   };
 
   const fetchPoemsPage = useCallback(async (page: number, reset: boolean) => {
@@ -152,7 +158,7 @@ export default function CLPoems() {
     if (!selectedPoets.length && !selectedThemes.length) return poems;
     return poems.filter((poem) => {
       const poetOk = fieldMatchesFilters(poem.poet || '', selectedPoets);
-      const themeOk = fieldMatchesFilters(poem.meta_keywords || '', selectedThemes);
+      const themeOk = fieldMatchesFilters(poem.glossary || '', selectedThemes);
       return poetOk && themeOk;
     });
   }, [poems, selectedPoets, selectedThemes]);
@@ -246,8 +252,9 @@ export default function CLPoems() {
 
   return (
     <div className="cl-songs-page-root clp-page-root-wrap">
+      {/* Header outside .clp-page-root (z-index: 1) so portaled filter (9999) stacks behind it — same as /songs */}
+      <Header />
       <div className="clp-page-root">
-        <Header />
         <main className="relative z-10">
           <div
             className="clp-page"
@@ -268,6 +275,7 @@ export default function CLPoems() {
             {/* Filters trigger + See All row + filtered-by indicator */}
             <div className="clp-seeall-row">
               <CLPoemFilterPanel
+                key={filterPanelKey}
                 onSelectPoet={togglePoet}
                 onSelectTheme={toggleTheme}
                 onClearAll={clearAllFilters}
@@ -412,7 +420,28 @@ export default function CLPoems() {
               </button>
             </div>
 
-            {/* Related section */}
+            {showPoemList && poems.length > 0 && (
+              <section className="clp-poem-catalog" aria-label="All poems">
+                {poems.map((poem, idx) => (
+                  <Link
+                    key={poem.id || idx}
+                    href={poem.id ? `/poems/${poem.id}` : '/poems'}
+                    className="clp-poem-catalog-item"
+                    onClick={() => setActiveIdx(idx)}
+                  >
+                    <span className="clp-poem-catalog-title">
+                      {(poem.text || '').split('\n')[0]?.trim() || poem.english || `Poem ${idx + 1}`}
+                    </span>
+                    {poem.poet && <span className="clp-poem-catalog-poet">{poem.poet}</span>}
+                  </Link>
+                ))}
+              </section>
+            )}
+
+            {/* Related section — [Claude] these changes have been recommended by claude:
+                hidden entirely when the current poem has no related content
+                (an all-zero tab row + "No related items" + SEE MORE reads as clutter) */}
+            {counts.all > 0 && (
             <section className="clp-related">
               <h2 className="clp-related-title">Related</h2>
               <div className="clp-related-tabs">
@@ -470,6 +499,7 @@ export default function CLPoems() {
               </div>
               <a className="clp-related-seemore">SEE MORE</a>
             </section>
+            )}
 
             {/* Glossary strip — shared GlossaryStrip primitive (2+3 split). */}
             <GlossaryStrip terms={POEMS_GLOSSARY} />

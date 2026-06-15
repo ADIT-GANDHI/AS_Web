@@ -12,6 +12,8 @@ import Header from '@/components/Header';
 import Loader from '@/components/Loader';
 import { CLGlossaryPopup } from '@/components/Poems/CLPoemPopups';
 import GlossaryStrip, { type GlossaryStripTerm } from '@/components/shared/GlossaryStrip';
+import KeywordCloud from '@/components/shared/KeywordCloud';
+import { keywordsFromRelatedBucket } from '@/lib/parseKeywords';
 import RepeatingPageBackground from '@/components/shared/RepeatingPageBackground';
 import { REFLECTIONS_DETAIL_BG } from '@/lib/pageBackgroundTiles';
 import {
@@ -19,6 +21,7 @@ import {
   REFLECTIONS_RELATED,
 } from './CLReflectionMocks';
 import { AJAB_API_BASE } from '@/lib/ajabEnv';
+import { getSpeakerNameMap } from '@/lib/speakerNames';
 import { parseCatalogTotal } from '@/lib/parseCatalogTotal';
 import { ReflectionsNavCountContext } from '@/components/Reflections/ReflectionsNavCountContext';
 import {
@@ -65,12 +68,13 @@ interface ReflectionDetail {
 // [Claude] these changes have been recommended by claude —
 // Field order fixed: reflection_excerpt is the primary description field in the API
 // (interview_about is usually empty). meta_description added as final fallback.
-// person_name_english is null for many records — displayed when available, hidden when not.
-function mapApiItem(it: any): ReflectionDetail {
+// saysBy resolves speaker_id via person_list (person_name_english on this payload
+// is the attributed poet, not the speaker — PDF shows the real speaker name).
+function mapApiItem(it: any, speakerNames: Record<string, string>): ReflectionDetail {
   return {
     id: String(it.id || ''),
     title: it.meta_title || it.title || '',
-    saysBy: it.person_name_english || it.person_name_hindi || '',
+    saysBy: speakerNames[String(it.speaker_id || '').trim()] || '',
     location: it.interview_place || '',
     year: it.interview_year || '',
     videoId: it.youtube_video_id || it.interview_video || '',
@@ -98,17 +102,10 @@ function mapApiGlossaryTerms(keywords: any[]): GlossaryStripTerm[] {
         String(k.word_translation || k.subtitle || k.meaning || k.translation || '')
       );
       if (!term) return null;
-      return {
-        term,
-        meaning,
-        highlighted: !!(k.highlighted || k.is_highlighted),
-      };
+      return { term, meaning };
     })
     .filter((t): t is GlossaryStripTerm => t != null);
 
-  if (terms.length > 0 && !terms.some((t) => t.highlighted)) {
-    terms[terms.length - 1] = { ...terms[terms.length - 1], highlighted: true };
-  }
   return terms;
 }
 
@@ -172,8 +169,11 @@ export default function CLReflectionDetail({ id }: { id?: string }) {
         if (!res.ok) throw new Error('API error');
         const json = await res.json();
         const item = json?.data;
-        if (item) setData(mapApiItem(item));
-        else setData(MOCK_REFLECTION_DETAIL as any);
+        if (item) {
+          /* [Claude] these changes have been recommended by claude — resolve speaker via cached map */
+          const speakerNames = await getSpeakerNameMap();
+          setData(mapApiItem(item, speakerNames));
+        } else setData(MOCK_REFLECTION_DETAIL as any);
       } catch {
         setData(MOCK_REFLECTION_DETAIL as any);
       } finally {
@@ -237,6 +237,11 @@ export default function CLReflectionDetail({ id }: { id?: string }) {
   const glossaryTerms = useMemo(
     () => mapApiGlossaryTerms((related.data.keywords || []) as any[]),
     [related]
+  );
+
+  const keywordTerms = useMemo(
+    () => keywordsFromRelatedBucket((related.data.keywords || []) as unknown[]),
+    [related.data.keywords]
   );
 
   if (loading) return <LoadingShell />;
@@ -382,6 +387,8 @@ export default function CLReflectionDetail({ id }: { id?: string }) {
                 </button>
               )}
             </section>
+
+            <KeywordCloud terms={keywordTerms} className="clrd-keyword-cloud cld-detail-body-align" />
 
             {glossaryTerms.length > 0 && (
               <GlossaryStrip terms={glossaryTerms} className="clrd-glossary-strip" />

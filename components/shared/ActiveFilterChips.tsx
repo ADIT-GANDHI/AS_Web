@@ -11,7 +11,7 @@ type Props = {
   onClearAll: () => void;
 };
 
-/** PDF: selected filter chips below the filter bar when the drawer is closed. */
+/** Optional chip strip below the filter bar — not used on listing pages (PDF shows selections only inside the drawer). */
 export default function ActiveFilterChips({
   chips,
   onRemove,

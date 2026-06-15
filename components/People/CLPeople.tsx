@@ -1,7 +1,7 @@
 'use client';
 
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { useRouter } from 'next/navigation';
+import Link from 'next/link';
 import LoadMoreButton from '@/components/shared/LoadMoreButton';
 import Footer from '@/components/Footer';
 import Header from '@/components/Header';
@@ -21,7 +21,8 @@ import { AJAB_API_BASE } from '@/lib/ajabEnv';
 import { catalogHasMore, mergeCatalogById } from '@/lib/catalogPagination';
 import { parseCatalogTotal } from '@/lib/parseCatalogTotal';
 
-const PEOPLE_PER_PAGE = 2;
+const PEOPLE_PER_PAGE = 50;
+const PEOPLE_VISIBLE_STEP = 20;
 const A_Z = ['All', ...Array.from({ length: 26 }, (_, i) => String.fromCharCode(65 + i))];
 
 type FilterType = 'Singer' | 'Poet' | 'Theme';
@@ -51,10 +52,9 @@ export default function CLPeople() {
   const [loading, setLoading] = useState(true);
   const [loadingMore, setLoadingMore] = useState(false);
   const [apiPage, setApiPage] = useState(1);
-  const [visibleCount, setVisibleCount] = useState(PEOPLE_PER_PAGE);
+  const [visibleCount, setVisibleCount] = useState(PEOPLE_VISIBLE_STEP);
   const [activeLetter, setActiveLetter] = useState('All');
   const [selectedCategories, setSelectedCategories] = useState<string[]>([]);
-  const router = useRouter();
 
   const handleFilterSelect = (type: FilterType, value: string) => {
     if (type !== 'Singer') return;
@@ -162,25 +162,30 @@ export default function CLPeople() {
     [filtered, visibleCount]
   );
 
-  const hasMore = catalogHasMore(people.length, visibleCount, filtered.length, totalPeople);
+  const peopleFiltersActive =
+    activeLetter !== 'All' || selectedCategories.length > 0;
+
+  const hasMore = catalogHasMore(people.length, visibleCount, filtered.length, totalPeople, {
+    filtersActive: peopleFiltersActive,
+  });
 
   const handleLoadMore = () => {
     if (loadingMore) return;
 
     if (visibleCount < filtered.length) {
-      setVisibleCount((prev) => prev + PEOPLE_PER_PAGE);
+      setVisibleCount((prev) => prev + PEOPLE_VISIBLE_STEP);
       return;
     }
 
     if (totalPeople > 0 && people.length < totalPeople) {
       void fetchPeoplePage(apiPage + 1, false).then(() => {
-        setVisibleCount((prev) => prev + PEOPLE_PER_PAGE);
+        setVisibleCount((prev) => prev + PEOPLE_VISIBLE_STEP);
       });
     }
   };
 
   useEffect(() => {
-    setVisibleCount(PEOPLE_PER_PAGE);
+    setVisibleCount(PEOPLE_VISIBLE_STEP);
   }, [activeLetter, selectedCategories]);
 
   return (
@@ -200,7 +205,8 @@ export default function CLPeople() {
             </div>
 
             <ListingFilterBar
-              allActive={activeLetter === 'All' && selectedCategories.length === 0}
+              allPinkWhenFiltered
+              allActive={activeLetter !== 'All' || selectedCategories.length > 0}
               onAllClick={() => {
                 setActiveLetter('All');
                 clearAllFilters();
@@ -217,6 +223,8 @@ export default function CLPeople() {
                 availableThemes: [],
                 singleListMode: true,
                 maxFilters: 5,
+                filterTriggerAlwaysPink: true,
+                showClearAllAlways: true,
               }}
               azRow={
                 <div className="cl-az-row">
@@ -239,10 +247,14 @@ export default function CLPeople() {
                 <div className="clpe-list-status">Loading people…</div>
               ) : displayedPeople.length > 0 ? (
                 displayedPeople.map((p) => (
-                  <div
+                  /* [Claude] these changes have been recommended by claude —
+                     entry is a real <Link> (was a div + router.push): enables
+                     middle-click/new-tab, keyboard focus and crawlable hrefs */
+                  <Link
                     key={p.id}
+                    href={`/people/${p.id}`}
                     className="clpe-entry"
-                    onClick={() => router.push(`/people/${p.id}`)}
+                    style={{ textDecoration: 'none', color: 'inherit' }}
                   >
                     <div className="clpe-entry-thumb">
                       {p.thumbnailUrl && <img src={p.thumbnailUrl} alt={p.name} />}
@@ -255,7 +267,7 @@ export default function CLPeople() {
                       <p className="clpe-entry-desc">{p.description}</p>
                       <span className="clpe-entry-explore">EXPLORE</span>
                     </div>
-                  </div>
+                  </Link>
                 ))
               ) : (
                 <div className="clpe-list-status">No people match the filter.</div>

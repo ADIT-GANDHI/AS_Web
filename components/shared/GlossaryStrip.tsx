@@ -14,7 +14,8 @@ import './GlossaryStrip.css';
 export interface GlossaryStripTerm {
   term: string;
   meaning: string;
-  highlighted?: boolean;
+  /** Reserved for future glossary deep-links when CMS exposes term URLs. */
+  href?: string;
 }
 
 export interface GlossaryStripProps {
@@ -46,15 +47,26 @@ export default function GlossaryStrip({
     <div className={`gs-strip ${className}`}>
       {finalRows.map((row, idx) => (
         <div key={idx} className="gs-row">
-          {row.map((g) => (
-            <span
-              key={g.term}
-              className={`gs-term${g.highlighted ? ' is-highlighted' : ''}`}
-            >
-              <span className="gs-term-word">{g.term}</span>
-              <span className="gs-term-meaning">{g.meaning}</span>
-            </span>
-          ))}
+          {row.map((g) => {
+            const inner = (
+              <>
+                <span className="gs-term-word">{g.term}</span>
+                <span className="gs-term-meaning">{g.meaning}</span>
+              </>
+            );
+            if (g.href) {
+              return (
+                <a key={g.term} href={g.href} className="gs-term">
+                  {inner}
+                </a>
+              );
+            }
+            return (
+              <button key={g.term} type="button" className="gs-term">
+                {inner}
+              </button>
+            );
+          })}
         </div>
       ))}
     </div>

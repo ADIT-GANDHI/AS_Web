@@ -187,6 +187,19 @@ body:has(.about-page-root) footer.footer-bg {
   border-radius: 8px;
 }
 
+.about-menu-image-wrap {
+  margin: 0;
+}
+
+.about-menu-image {
+  display: block;
+  width: 100%;
+  max-width: 521px;
+  height: auto;
+  margin: 0 auto;
+  border-radius: 8px;
+}
+
 .about-meta-count {
   margin-top: 18px;
   color: #7e7e7e;

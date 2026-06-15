@@ -338,6 +338,12 @@ body:has(.cl-home-page-root) footer.footer-bg .footer-inner {
   font-weight: 300 !important;
 }
 
+/* Reflections/People: All stays grey until filters are selected. */
+.cl-az-btn--all.cl-az-btn--all-idle {
+  color: var(--ajab-ink-300) !important;
+  font-weight: 300 !important;
+}
+
 .cl-az-btn:hover {
   color: var(--ajab-pink-primary);
 }

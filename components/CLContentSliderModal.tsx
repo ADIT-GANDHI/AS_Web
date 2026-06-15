@@ -3,20 +3,26 @@
 import { useState, useEffect } from 'react';
 import Image from 'next/image';
 import { useRouter } from 'next/navigation';
+import LiteYouTubeEmbed from 'react-lite-youtube-embed';
+import 'react-lite-youtube-embed/dist/LiteYouTubeEmbed.css';
 
 import PrevIcon from '../public/left-arrow.svg';
 import NextIcon from '../public/right-arrow.svg';
+import { CMS_IMAGE_PLACEHOLDER } from '@/lib/resolveCmsAssetUrl';
 
 import '../styles/CLModalStyle.css';
 
 export interface NewsPopupSlide {
   slideId: string;
   newsId: string;
-  category: 'single' | 'multiple';
+  category: 'single' | 'multiple' | 'video';
   title: string;
   secondTitle?: string;
   content?: string;
   images: string[];
+  videoId?: string;
+  /** CMS `sequence_order` for home carousel sort. */
+  sequenceOrder?: number;
 }
 
 interface ContentSliderModalProps {
@@ -74,9 +80,30 @@ export default function CLContentSliderModal({
           ✕
         </button>
 
-        {/* Image */}
-        <div className="npc-image-wrap">
-          <img src={item.images[0]} alt={item.title} className="npc-image" />
+        {/* Image or embedded video (PDF home popup — category video) */}
+        <div className={`npc-image-wrap${item.category === 'video' ? ' npc-image-wrap--video' : ''}`}>
+          {item.category === 'video' && item.videoId ? (
+            <LiteYouTubeEmbed
+              id={item.videoId}
+              title={item.title}
+              poster="maxresdefault"
+              noCookie
+            />
+          ) : (
+            /* [Claude] these changes have been recommended by claude —
+               broken CMS image URLs showed the browser's broken-image icon in the
+               popup; fall back to the shared placeholder instead */
+            <img
+              src={item.images[0] || CMS_IMAGE_PLACEHOLDER}
+              alt={item.title}
+              className="npc-image"
+              onError={(e) => {
+                const t = e.currentTarget;
+                t.onerror = null;
+                t.src = CMS_IMAGE_PLACEHOLDER;
+              }}
+            />
+          )}
         </div>
 
         {/* Navigation arrows — shown only when multiple slides */}

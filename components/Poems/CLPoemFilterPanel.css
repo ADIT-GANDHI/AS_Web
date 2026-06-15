@@ -3,7 +3,7 @@
 .clp-filter-panel {
   --clp-filter-w: min(508px, 92vw);
   --clp-filter-pad-x: 45px;
-  /* Panel opens below sticky header — match Songs filter top inset. */
+  /* Wavy panel full viewport; filter chrome inset below header (shared layout). */
   --clp-filter-pad-top: 20px;
   --clp-filter-scroll-gutter: 72px;
 }

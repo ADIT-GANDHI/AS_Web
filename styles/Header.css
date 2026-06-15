@@ -10,18 +10,15 @@
   --ajab-header-nav-drop: 26px;
 }
 
-header nav a,
-.about-text {
+header nav a {
   color: #1a1a1a;
   font-family: var(--ajab-font-sans);
   font-weight: 300;
   font-style: normal;
-  /* PDF spec: nav links are ~14px — delicate, light weight.
-     --ajab-fs-button (21px) is correct for the Filter trigger and Load More,
-     but nav links should be smaller. Override here without changing the token. */
-  font-size: 14px;
+  font-size: var(--ajab-fs-button);
   line-height: 100%;
-  letter-spacing: 0.02em;
+  letter-spacing: 0;
+  text-transform: uppercase;
 }
 
 header nav a {
@@ -222,6 +219,66 @@ body:has(.clp-page) .nav-link--poems .nav-link-poems-count {
   width: 72px;
 }
 
+/* ABOUT in footer-right — same typography as SONGS…FILMS (uses .nav-link, not .about-text). */
+header .footer-right .nav-link--about {
+  color: #1a1a1a;
+  text-transform: uppercase;
+  transform: translateY(2px);
+}
+
+/* Hover bridge: padding-top keeps dropdown open while moving pointer from ABOUT to tabs. */
+.about-nav-dropdown-wrap {
+  position: relative;
+}
+
+.about-nav-dropdown {
+  position: absolute;
+  top: 100%;
+  right: 0;
+  padding-top: 12px;
+  min-width: 11rem;
+  opacity: 0;
+  visibility: hidden;
+  pointer-events: none;
+  transition: opacity 0.15s ease, visibility 0.15s ease;
+  z-index: 10002;
+}
+
+.about-nav-dropdown-wrap:hover .about-nav-dropdown,
+.about-nav-dropdown-wrap:focus-within .about-nav-dropdown {
+  opacity: 1;
+  visibility: visible;
+  pointer-events: auto;
+}
+
+.about-nav-dropdown-panel {
+  background: #fff;
+  border: 1px solid #e5e7eb;
+  border-radius: 0.375rem;
+  box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -4px rgba(0, 0, 0, 0.1);
+  overflow: hidden;
+}
+
+.about-nav-dropdown-link {
+  display: block;
+  padding: 0.5rem 1rem;
+  font-family: var(--ajab-font-sans);
+  font-size: 0.875rem;
+  font-weight: 300;
+  color: #111827;
+  text-decoration: none;
+  white-space: nowrap;
+}
+
+.about-nav-dropdown-link:hover {
+  background: #f3f4f6;
+}
+
+.about-nav-dropdown-link--active {
+  color: var(--ajab-pink-primary);
+  font-weight: 400;
+}
+
 .nav-link.active {
   color: var(--ajab-pink-primary);
 }
@@ -257,6 +314,11 @@ header {
   top: 0;
   z-index: 10000;
   width: 100%;
+}
+
+/* Poems filter — boost header shell when drawer open (page root used to trap header at z-index 1). */
+body.ajab-poems-filter-drawer-open .gradient-bg {
+  z-index: 10010;
 }
 
 /* Main nav + right cluster (ABOUT, search, radio) — logo keeps its own .logo offset. */

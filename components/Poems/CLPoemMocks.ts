@@ -94,7 +94,7 @@ export const POEMS_GLOSSARY = [
   { term: 'Ulat', meaning: 'Upside Down' },
   { term: 'Alakh', meaning: 'Unseeable' },
   { term: 'Darpan', meaning: 'Mirror' },
-  { term: 'Shahar', meaning: 'City', highlighted: true },
+  { term: 'Shahar', meaning: 'City' },
 ];
 
 export const TOTAL_POEMS = 201;

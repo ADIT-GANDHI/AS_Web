@@ -22,7 +22,6 @@ export default function Poem({ data }) {
   const metaDescription = stripHtml(data.english_translation_text || data.couplet_translation || '');
 
   const poets = data.poet_id_raw || '';
-  const meta_keywords = data.meta_keywords;
 
 console.log('meta description ',metaDescription);
 console.log('meta description ',heading);

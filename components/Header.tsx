@@ -4,6 +4,8 @@ import { useContext, useEffect, useMemo, useState } from 'react';
 import Link from 'next/link';
 import { Search, Menu, X } from 'lucide-react';
 import { usePathname, useRouter } from 'next/navigation';
+import { Suspense } from 'react';
+import HeaderAboutDropdown from '@/components/HeaderAboutDropdown';
 import { navigationItems } from '@/lib/data';
 import Image from 'next/image';
 import logo from '../public/logo.svg';
@@ -17,7 +19,6 @@ import { SEARCH_ENDPOINT, emptySearchResponse, normalizeSearchPayload, type Sear
 import { SongsNavCountContext } from '@/components/Songs/SongsNavCountContext';
 import { ReflectionsNavCountContext } from '@/components/Reflections/ReflectionsNavCountContext';
 import { PoemsNavCountContext } from '@/components/Poems/PoemsNavCountContext';
-import { useState as useDropdownState } from 'react';
 
 type SearchCategory = 'songs' | 'poems' | 'reflections' | 'people' | 'films';
 
@@ -78,7 +79,6 @@ export default function Header() {
   const [searchQuery, setSearchQuery] = useState('');
   const [searchData, setSearchData] = useState<SearchApiResponse>(emptySearchResponse);
   const [isSearchLoading, setIsSearchLoading] = useState(false);
-  const [showAboutDropdown, setShowAboutDropdown] = useDropdownState(false);
   const pathname = usePathname(); // ✅ Get current path
   const router = useRouter();
   const isRadioPage = pathname?.includes('/radio');
@@ -222,51 +222,15 @@ export default function Header() {
 
             {/* Right Side Icons */}
             <div className="flex items-center space-x-6 footer-right">
-              {/* ABOUT Dropdown Toggle — `md:flex items-center` keeps ABOUT
-                   vertically centred in the flex row, same as nav links. */}
-              <div className="relative hidden md:flex md:items-center">
-                <button
-                  className={`about-text transition-colors ${pathname.startsWith('/about') ? 'active' : ''}`}
-                  onClick={() => setShowAboutDropdown((prev) => !prev)}
-                  onBlur={() => setTimeout(() => setShowAboutDropdown(false), 150)}
-                >
-                  ABOUT
-                </button>
-                {showAboutDropdown && (
-                  <div
-                    className="absolute right-0 mt-2 w-40 bg-white border rounded shadow-lg z-50"
-                    onMouseDown={(e) => e.preventDefault()}
-                  >
-                    <Link
-                      href="/about?tab=ajab"
-                      className={`block px-4 py-2 hover:bg-gray-100${pathname === '/about' && (typeof window !== 'undefined' ? new URLSearchParams(window.location.search).get('tab') !== 'kabir' : true) ? ' text-pink-600 font-semibold' : ''}`}
-                      style={{ color: pathname === '/about' && (typeof window !== 'undefined' ? new URLSearchParams(window.location.search).get('tab') !== 'kabir' : true) ? '#ed1e79' : '#222' }}
-                      onClick={() => setShowAboutDropdown(false)}
-                    >
-                      AJAB SHAHAR
-                    </Link>
-                    <Link
-                      href="/about?tab=kabir"
-                      className={`block px-4 py-2 hover:bg-gray-100${pathname === '/about' && (typeof window !== 'undefined' ? new URLSearchParams(window.location.search).get('tab') === 'kabir' : false) ? ' text-pink-600 font-semibold' : ''}`}
-                      style={{ color: pathname === '/about' && (typeof window !== 'undefined' ? new URLSearchParams(window.location.search).get('tab') === 'kabir' : false) ? '#ed1e79' : '#222' }}
-                      onClick={() => setShowAboutDropdown(false)}
-                    >
-                      KABIR PROJECT
-                    </Link>
-                  </div>
-                )}
-              </div>
-              {/* Remove old ABOUT link */}
-              {/*
-              <Link
-                href="/about"
-                className={`about-text tracking-wide uppercase transition-colors ${
-                  pathname === '/about' ? 'active' : ''
-                }`}
+              <Suspense
+                fallback={
+                  <Link href="/about?tab=ajab" className="nav-link nav-link--about hidden md:inline">
+                    ABOUT
+                  </Link>
+                }
               >
-                ABOUT
-              </Link>
-              */}
+                <HeaderAboutDropdown />
+              </Suspense>
               <button
                 onClick={() => setIsSearchOpen((prev) => !prev)}
                 className={`transition-colors cursor-pointer ${isSearchOpen ? 'text-pink-500' : 'text-gray-700 hover:text-gray-900'
@@ -341,12 +305,26 @@ export default function Header() {
                     </Link>
                   );
                 })}
-                {/* ABOUT Dropdown for mobile */}
                 <div className="mt-2">
-                  <Link href="/about?tab=ajab" className="block px-4 py-2 hover:bg-gray-100" onClick={() => setIsMenuOpen(false)}>
+                  <Link
+                    href="/about?tab=ajab"
+                    className={`nav-link text-lg font-medium block${pathname.startsWith('/about') ? ' active' : ''}`}
+                    onClick={() => setIsMenuOpen(false)}
+                  >
+                    ABOUT
+                  </Link>
+                  <Link
+                    href="/about?tab=ajab"
+                    className="block px-4 py-2 hover:bg-gray-100"
+                    onClick={() => setIsMenuOpen(false)}
+                  >
                     AJAB SHAHAR
                   </Link>
-                  <Link href="/about?tab=kabir" className="block px-4 py-2 hover:bg-gray-100" onClick={() => setIsMenuOpen(false)}>
+                  <Link
+                    href="/about?tab=kabir"
+                    className="block px-4 py-2 hover:bg-gray-100"
+                    onClick={() => setIsMenuOpen(false)}
+                  >
                     KABIR PROJECT
                   </Link>
                 </div>

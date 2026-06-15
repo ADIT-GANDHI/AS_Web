@@ -2,6 +2,7 @@
 
 import Footer from '@/components/Footer';
 import Header from '@/components/Header';
+import Link from 'next/link';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
 import { useEffect, useMemo, useRef, useState } from 'react';
 import LiteYouTubeEmbed from 'react-lite-youtube-embed';
@@ -10,9 +11,10 @@ import { GLOSSARY_TERMS_LINE_1, GLOSSARY_TERMS_LINE_2 } from './CLdetailMocks';
 import { CLGlossaryPopup } from '../Poems/CLPoemPopups';
 import GlossaryStrip from '@/components/shared/GlossaryStrip';
 import WavyCard from '@/components/shared/WavyCard';
-import Link from 'next/link';
+import KeywordCloud from '@/components/shared/KeywordCloud';
 import './CLSongs.css'; // for the root marble bg + floating button overrides
 import './CLSongDetails.css';
+import { keywordsFromRelatedBucket } from '@/lib/parseKeywords';
 import { resolveCmsAssetUrl } from '@/lib/resolveCmsAssetUrl';
 
 type Script = 'devanagari' | 'transliteration' | 'english';
@@ -63,34 +65,29 @@ function getAboutHtml(data: any): string {
   return getText(data?.about) || getText(data?.meta_description) || '';
 }
 
-type AboutPreview = { preview: string; rest: string; hasMore: boolean };
+/** PDF/Figma: ~3 lines of about text, then pink "...more" to expand — no inner scroll box. */
+function SongAboutClamp({ html }: { html: string }) {
+  const [expanded, setExpanded] = useState(false);
 
-/** First block before `***` (or first paragraph) for the visible preview; remainder scrolls. */
-function splitAboutPreview(html: string): AboutPreview {
-  if (!html.trim()) return { preview: '', rest: '', hasMore: false };
+  if (!html.trim()) return null;
 
-  const starIdx = html.search(/\*{3}/);
-  if (starIdx >= 0) {
-    const preview = html.slice(0, starIdx).trim();
-    const rest = html.slice(starIdx + 3).trim();
-    return { preview, rest, hasMore: rest.length > 0 };
-  }
-
-  const pMatch = html.match(/<p[^>]*>[\s\S]*?<\/p>/i);
-  if (pMatch?.[0]) {
-    const rest = html.slice(pMatch.index! + pMatch[0].length).trim();
-    return { preview: pMatch[0], rest, hasMore: rest.length > 0 };
-  }
-
-  const blocks = html.split(/(?:<br\s*\/?>\s*){2,}|\n\s*\n/i);
-  if (blocks.length > 1 && blocks[0]?.trim()) {
-    const firstBlock = blocks[0].trim();
-    const preview = firstBlock.startsWith('<') ? firstBlock : `<p>${firstBlock}</p>`;
-    const rest = blocks.slice(1).join('\n\n').trim();
-    return { preview, rest, hasMore: rest.length > 0 };
-  }
-
-  return { preview: html, rest: '', hasMore: false };
+  return (
+    <div className="cld-description">
+      <div
+        className={`cld-description-body${expanded ? '' : ' cld-description-body--clamped'}`}
+        dangerouslySetInnerHTML={{ __html: html }}
+      />
+      {!expanded && (
+        <button
+          type="button"
+          className="cld-description-more"
+          onClick={() => setExpanded(true)}
+        >
+          ...more
+        </button>
+      )}
+    </div>
+  );
 }
 
 /** First non-empty string from CMS fields (string or nested getText object). */
@@ -183,32 +180,6 @@ function buildAllRelatedEntries(buckets: {
   return blocks.flatMap(([bucket, items]) => items.map((item) => ({ bucket, item })));
 }
 
-function SongDescription({ html }: { html: string }) {
-  const { preview, rest, hasMore } = useMemo(() => splitAboutPreview(html), [html]);
-
-  if (!html.trim()) return null;
-
-  if (!hasMore) {
-    return (
-      <div className="cld-description">
-        <div
-          className="cld-description-body"
-          dangerouslySetInnerHTML={{ __html: preview || html }}
-        />
-      </div>
-    );
-  }
-
-  return (
-    <div className="cld-description">
-      <div className="cld-description-body" dangerouslySetInnerHTML={{ __html: preview }} />
-      <div className="cld-description-scroll" tabIndex={0} aria-label="More about this song">
-        <div className="cld-description-body" dangerouslySetInnerHTML={{ __html: rest }} />
-      </div>
-    </div>
-  );
-}
-
 export default function CLSongDetailsPage({
   data,
   songVersions = [],
@@ -259,11 +230,11 @@ export default function CLSongDetailsPage({
       );
     }
     return (
-      getText(data?.Songtitle_transliteration) ||
-      getText(data?.songTitleTransliteration) ||
+    getText(data?.Songtitle_transliteration) ||
+    getText(data?.songTitleTransliteration) ||
       getText(data?.song_title_transliteration) ||
       getText(data?.umbrellaTitleText) ||
-      getText(data?.umbrellaTitle) ||
+    getText(data?.umbrellaTitle) ||
       'Untitled'
     );
   }, [data, script]);
@@ -277,25 +248,6 @@ export default function CLSongDetailsPage({
     '';
   const location = getText(data?.location) || getText(data?.song_location) || '';
   const aboutHtml = useMemo(() => getAboutHtml(data), [data]);
-
-  const keywordsRaw = data?.meta_keywords || data?.metaKeyword || data?.meta_keyword || '';
-  const keywords = useMemo(() => {
-    if (!keywordsRaw || typeof keywordsRaw !== 'string') return [];
-    return keywordsRaw
-      .split(/[&,]/)
-      .map((k) => k.replace(/\s+/g, ' ').trim())
-      .filter(Boolean)
-      .filter((k) => {
-        const lower = k.toLowerCase();
-        return (
-          !lower.includes('singer') &&
-          !lower.includes('woman') &&
-          !lower.includes('women') &&
-          !lower.includes('meera') &&
-          !lower.includes('jiyan')
-        );
-      });
-  }, [keywordsRaw]);
 
   const lyricsSource = useMemo(() => {
     const original = firstLyricsField(
@@ -393,6 +345,11 @@ export default function CLSongDetailsPage({
     return { keywords, songs, poems, reflections, other };
   }, [relatedData]);
 
+  const keywords = useMemo(
+    () => keywordsFromRelatedBucket(relatedBuckets.keywords as unknown[]),
+    [relatedBuckets.keywords]
+  );
+
   // Build the tab list dynamically by counts
   // [Claude] these changes have been recommended by claude — ALL count falls back to sum of arrays when relatedCounts.all is absent/0
   const keywordsCount = relatedBuckets.keywords.length;
@@ -446,7 +403,7 @@ export default function CLSongDetailsPage({
             {/* ===== Versions section ===== */}
             <section className="cld-versions-section">
               <div className="cld-versions-heading">
-                <h2 className="cld-versions-title">{versionCards.length} Song Versions</h2>
+              <h2 className="cld-versions-title">{versionCards.length} Song Versions</h2>
                 {/* Dedicated rule element (replaces ::after) so the divider cannot paint
                     across the slider/cards due to stacking or overflow quirks. */}
                 <div className="cld-versions-title-rule" aria-hidden="true" />
@@ -459,8 +416,8 @@ export default function CLSongDetailsPage({
                     onClick={() => scrollVersions('left')}
                     aria-label="Previous song version"
                   >
-                    <ChevronLeft size={26} strokeWidth={2.4} />
-                  </button>
+                  <ChevronLeft size={26} strokeWidth={2.4} />
+                </button>
                 )}
                 <div className="cld-versions-slider" ref={sliderRef}>
                   {versionCards.map((card, idx) => (
@@ -476,19 +433,19 @@ export default function CLSongDetailsPage({
                       bodyClassName="cld-version-card-body"
                       thumbClassName="cld-version-card-thumb"
                     >
-                      <div className="cld-version-card-title">
-                        {card.title}
-                        {card.year && <span className="cld-version-card-year">({card.year})</span>}
-                      </div>
-                      {card.subtitle && (
-                        <div className="cld-version-card-subtitle">{card.subtitle}</div>
-                      )}
-                      {card.singer && (
-                        <div className="cld-version-card-meta">sings {card.singer}</div>
-                      )}
-                      {card.poet && (
-                        <div className="cld-version-card-meta">poet {card.poet}</div>
-                      )}
+                        <div className="cld-version-card-title">
+                          {card.title}
+                          {card.year && <span className="cld-version-card-year">({card.year})</span>}
+                        </div>
+                        {card.subtitle && (
+                          <div className="cld-version-card-subtitle">{card.subtitle}</div>
+                        )}
+                        {card.singer && (
+                          <div className="cld-version-card-meta">sings {card.singer}</div>
+                        )}
+                        {card.poet && (
+                          <div className="cld-version-card-meta">poet {card.poet}</div>
+                        )}
                     </WavyCard>
                   ))}
                 </div>
@@ -499,8 +456,8 @@ export default function CLSongDetailsPage({
                     onClick={() => scrollVersions('right')}
                     aria-label="Next song version"
                   >
-                    <ChevronRight size={26} strokeWidth={2.4} />
-                  </button>
+                  <ChevronRight size={26} strokeWidth={2.4} />
+                </button>
                 )}
               </div>
             </section>
@@ -508,7 +465,7 @@ export default function CLSongDetailsPage({
             {/* Header / video / about — inset to match first version card (after in-flow chevron + gap). */}
             <div className="cld-detail-body-align">
               {/* ===== Song header row ─── Figma 361:1463 splits sizes ===== */}
-              <div className="cld-song-header">
+            <div className="cld-song-header">
                 <div className="cld-song-header-top">
                   <div className="cld-song-header-left">
                     <span className="cld-song-header-title-name">{title}</span>
@@ -534,21 +491,21 @@ export default function CLSongDetailsPage({
                       {location && year ? ', ' : ''}
                       {year}
                     </span>
-                  </div>
-                )}
               </div>
+                )}
+            </div>
 
-              {/* ===== Video ===== */}
-              <div className="cld-video-wrap">
-                {videoId ? (
-                  <LiteYouTubeEmbed id={videoId} title={title} poster="maxresdefault" noCookie />
-                ) : (
-                  <div className="cld-video-placeholder">Video unavailable (API offline)</div>
-                )}
-              </div>
+            {/* ===== Video ===== */}
+            <div className="cld-video-wrap">
+              {videoId ? (
+                <LiteYouTubeEmbed id={videoId} title={title} poster="maxresdefault" noCookie />
+              ) : (
+                <div className="cld-video-placeholder">Video unavailable (API offline)</div>
+              )}
+            </div>
 
               {/* ===== Description — Figma 361:1473 ===== */}
-              {aboutHtml && <SongDescription html={aboutHtml} />}
+              {aboutHtml && <SongAboutClamp html={aboutHtml} />}
             </div>
 
             {/* ===== Language toggle — Figma 361:1480.
@@ -596,19 +553,19 @@ export default function CLSongDetailsPage({
                 dangerouslySetInnerHTML={{ __html: lyricsHtml }}
               />
             ) : (
-              <div className="cld-lyrics">
-                {stanzas.length > 0 ? (
-                  stanzas.map((stanza, i) => (
-                    <div key={i} className="cld-lyrics-stanza">
-                      {stanza.split('\n').map((line, j) => (
-                        <div key={j}>{line}</div>
-                      ))}
-                    </div>
-                  ))
-                ) : (
-                  <div className="cld-lyrics-stanza">Lyrics unavailable</div>
-                )}
-              </div>
+            <div className="cld-lyrics">
+              {stanzas.length > 0 ? (
+                stanzas.map((stanza, i) => (
+                  <div key={i} className="cld-lyrics-stanza">
+                    {stanza.split('\n').map((line, j) => (
+                      <div key={j}>{line}</div>
+                    ))}
+                  </div>
+                ))
+              ) : (
+                <div className="cld-lyrics-stanza">Lyrics unavailable</div>
+              )}
+            </div>
             )}
 
 
@@ -682,23 +639,23 @@ export default function CLSongDetailsPage({
 
             {/* ===== Related section — aligned with video column ===== */}
             <div className="cld-detail-body-align">
-              <section className="cld-related">
-                <h2 className="cld-related-title">Related</h2>
-                <div className="cld-related-tabs">
-                  {tabs.map((t, i) => (
-                    <span key={t.key} style={{ display: 'inline-flex', alignItems: 'center', gap: 16 }}>
-                      <button
-                        className={`cld-related-tab${activeTab === t.key ? ' active' : ''}`}
-                        onClick={() => setActiveTab(t.key)}
-                      >
+            <section className="cld-related">
+              <h2 className="cld-related-title">Related</h2>
+              <div className="cld-related-tabs">
+                {tabs.map((t, i) => (
+                  <span key={t.key} style={{ display: 'inline-flex', alignItems: 'center', gap: 16 }}>
+                    <button
+                      className={`cld-related-tab${activeTab === t.key ? ' active' : ''}`}
+                      onClick={() => setActiveTab(t.key)}
+                    >
                         {t.label}
                         <span className="cld-related-tab-count">({t.count})</span>
-                      </button>
-                      {i < tabs.length - 1 && <span className="cld-related-tab-sep">|</span>}
-                    </span>
-                  ))}
-                </div>
-                <div className="cld-related-list">
+                    </button>
+                    {i < tabs.length - 1 && <span className="cld-related-tab-sep">|</span>}
+                  </span>
+                ))}
+              </div>
+              <div className="cld-related-list">
                   {visibleRelatedEntries.length > 0 ? (
                     displayedRelatedEntries.map((entry, idx) => {
                       const { bucket, item } = entry;
@@ -723,14 +680,14 @@ export default function CLSongDetailsPage({
                               src={resolveCmsAssetUrl(item.thumbnailUrl || item.thumbnail_url)}
                               alt={itemTitle}
                             />
-                          </div>
-                          <div className="cld-related-body">
-                            <div className="cld-related-titlerow">
+                      </div>
+                      <div className="cld-related-body">
+                        <div className="cld-related-titlerow">
                               <span className={titleClass}>{itemTitle}</span>
                               {itemSubtitle && (
                                 <span className="cld-related-itemsubtitle">{itemSubtitle}</span>
-                              )}
-                            </div>
+                          )}
+                        </div>
                             <div
                               className={`cld-related-itemdesc${needsClamp && !expanded ? ' cld-related-itemdesc--clamped' : ''}`}
                             >
@@ -747,14 +704,14 @@ export default function CLSongDetailsPage({
                                 {expanded ? 'read less' : 'read more'}
                               </button>
                             )}
-                          </div>
-                        </div>
+                      </div>
+                    </div>
                       );
                     })
-                  ) : (
-                    <div style={{ padding: 16, color: '#828282' }}>No related items.</div>
-                  )}
-                </div>
+                ) : (
+                  <div style={{ padding: 16, color: '#828282' }}>No related items.</div>
+                )}
+              </div>
                 {hasMoreRelated && (
                   <button
                     type="button"
@@ -766,25 +723,15 @@ export default function CLSongDetailsPage({
                 )}
 
 
-              </section>
+            </section>
             </div>
 
             {/* ===== Keyword Cloud Section ===== */}
-            {keywords.length > 0 && (
-              <div className="cld-keywords-wrap cld-detail-body-align" style={{ marginTop: 24 }}>
-                {keywords.map((word, wIdx) => (
-                  <span key={wIdx}>
-                    <Link
-                      href={`/searche?search=${encodeURIComponent(word)}`}
-                      className="cld-keyword-tag"
-                    >
-                      {word}
-                    </Link>
-                    {wIdx < keywords.length - 1 && <span className="cld-keyword-sep"> &amp; </span>}
-                  </span>
-                ))}
-              </div>
-            )}
+            <KeywordCloud
+              terms={keywords}
+              className="cld-detail-body-align"
+              style={{ marginTop: 24 }}
+            />
 
             {/* ===== Glossary strip — aligned to video/related column (Figma 361:1569) ===== */}
             <div className="cld-detail-body-align cld-glossary-align">

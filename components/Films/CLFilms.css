@@ -175,13 +175,16 @@ body:has(.clfd-page) footer.footer-bg {
   align-self: flex-start;
 }
 
+/* [Claude] these changes have been recommended by claude —
+   PDF shows the full title + italic subtitle inline ("Chalo Hamara Des
+   Journeys With Kabir And Friends"). Real CMS titles are longer than the
+   PDF mocks, so let the row wrap instead of cutting both off with "…". */
 .clf-entry-titlerow {
   display: flex;
   align-items: baseline;
   gap: 12px;
-  flex-wrap: nowrap;
+  flex-wrap: wrap;
   min-width: 0;
-  overflow: hidden;
   margin-bottom: 4px;
 }
 
@@ -191,10 +194,6 @@ body:has(.clfd-page) footer.footer-bg {
   font-size: var(--clf-fs-title);
   color: var(--ajab-ink-600);
   min-width: 0;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-  flex-shrink: 1;
 }
 
 .clf-entry-subtitle {
@@ -204,10 +203,6 @@ body:has(.clfd-page) footer.footer-bg {
   font-size: var(--clf-fs-subtitle);
   color: var(--ajab-ink-400);
   min-width: 0;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-  flex-shrink: 1;
 }
 
 .clf-entry-director {
@@ -472,8 +467,16 @@ body:has(.clfd-page) .nav-link--films::after {
 }
 
 /* Episodes tab — same full bg; list aligned to content column */
+.clfd-page--episodes .clfd-mode-row {
+  margin-bottom: 32px;
+}
+
 .clfd-episodes-panel {
   margin-bottom: 40px;
+}
+
+.clfd-page--episodes .clfd-episodes-panel {
+  padding-top: 8px;
 }
 
 .clfd-episodes-list {
@@ -547,14 +550,16 @@ body:has(.clfd-page) .nav-link--films::after {
 }
 
 .clfd-page .cld-related {
-  max-width: 100%;
-  margin-left: calc(100vw * 42.06 / var(--clf-artboard-w));
+  width: var(--clf-content-width);
+  max-width: var(--clf-content-width);
+  margin-left: var(--clf-content-inset);
   padding-left: 0;
   padding-right: 0;
 }
 
 .clfd-glossary-align {
-  margin-left: calc(100vw * 42.06 / var(--clf-artboard-w));
+  width: var(--clf-content-width);
+  margin-left: var(--clf-content-inset);
   padding-right: 0;
 }
 

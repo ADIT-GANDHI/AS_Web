@@ -27,6 +27,10 @@ export type ListingFilterPanelProps = ListingFilterHandlers &
     maxFilters?: number;
     /** Single-column list (e.g. People occupation categories) — hides Singer/Poet/Theme tabs. */
     singleListMode?: boolean;
+    /** Client spec: Filters trigger stays pink even when no chips are selected. */
+    filterTriggerAlwaysPink?: boolean;
+    /** Show Clear all in drawer footer even when nothing is selected. */
+    showClearAllAlways?: boolean;
     /** Songs module only — fall back to built-in singer/poet mocks when lists are empty. */
     useSongsMockFallback?: boolean;
     /** Hide the default "Filters" trigger (use a custom trigger elsewhere). */

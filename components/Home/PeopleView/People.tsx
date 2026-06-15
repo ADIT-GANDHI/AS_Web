@@ -18,7 +18,6 @@ export default function People({ data }) {
     : null;
 
   const title = data.meta_title;
-  const meta_keywords = data.meta_keywords;
   const description = data.meta_description;
 
   const personName =
@@ -71,7 +70,7 @@ export default function People({ data }) {
 
           {subtitle && (
             <p className="text-sm lora-italic mb-2 semi-heading line-clamp-1 overflow-hidden text-ellipsis">
-              {meta_keywords}
+              {subtitle}
             </p>
           )}
         </div>

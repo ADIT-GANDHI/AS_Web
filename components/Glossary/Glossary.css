@@ -101,8 +101,8 @@ body:has(.glossary-page-root) footer.footer-bg {
 
 .glossary-item-title {
   display: grid;
-  grid-template-columns: minmax(140px, max-content) minmax(0, 1fr);
-  column-gap: 12px;
+  grid-template-columns: 220px minmax(0, 1fr);
+  column-gap: 16px;
   align-items: baseline;
   font-family: var(--ajab-font-sans);
   font-size: var(--ajab-fs-body);
@@ -184,6 +184,11 @@ body:has(.glossary-page-root) footer.footer-bg {
 }
 
 @media (max-width: 768px) {
+  .glossary-item-title {
+    grid-template-columns: 1fr;
+    row-gap: 4px;
+  }
+
   .glossary-page-root {
     padding-bottom: 48px;
   }

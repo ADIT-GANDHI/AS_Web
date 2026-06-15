@@ -8,11 +8,14 @@ import type {
   ListingFilterPanelProps,
 } from '@/components/shared/listingFilterTypes';
 import {
+  FILTER_DRAWER_BACKDROP_TOP,
+  FILTER_DRAWER_CONTENT_INSET_TOP,
   FILTER_DRAWER_HEIGHT,
   FILTER_DRAWER_TOP,
   FILTER_DRAWER_Z_BACKDROP,
   FILTER_DRAWER_Z_PANEL,
 } from '@/lib/filterDrawerLayout';
+import { dedupeOrderedStrings } from '@/lib/dedupeStrings';
 import { FILTER_PANEL_SHAPE } from '@/lib/resolveCmsAssetUrl';
 
 export type { ListingFilterCategory, ListingFilterPanelProps };
@@ -26,9 +29,7 @@ const DEFAULT_CATEGORY_LABELS: Record<FilterType, string> = {
 };
 
 function cleanList(list: any[]) {
-  return list
-    .filter((value) => value && value !== null && value !== '')
-    .filter((value, index, array) => array.indexOf(value) === index);
+  return dedupeOrderedStrings(list.map((value) => String(value ?? '')));
 }
 
 // Hardcoded filter data — API call bypassed for UI testing
@@ -90,9 +91,12 @@ export default function CLFilterPanel({
   open: openProp,
   onOpenChange,
   singleListMode = false,
+  filterTriggerAlwaysPink = false,
+  showClearAllAlways = false,
 }: ListingFilterPanelProps) {
   // Derives whether any filter is currently active — used for trigger colour
   const hasActiveFilters = selectedSingers.length > 0 || selectedPoets.length > 0 || selectedThemes.length > 0;
+  const triggerPink = filterTriggerAlwaysPink || hasActiveFilters;
   const [openUncontrolled, setOpenUncontrolled] = useState(false);
   const open = openProp ?? openUncontrolled;
   const setOpen = useCallback(
@@ -201,7 +205,7 @@ export default function CLFilterPanel({
       <button
         onClick={() => setOpen((v) => !v)}
         style={{
-          color: hasActiveFilters ? '#E31E79' : '#828282',
+          color: triggerPink ? '#E31E79' : '#828282',
           fontFamily: FONT,
           fontWeight: 300,
           fontSize: '18px',   /* --ajab-fs-button = 21px per design tokens */
@@ -233,7 +237,7 @@ export default function CLFilterPanel({
                   <div
                     style={{
                       position: 'fixed',
-                      top: FILTER_DRAWER_TOP,
+                      top: FILTER_DRAWER_BACKDROP_TOP,
                       left: 0,
                       right: 0,
                       bottom: 0,
@@ -243,7 +247,7 @@ export default function CLFilterPanel({
                     onClick={() => setOpen(false)}
                   />
 
-                  {/* Portaled drawer — full viewport height below header (escapes page overflow clip). */}
+                  {/* Portaled drawer — wavy bg from top:0; header stacks above (z-index 10000). */}
                   <motion.div
                   style={{
                     position: 'fixed',
@@ -299,6 +303,8 @@ export default function CLFilterPanel({
                       flexDirection: 'column',
                       flex: '1 1 auto',
                       minHeight: 0,
+                      paddingTop: FILTER_DRAWER_CONTENT_INSET_TOP,
+                      boxSizing: 'border-box',
                     }}
                   >
                   <div style={{ padding: '20px 44px 0', flex: '0 0 auto' }}>
@@ -325,10 +331,10 @@ export default function CLFilterPanel({
                         <span
                           style={{
                             fontFamily: FONT,
-                            fontSize: '16px',
+                            fontSize: '18px',
                             fontWeight: 400,
                             color: '#333333',
-                            marginRight: '16px',
+                            marginRight: singleListMode ? 0 : '16px',
                             whiteSpace: 'nowrap',
                             flexShrink: 0,
                           }}
@@ -343,7 +349,7 @@ export default function CLFilterPanel({
                                 onClick={() => setActiveCategory(cat)}
                                 style={{
                                   fontFamily: FONT,
-                                  fontSize: '16px',
+                                  fontSize: '18px',
                                   fontWeight: 300,
                                   color: activeCategory === cat ? '#E31E79' : '#333333',
                                   background: 'none',
@@ -359,7 +365,7 @@ export default function CLFilterPanel({
                                 <span
                                   style={{
                                     color: '#333333',
-                                    fontSize: '16px',
+                                    fontSize: '18px',
                                     fontWeight: 300,
                                     margin: '0 6px',
                                   }}
@@ -382,7 +388,9 @@ export default function CLFilterPanel({
                           background: 'none',
                           border: 'none',
                           cursor: 'pointer',
-                          padding: '0 2px',
+                          padding: '0 4px',
+                          flexShrink: 0,
+                          marginLeft: '12px',
                         }}
                       >
                         ×
@@ -440,7 +448,7 @@ export default function CLFilterPanel({
                       }}
                     >
                       <ul style={{ listStyle: 'none', margin: 0, padding: 0 }}>
-                        {filterLists[activeCategory].map((item: any) => {
+                        {filterLists[activeCategory].map((item: any, index: number) => {
                           const isSelected =
                             activeCategory === 'Singer'
                               ? selectedSingers.includes(item)
@@ -449,7 +457,7 @@ export default function CLFilterPanel({
                                 : selectedThemes.includes(item);
                           return (
                             <li
-                              key={item}
+                              key={`${activeCategory}-${index}-${item}`}
                               onClick={() => handleFilterSelect(activeCategory, item)}
                               style={{
                                 fontFamily: FONT,
@@ -503,10 +511,10 @@ export default function CLFilterPanel({
                     )}
                   </div>
 
-                  {selectedFilters.length > 0 && onClearAll && (
+                  {(showClearAllAlways || selectedFilters.length > 0) && onClearAll && (
                     <div
                       style={{
-                        padding: '16px 44px 24px',
+                        padding: '16px 44px 28px',
                         borderTop: '1px solid #E0E0E0',
                         flex: '0 0 auto',
                       }}

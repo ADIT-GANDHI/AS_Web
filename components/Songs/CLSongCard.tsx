@@ -33,14 +33,14 @@ export default function CLSongCard(item: any) {
       <div className="cl-song-card-subtitle">{item.songtitletraan || ''}</div>
 
       {singerDisplay && (
-        <div className="cl-song-card-meta">
+        <div className="cl-song-card-meta" title={singerDisplay}>
           <span className="cl-song-card-meta-label">sings </span>
           <span className="cl-song-card-meta-value">{singerDisplay}</span>
         </div>
       )}
 
       {poetDisplay && (
-        <div className="cl-song-card-meta">
+        <div className="cl-song-card-meta" title={poetDisplay}>
           <span className="cl-song-card-meta-label">poet </span>
           <span className="cl-song-card-meta-value">{poetDisplay}</span>
         </div>

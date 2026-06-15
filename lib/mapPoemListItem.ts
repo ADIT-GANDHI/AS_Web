@@ -27,10 +27,6 @@ export function mapPoemListItem(it: Record<string, unknown>): PoemData {
       htmlToPlainText(String(it.english_translation_text || '')) ||
       String(it.couplet_translation || '').trim(),
     poet: String(it.attributed_poet || it.poet || ''),
-    meta_keywords:
-      (typeof it.meta_keywords === 'string' ? it.meta_keywords : '') ||
-      (typeof it.metaKeyword === 'string' ? it.metaKeyword : '') ||
-      '',
     thumbnailUrl: it.thumbnail_url ? `${AJAB_API_BASE}${it.thumbnail_url}` : '',
     noteText: htmlToPlainText(String(it.note_text || '')),
     glossary: htmlToPlainText(String(it.glossary || '')),

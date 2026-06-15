@@ -61,7 +61,7 @@ async function checkPoemsListing() {
     const halo = document.querySelector('.clp-halo-circle');
     const seeAll = document.querySelector('.clp-seeall');
     const lang = document.querySelector('.clp-lang-toggle');
-    const wrapCs = wrap ? getComputedStyle(wrap) : null;
+    const wrapCs = wrap ? getComputedStyle(wrap, '::before') : null;
     const vw = innerWidth;
     const artboardH = (vw * 4080) / 1929;
     const wr = wrap?.getBoundingClientRect();
@@ -121,7 +121,7 @@ async function checkPoemDetail() {
     const notes = document.querySelector('.clp-notes-btn, [class*="notes"]');
     const glossary = document.querySelector('.clp-glossary-btn, [class*="glossary"]');
     const related = document.querySelector('.clp-related, .poems-related');
-    const wrapCs = wrap ? getComputedStyle(wrap) : null;
+    const wrapCs = wrap ? getComputedStyle(wrap, '::before') : null;
     return {
       hasRoot: !!wrap,
       bgHasPoems: wrapCs?.backgroundImage.includes('poems-bg') ?? false,

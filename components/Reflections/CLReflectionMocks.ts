@@ -12,7 +12,8 @@ export interface ReflectionCard {
   description: string;
   mediaType: MediaType;
   thumbnailUrl?: string;
-  metaKeywords?: string;
+  /** Glossary word ids from CMS `related_keywords` (comma-separated). */
+  relatedKeywordIds?: string[];
 }
 
 export const MOCK_REFLECTIONS: ReflectionCard[] = [
@@ -125,7 +126,7 @@ export const REFLECTIONS_GLOSSARY = [
   { term: 'Ulat', meaning: 'Upside Down' },
   { term: 'Alakh', meaning: 'Unseeable' },
   { term: 'Darpan', meaning: 'Mirror' },
-  { term: 'Shahar', meaning: 'City', highlighted: true },
+  { term: 'Shahar', meaning: 'City' },
 ];
 
 export const TOTAL_REFLECTIONS = 90;

@@ -20,30 +20,41 @@ import '@/styles/CustomStyle.css';
 import '@/components/Songs/CLSongs.css';
 import './CLReflections.css';
 import { AJAB_API_BASE } from '@/lib/ajabEnv';
+import { getSpeakerNameMap } from '@/lib/speakerNames';
 import { catalogHasMore, mergeCatalogById } from '@/lib/catalogPagination';
+import { dedupeOrderedStrings } from '@/lib/dedupeStrings';
 import { parseCatalogTotal } from '@/lib/parseCatalogTotal';
 import { ReflectionsNavCountContext } from '@/components/Reflections/ReflectionsNavCountContext';
 
-const REFLECTIONS_PER_PAGE = 6;
+const REFLECTIONS_PER_PAGE = 9;
 
 type FilterType = 'Singer' | 'Poet' | 'Theme';
 
-/** Theme chips from reflection meta_keywords (CMS theme API can return unrelated glossary words). */
-function themesFromReflectionKeywords(items: ReflectionCardData[]): string[] {
-  const seen = new Set<string>();
-  const out: string[] = [];
-  for (const item of items) {
-    const raw = item.metaKeywords || '';
-    for (const part of raw.split(',')) {
-      const term = part.trim();
-      const key = term.toLowerCase();
-      if (term.length > 1 && !seen.has(key)) {
-        seen.add(key);
-        out.push(term);
-      }
-    }
-  }
-  return out.sort((a, b) => a.localeCompare(b, undefined, { sensitivity: 'base' }));
+function parseRelatedKeywordIds(raw: unknown): string[] {
+  if (!raw || typeof raw !== 'string') return [];
+  return raw
+    .split(',')
+    .map((id) => id.trim())
+    .filter(Boolean);
+}
+
+/* [Claude] these changes have been recommended by claude —
+   saysBy now resolves speaker_id via the person_list map. The list API's
+   person_name_english is the attributed poet ("Kabir"), NOT the speaker —
+   the PDF cards show the actual speaker ("says KRISHNA NATH"). */
+function mapReflectionListItem(
+  it: Record<string, unknown>,
+  speakerNames: Record<string, string>
+): ReflectionCardData {
+  return {
+    id: String(it.id || ''),
+    title: String(it.title || ''),
+    saysBy: String(speakerNames[String(it.speaker_id || '').trim()] || '').toUpperCase(),
+    description: String(it.reflection_excerpt || it.thumbnail_excerpt || ''),
+    mediaType: String(it.format || 'INTERVIEW').toUpperCase() as ReflectionCardData['mediaType'],
+    thumbnailUrl: it.thumbnail_url ? `${AJAB_API_BASE}${it.thumbnail_url}` : '',
+    relatedKeywordIds: parseRelatedKeywordIds(it.related_keywords),
+  };
 }
 
 // [Claude] these changes have been recommended by claude —
@@ -72,7 +83,7 @@ function ReflectionCard({ data }: { data: ReflectionCardData }) {
                 t.src = "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='280' height='141' viewBox='0 0 280 141'%3E%3Crect width='280' height='141' fill='%23f0ece5'/%3E%3Ccircle cx='140' cy='65' r='22' fill='none' stroke='%23E31E79' stroke-width='1.5' opacity='0.5'/%3E%3Cpath d='M132 65 L132 56 L150 65 L132 74 Z' fill='%23E31E79' opacity='0.5'/%3E%3C/svg%3E";
               }}
             />
-            <span className="clr-card-thumb-play" aria-hidden>▶</span>
+            <span className="clr-card-thumb-play" aria-hidden style={{ display: 'none' }}>▶</span>
           </>
         ) : undefined
       }
@@ -82,7 +93,7 @@ function ReflectionCard({ data }: { data: ReflectionCardData }) {
     >
       <div className="clr-card-title">{data.title}</div>
       {data.saysBy && (
-        <div className="clr-card-says">
+        <div className="clr-card-says" title={data.saysBy}>
           <span className="clr-card-says-label">says </span>
           <span className="clr-card-says-name">{data.saysBy}</span>
         </div>
@@ -108,19 +119,15 @@ export default function CLReflections() {
   const [selectedThemes, setSelectedThemes] = useState<string[]>([]);
   const [selectedFormats, setSelectedFormats] = useState<string[]>([]);
 
-  const derivedThemes = useMemo(() => themesFromReflectionKeywords(reflections), [reflections]);
+  const [themeIdByLabel, setThemeIdByLabel] = useState<Record<string, string>>({});
 
   const filterLists = useMemo(
     () => ({
       speakers: availableSpeakers.length ? availableSpeakers : REFLECTIONS_FALLBACK_SPEAKERS,
-      themes: derivedThemes.length
-        ? derivedThemes
-        : availableThemes.length
-          ? availableThemes
-          : REFLECTIONS_FALLBACK_THEMES,
+      themes: availableThemes.length ? availableThemes : REFLECTIONS_FALLBACK_THEMES,
       formats: [...REFLECTIONS_FORMAT_OPTIONS],
     }),
-    [availableSpeakers, availableThemes, derivedThemes]
+    [availableSpeakers, availableThemes]
   );
 
   const hasActiveFilters =
@@ -171,14 +178,16 @@ export default function CLReflections() {
         return false;
       }
       if (selectedThemes.length) {
-        const haystack = (r.metaKeywords || '').toLowerCase();
-        if (!selectedThemes.some((t) => haystack.includes(t.toLowerCase()))) {
-          return false;
-        }
+        const ids = r.relatedKeywordIds || [];
+        const matchesTheme = selectedThemes.some((label) => {
+          const themeId = themeIdByLabel[label];
+          return themeId ? ids.includes(themeId) : false;
+        });
+        if (!matchesTheme) return false;
       }
       return true;
     });
-  }, [reflections, selectedSpeakers, selectedFormats, selectedThemes]);
+  }, [reflections, selectedSpeakers, selectedFormats, selectedThemes, themeIdByLabel]);
 
   const displayedReflections = useMemo(
     () => filteredReflections.slice(0, visibleCount),
@@ -189,7 +198,8 @@ export default function CLReflections() {
     reflections.length,
     visibleCount,
     filteredReflections.length,
-    totalReflections
+    totalReflections,
+    { filtersActive: hasActiveFilters }
   );
 
   const fetchReflectionsPage = useCallback(
@@ -211,15 +221,12 @@ export default function CLReflections() {
         const data = await res.json();
         if (!Array.isArray(data?.data)) return;
 
-        const list: ReflectionCardData[] = data.data.map((it: Record<string, unknown>) => ({
-          id: String(it.id || ''),
-          title: String(it.title || ''),
-          saysBy: String(it.person_name_english || it.saysBy || '').toUpperCase(),
-          description: String(it.reflection_excerpt || it.thumbnail_excerpt || ''),
-          mediaType: String(it.format || 'INTERVIEW').toUpperCase() as ReflectionCardData['mediaType'],
-          thumbnailUrl: it.thumbnail_url ? `${AJAB_API_BASE}${it.thumbnail_url}` : '',
-          metaKeywords: String(it.meta_keywords || it.metaKeywords || ''),
-        }));
+        /* [Claude] these changes have been recommended by claude —
+           speaker map is fetched once and cached (see lib/speakerNames.ts) */
+        const speakerNames = await getSpeakerNameMap();
+        const list: ReflectionCardData[] = data.data.map((it) =>
+          mapReflectionListItem(it, speakerNames)
+        );
 
         if (list.length) {
           setReflections((prev) => (reset ? list : mergeCatalogById(prev, list)));
@@ -272,14 +279,22 @@ export default function CLReflections() {
         if (!res.ok) return;
         const json = await res.json();
         const data = json?.data || {};
-        const speakers = (data.speaker || [])
-          .map((s: any) => [s.first_name, s.middle_name, s.last_name].filter(Boolean).join(' '))
-          .filter(Boolean);
-        const themes = (data.theme || [])
-          .map((t: any) => t.word_transliteration || '')
-          .filter(Boolean);
+        const speakers = dedupeOrderedStrings(
+          (data.speaker || []).map((s: any) =>
+            [s.first_name, s.middle_name, s.last_name].filter(Boolean).join(' ')
+          )
+        );
+        const themeRows = (data.theme || []) as Array<{ id?: string; word_transliteration?: string }>;
+        const themes = dedupeOrderedStrings(themeRows.map((t) => t.word_transliteration || ''));
+        const idMap: Record<string, string> = {};
+        themeRows.forEach((t) => {
+          const label = (t.word_transliteration || '').trim();
+          const id = String(t.id || '').trim();
+          if (label && id) idMap[label] = id;
+        });
         if (speakers.length) setAvailableSpeakers(speakers);
         if (themes.length) setAvailableThemes(themes);
+        if (Object.keys(idMap).length) setThemeIdByLabel(idMap);
       } catch {
         // FORMAT_OPTIONS used as Poet slot list
       }
@@ -304,7 +319,7 @@ export default function CLReflections() {
             </div>
 
             <ListingFilterBar
-              allActive={!hasActiveFilters}
+              allPinkWhenFiltered
               onAllClick={clearAllFilters}
               panel={{
                 onFilterSelect: handleFilterSelect,
@@ -318,6 +333,8 @@ export default function CLReflections() {
                 availableThemes: filterLists.themes,
                 categoryLabels: { Singer: 'Speaker', Poet: 'Format', Theme: 'Theme' },
                 maxFilters: 5,
+                filterTriggerAlwaysPink: true,
+                showClearAllAlways: true,
               }}
             />
 

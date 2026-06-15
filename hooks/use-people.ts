@@ -53,10 +53,7 @@ const toRoles = (row: any): string[] => {
 
   rawRoles.push(
     toText(row?.category_type, row?.content_type, row?.type),
-    toText(row?.director_name_english, row?.director, row?.author),
-    ...String(row?.meta_keywords || '')
-      .split(',')
-      .map((item) => item.trim())
+    toText(row?.director_name_english, row?.director, row?.author)
   );
 
   return Array.from(new Set(rawRoles.filter(Boolean)));

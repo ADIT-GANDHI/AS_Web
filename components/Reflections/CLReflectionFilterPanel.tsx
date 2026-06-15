@@ -3,6 +3,7 @@
 import { AnimatePresence, motion } from 'framer-motion';
 import { useEffect, useState } from 'react';
 import { AJAB_API_BASE } from '@/lib/ajabEnv';
+import { dedupeOrderedStrings } from '@/lib/dedupeStrings';
 
 type FilterCategory = 'Speaker' | 'Theme' | 'Format';
 type PreviewItem = { title: string; excerpt: string };
@@ -38,12 +39,14 @@ export default function CLReflectionFilterPanel({
         const json = await res.json();
         const data = json?.data || {};
         // speaker field may only have first_name; combine safely
-        const speakers = (data.speaker || [])
-          .map((s: any) => [s.first_name, s.middle_name, s.last_name].filter(Boolean).join(' '))
-          .filter(Boolean);
-        const themes = (data.theme || [])
-          .map((t: any) => t.word_transliteration || '')
-          .filter(Boolean);
+        const speakers = dedupeOrderedStrings(
+          (data.speaker || []).map((s: any) =>
+            [s.first_name, s.middle_name, s.last_name].filter(Boolean).join(' ')
+          )
+        );
+        const themes = dedupeOrderedStrings(
+          (data.theme || []).map((t: any) => t.word_transliteration || '')
+        );
         setFilters((prev) => ({
           ...prev,
           Speaker: speakers.length ? speakers : prev.Speaker,
@@ -270,11 +273,11 @@ export default function CLReflectionFilterPanel({
                   </ul>
                 ) : (
                   <ul style={{ listStyle: 'none', margin: 0, padding: 0 }}>
-                    {list.map((item) => {
+                    {list.map((item, index) => {
                       const sel = isSelected(item);
                       return (
                         <li
-                          key={item}
+                          key={`${activeCategory}-${index}-${item}`}
                           onClick={() => handleItemClick(item)}
                           style={{
                             fontWeight: 300,

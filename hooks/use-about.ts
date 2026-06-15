@@ -1,6 +1,16 @@
 import { useEffect, useMemo, useState } from 'react';
 
+import {
+  ABOUT_MENU_ORDER,
+  orderAboutMenuKeys,
+  type AboutBrand,
+  type AboutEntry,
+  type AboutMenuMap,
+} from '@/lib/aboutMenus';
+
+export type { AboutEntry } from '@/lib/aboutMenus';
 import { AJAB_API_BASE } from '@/lib/ajabEnv';
+import { resolveCmsAssetUrl } from '@/lib/resolveCmsAssetUrl';
 
 const ABOUT_API_URL = `${AJAB_API_BASE}/Api/about`;
 
@@ -9,93 +19,58 @@ const ABOUT_API_URL = `${AJAB_API_BASE}/Api/about`;
    Used when API is offline or returns empty/test data.
    HTML in visual_content is rendered via dangerouslySetInnerHTML. */
 
-const MOCK_ABOUT_AJAB: Record<string, AboutEntry[]> = {
+/** PDF page 1 — Ajab Shahar: intro, translit guide, copyrights only. */
+const MOCK_ABOUT_AJAB: AboutMenuMap = {
   intro: [
     {
       id: 'a-intro-1',
-      type_label: '',
+      type_label: 'Introduction to Ajab Shahar',
       visual_content:
-        '<p>Ajab Shahar is a wondrous city of songs, poems and conversations from Bhakti, Sufi and Baul oral traditions of India and beyond. We host one of the most extensive digital archives of mystic poetry in performance, in print, and in conversation.</p><p>Spanning over two decades, our inspirations in the wisdom of these poems has taken the shape of several films, books, the Ajab Shahar web archive, an innovative schools curriculum Shabad Shaala, rural yatras, urban festivals &amp; more. Inspired by the call of Kabir, the 15th century north Indian mystic poet, our journeys inquire into the spiritual and socio-political resonances of mystic poetry.</p>',
+        '<p>Often Kabir and the mystics will invite us to a wondrous city (ajab shahar), a crazy land (deewaana des), utterly beyond borders, where everything thrives in an interconnected web of oneness. Inspired by that call, we have created here such a digital city of wonder, where singers, poems and songs from far flung regions, different languages and vividly distinct styles come and jostle together. What they share in common though, is the evocation of a truth beyond boundaries.</p><p>Wandering through this city you will hear many voices — from Pakistan in the west to Bengal in the east — singing, reflecting and expressing the wisdom of Bhakti, Sufi and Baul poets from in and around India. This is a digital dive into a vibrant oral tradition that keeps alive through song, the words of mystics and poets now long gone, such as Kabir, Meera, Ravidas, Bulleh Shah, Shah Latif, Lalon Fakir and so many others. The city has 3 main gateways — Songs, Poems and Reflections — but you could also wander through other pathways, such as People, Films, Radio or continue to read more about us, and what else we do on this page.</p><p>We are a small team bringing together our skills in filmmaking, design, writing, translation, singing and art to a shared passion and inspiration — the poetry of the mystics. We form the Kabir Project, which was seeded in 2002 at the Srishti Institute of Art, Design &amp; Technology in Bangalore, India.</p>',
+    },
+    {
+      id: 'a-intro-2',
+      type_label: 'Inspired by Satsang',
+      visual_content:
+        '<p>‘Sat-sang’ means to be in the ‘company of truth’. In many villages of rural India and neighbouring countries, people gather to participate in such satsangs (mehfils or samas in the Sufi context) — sessions of singing and deep listening to the songs of these poets. As the night progresses, listeners blend into the collective sound by singing or clapping along or playing cymbals. Perhaps the energy of a powerful satsang allows us to disengage from our particular and located selves. Our selves expand to include many others. Our identities dissolve …more</p>',
+    },
+    {
+      id: 'a-intro-3',
+      type_label: 'Research and Curation',
+      visual_content:
+        '<p>‘Sat-sang’ means to be in the ‘company of truth’. In many villages of rural India and neighbouring countries, people gather to participate in such satsangs (mehfils or samas in the Sufi context) — sessions of singing and deep listening to the songs of these poets. As the night progresses, listeners blend into the collective sound by singing or clapping along or playing cymbals. Perhaps the energy of a powerful satsang allows us to disengage from our particular and located selves. Our selves expand to include many others. Our identities dissolve…more</p>',
+    },
+    {
+      id: 'a-intro-4',
+      type_label: 'Ethics of Use',
+      visual_content:
+        '<p>‘Sat-sang’ means to be in the ‘company of truth’. In many villages of rural India and neighbouring countries, people gather to participate in such satsangs (mehfils or samas in the Sufi context) — sessions of singing and deep listening to the songs of these poets. As the night progresses, listeners blend into the collective sound by singing or clapping along or playing cymbals. Perhaps the energy of a powerful satsang allows us to disengage from our particular and located selves. Our selves expand to include many others. Our identities dissolve…more</p>',
     },
   ],
-  team: [
+  'translit guide': [
     {
-      id: 'a-team-1',
-      type_label: 'Current core team',
+      id: 'a-translit-1',
+      type_label: 'Transliteration Guide',
       visual_content:
-        '<p>Shabnam Virmani, Director<br/>Smriti Chanchani, Sr Artist &amp; Researcher<br/>Smruthi Mohan, Lead — Artist &amp; Design<br/>Shreyasee Mitra, Shabad Shaala Coordinator &amp; Project Assistance<br/>Shubhangi Bansal, Lead — Video &amp; Sound Design<br/>Anisha Bali, Lead — Research &amp; Archiving<br/>Kartikey Khanapurli, Lead — Creative Pedagogies<br/>Aaliya Hasan, Lead — Game Design &amp; Illustration<br/>Pavan Pasi, Production &amp; Technical Manager<br/>Hrishikesh Joi, Web Support</p>',
-    },
-    {
-      id: 'a-team-2',
-      type_label: 'Past Collaborators',
-      visual_content:
-        '<p>Vipul Rikhi, Writing &amp; Co-Creation<br/>Prashant Parvataneni, Writing &amp; Pedagogy</p>',
-    },
-    {
-      id: 'a-team-3',
-      type_label: 'Project Assistance',
-      visual_content:
-        '<p>Neha Rajan<br/>Hamratha Kartthik<br/>Manoela Nyanwi</p>',
-    },
-    {
-      id: 'a-team-4',
-      type_label: 'Poetry Insights',
-      visual_content:
-        '<p>Prahlad Tipanya<br/>Abdullah Hussain Turk<br/>Parvathy Baul<br/>&amp; many others</p>',
+        '<p>This guide explains how we transliterate words from Hindi, Urdu and other regional languages into the Roman script for this archive. We aim for readability while staying close to pronunciation heard in performance.</p>',
     },
   ],
-  films: [
+  copyrights: [
     {
-      id: 'a-films-1',
-      type_label: 'Web Development',
-      visual_content: '<p>Thought Works, Bangalore<br/>Lampros, Bangalore</p>',
-    },
-    {
-      id: 'a-films-2',
-      type_label: 'Video Editing',
+      id: 'a-copy-1',
+      type_label: 'Copyrights',
       visual_content:
-        '<p>Aarthi Parthasarathy<br/>Radha Mahendru<br/>Piyush Kashyap<br/>Sharanya Gautam<br/>Shruti Kulkarni</p>',
-    },
-    {
-      id: 'a-films-3',
-      type_label: 'Camera',
-      visual_content: '<p>Smriti Chanchani<br/>Aarthi Parthasarathy<br/>Shabnam Virmani</p>',
-    },
-  ],
-  books: [
-    {
-      id: 'a-books-1',
-      type_label: 'Books &amp; Publications',
-      visual_content:
-        '<p>Burn Down Your House — Vipul Rikhi (From Kabir)<br/>I Am That: Poems of Kabir — Vipul Rikhi<br/>The Weaver\'s Songs — Vinay Dharwadker</p>',
-    },
-  ],
-  shabadshaala: [
-    {
-      id: 'a-shabad-1',
-      type_label: 'Shabad Shaala',
-      visual_content:
-        '<p>Shabad Shaala is an innovative schools curriculum that brings the wisdom of mystic poetry into the everyday lives of children through song, dialogue and creative pedagogy. The curriculum has been piloted in schools across Karnataka, Rajasthan and Delhi.</p>',
-    },
-    {
-      id: 'a-shabad-2',
-      type_label: 'Pedagogy Initiatives',
-      visual_content: '<p>Vishakha Chanchani</p>',
-    },
-    {
-      id: 'a-shabad-3',
-      type_label: 'Past Donors',
-      visual_content:
-        '<p>Ford Foundation<br/>WIPRO Applying Thought in Schools<br/>Raza Foundation<br/>Kavita Chandra<br/>Anbeli Banaan</p>',
+        '<p>All content on Ajab Shahar is shared for educational and cultural purposes. Please contact us before reproducing recordings, films or texts for commercial use. Credits and permissions for individual works may vary — see notes on each page where applicable.</p>',
     },
   ],
 };
 
-const MOCK_ABOUT_KABIR: Record<string, AboutEntry[]> = {
+/** PDF page 2 — Kabir Project: intro, team, films, books, shabad shaala. */
+const MOCK_ABOUT_KABIR: AboutMenuMap = {
   intro: [
     {
       id: 'k-intro-1',
-      type_label: '',
+      type_label: 'Introduction to Kabir Project',
       visual_content:
         '<p>The Kabir Project consists of many journeys inspired by Bhakti, Sufi, and Baul poems and songs as they flow in the rural folk traditions. Spanning over two decades, our inspirations in the wisdom of these poems has taken the shape of several FILMS, BOOKS, the AJAB SHAHAR web archive, an innovative schools curriculum SHABAD SHAALA, rural yatras, urban FESTIVALS &amp; MORE.</p><p>Inspired by the call of Kabir, the 15th century north Indian mystic poet, our journeys inquire into the spiritual and socio-political resonances of mystic poetry. The true spirit of our work lies in the taana-baana (warp &amp; weft) of social networks and friendships built over two decades between the singers, scholars, activists, artists, students, and the larger public through our work which continues to expand in new and surprising directions.</p>',
     },
@@ -142,7 +117,7 @@ const MOCK_ABOUT_KABIR: Record<string, AboutEntry[]> = {
         '<p><strong>Burn Down Your House</strong> — Poems of Kabir, translated by Vipul Rikhi. Penguin Books, 2016.<br/><strong>I Am That: Poems of Kabir</strong> — Vipul Rikhi. HarperCollins, 2020.<br/><strong>The Weaver\'s Songs</strong> — Vinay Dharwadker. Penguin Classics.<br/><strong>Echoes from a Sufi Saint</strong> — Anthology of Shah Latif Bhitai.</p>',
     },
   ],
-  shabadshaala: [
+  'shabad shaala': [
     {
       id: 'k-shabad-1',
       type_label: 'About Shabad Shaala',
@@ -158,16 +133,6 @@ const MOCK_ABOUT_KABIR: Record<string, AboutEntry[]> = {
   ],
 };
 
-export interface AboutEntry {
-  id: string;
-  ajab_type?: string;
-  kabir_type?: string;
-  visual_content?: string;
-  status?: string;
-  created_at?: string;
-  type_label?: string;
-}
-
 interface AboutApiResponse {
   status?: boolean;
   data?: {
@@ -180,8 +145,7 @@ interface AboutApiResponse {
   };
 }
 
-type AboutTab = 'ajab' | 'kabir';
-type AboutMenuMap = Record<string, AboutEntry[]>;
+type AboutTab = AboutBrand;
 
 const toArray = (value: unknown): AboutEntry[] => (Array.isArray(value) ? value : []);
 
@@ -200,10 +164,61 @@ const stripHtml = (html: string): string =>
    Meaningful = every entry has at least 20 chars of real text after stripping HTML.
    A single placeholder entry (e.g. "asd", "zxc") causes the whole tab group to
    fall back to mock data so the designed layout always renders. */
-const isMenuMapMeaningful = (menuMap: AboutMenuMap): boolean => {
-  const allEntries = Object.values(menuMap).flat();
-  if (!allEntries.length) return false;
-  return allEntries.every(e => stripHtml(e.visual_content || '').length >= 20);
+const isEntryMeaningful = (entry: AboutEntry): boolean => {
+  const html = entry.visual_content || '';
+  if (stripHtml(html).length >= 20) return true;
+  return /<img\b/i.test(html);
+};
+
+const resolveApiMenuKey = (api: AboutMenuMap, orderedKey: string): string | null => {
+  const match = Object.keys(api).find((k) => k.toLowerCase() === orderedKey.toLowerCase());
+  return match ?? null;
+};
+
+/** PDF menu keys only — never add mock tabs outside ABOUT_MENU_ORDER. */
+const buildBrandMenus = (
+  brand: AboutBrand,
+  api: AboutMenuMap,
+  mock: AboutMenuMap
+): AboutMenuMap => {
+  const merged: AboutMenuMap = {};
+
+  for (const orderedKey of ABOUT_MENU_ORDER[brand]) {
+    const apiKey = resolveApiMenuKey(api, orderedKey);
+    const apiEntries = apiKey ? api[apiKey] || [] : [];
+    const mockKey = resolveApiMenuKey(mock, orderedKey);
+    const mockEntries = mockKey ? mock[mockKey] || [] : [];
+
+    if (apiEntries.length && apiEntries.every(isEntryMeaningful)) {
+      merged[orderedKey] = apiEntries;
+    } else if (mockEntries.length) {
+      merged[orderedKey] = mockEntries;
+    } else if (apiEntries.length) {
+      merged[orderedKey] = apiEntries;
+    }
+  }
+
+  return merged;
+};
+
+export const isPlaceholderAboutHtml = (html: string): boolean =>
+  stripHtml(html).length < 20;
+
+export const shouldShowAboutTypeLabel = (
+  label: string | undefined,
+  activeMenu: string
+): boolean => {
+  const t = (label || '').trim();
+  if (!t) return false;
+  if (t.toLowerCase() === activeMenu.toLowerCase()) return false;
+  if (t.toLowerCase() === 'intro') return false;
+  return true;
+};
+
+export const resolveAboutMenuImageUrl = (path?: string | null): string | null => {
+  const t = (path || '').trim();
+  if (!t) return null;
+  return resolveCmsAssetUrl(t.startsWith('/') ? t : `/${t}`);
 };
 
 const normalizeEntry = (entry: AboutEntry): AboutEntry => ({
@@ -211,6 +226,7 @@ const normalizeEntry = (entry: AboutEntry): AboutEntry => ({
   ajab_type: String(entry?.ajab_type || ''),
   kabir_type: String(entry?.kabir_type || ''),
   visual_content: String(entry?.visual_content || ''),
+  menu_image: entry?.menu_image ? String(entry.menu_image) : null,
   status: String(entry?.status || ''),
   created_at: String(entry?.created_at || ''),
   type_label: String(entry?.type_label || ''),
@@ -269,15 +285,14 @@ export const useAbout = () => {
           Array.isArray(kabirData) ? kabirData : kabirData?.menus
         );
 
-        // Use mock data if API content is sparse/placeholder
-        const finalAjab = isMenuMapMeaningful(ajabParsed) ? ajabParsed : MOCK_ABOUT_AJAB;
-        const finalKabir = isMenuMapMeaningful(kabirParsed) ? kabirParsed : MOCK_ABOUT_KABIR;
+        const finalAjab = buildBrandMenus('ajab', ajabParsed, MOCK_ABOUT_AJAB);
+        const finalKabir = buildBrandMenus('kabir', kabirParsed, MOCK_ABOUT_KABIR);
 
         setAjabMenus(finalAjab);
         setKabirMenus(finalKabir);
 
-        const firstAjabMenu = Object.keys(finalAjab)[0] || '';
-        const firstKabirMenu = Object.keys(finalKabir)[0] || '';
+        const firstAjabMenu = orderAboutMenuKeys('ajab', Object.keys(finalAjab))[0] || '';
+        const firstKabirMenu = orderAboutMenuKeys('kabir', Object.keys(finalKabir))[0] || '';
 
         setActiveMenuByTab({ ajab: firstAjabMenu, kabir: firstKabirMenu });
 
@@ -289,8 +304,8 @@ export const useAbout = () => {
         setAjabMenus(MOCK_ABOUT_AJAB);
         setKabirMenus(MOCK_ABOUT_KABIR);
         setActiveMenuByTab({
-          ajab: Object.keys(MOCK_ABOUT_AJAB)[0] || '',
-          kabir: Object.keys(MOCK_ABOUT_KABIR)[0] || '',
+          ajab: ABOUT_MENU_ORDER.ajab[0] || '',
+          kabir: ABOUT_MENU_ORDER.kabir[0] || '',
         });
         setError(null);
       } finally {
@@ -312,8 +327,7 @@ export const useAbout = () => {
       return selected;
     }
 
-    const fallback = Object.keys(menuMapForTab)[0] || '';
-    return fallback;
+    return orderAboutMenuKeys(activeTab, Object.keys(menuMapForTab))[0] || '';
   }, [activeTab, activeMenuByTab, menuMapForTab]);
 
   const activeMenuEntries = useMemo(
@@ -321,7 +335,10 @@ export const useAbout = () => {
     [activeMenu, menuMapForTab]
   );
 
-  const activeMenuKeys = useMemo(() => Object.keys(menuMapForTab), [menuMapForTab]);
+  const activeMenuKeys = useMemo(
+    () => orderAboutMenuKeys(activeTab, Object.keys(menuMapForTab)),
+    [activeTab, menuMapForTab]
+  );
 
   const setActiveMenu = (menu: string) => {
     setActiveMenuByTab((previous) => ({

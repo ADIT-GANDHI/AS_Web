@@ -15,7 +15,8 @@ import '@/styles/CustomStyle.css';
 import '@/components/Songs/CLSongs.css';
 import './CLHome.css';
 import { AJAB_API_BASE } from '@/lib/ajabEnv';
-import { isCmsPublished, isPopupForHome } from '@/lib/cmsNews';
+import { isCmsPublished, isPopupForHome, isRenderableNewsPopupCategory } from '@/lib/cmsNews';
+import { extractYouTubeId } from '@/lib/youtube';
 import { resolveCmsAssetUrl, CMS_IMAGE_PLACEHOLDER } from '@/lib/resolveCmsAssetUrl';
 import { mapHomeLatest } from '@/lib/homeApiMapper';
 import HomeCardImage from './HomeCardImage';
@@ -191,9 +192,23 @@ export default function CLHero() {
                 (p: any) =>
                   isCmsPublished(p?.published) &&
                   isPopupForHome(p?.show_on_home) &&
-                  (p?.category === 'single' || p?.category === 'multiple')
+                  isRenderableNewsPopupCategory(p?.category)
               )
               .map((p: any, i: number) => {
+                if (p.category === 'video') {
+                  const videoId = extractYouTubeId(p.video_url);
+                  return {
+                    slideId: `${newsItem?.id ?? 'n'}-${i}`,
+                    newsId: String(newsItem?.id ?? ''),
+                    category: 'video' as const,
+                    title: p.title || '',
+                    secondTitle: p.second_title || '',
+                    content: p.content || '',
+                    images: videoId ? [] : [CMS_IMAGE_PLACEHOLDER],
+                    videoId: videoId || undefined,
+                    sequenceOrder: Number(p.sequence_order) || 99,
+                  } as NewsPopupSlide;
+                }
                 const images =
                   p.category === 'single'
                     ? [toImageUrl(p.image)].filter(Boolean)
@@ -209,9 +224,13 @@ export default function CLHero() {
                   secondTitle: p.second_title || '',
                   content: p.content || '',
                   images: resolved.length ? resolved : [CMS_IMAGE_PLACEHOLDER],
+                  sequenceOrder: Number(p.sequence_order) || 99,
                 } as NewsPopupSlide;
               });
           });
+          slides.sort(
+            (a, b) => (a.sequenceOrder ?? 99) - (b.sequenceOrder ?? 99)
+          );
           if (slides.length) {
             setPopupSlides(slides);
             setShowAjabNews(true);

@@ -13,17 +13,7 @@ import { MOCK_DETAIL, MOCK_VERSIONS, MOCK_RELATED } from '@/components/Songs/CLd
 import { SongsNavCountContext } from '@/components/Songs/SongsNavCountContext';
 
 function SongsLoadingShell() {
-  return (
-    <div className="cl-songs-page-root">
-      <div className="min-h-screen">
-        <Header />
-        <main className="relative z-10 min-h-[50vh]">
-          <Loader />
-        </main>
-        <Footer />
-      </div>
-    </div>
-  );
+  return <Loader />;
 }
 
 export default function CLSongDetailsClient({ id }: { id: string }) {
@@ -32,6 +22,9 @@ export default function CLSongDetailsClient({ id }: { id: string }) {
   const [songVersions, setSongVersions] = useState<any[]>([]);
   const [related, setRelated] = useState<any>(null);
   const [songReady, setSongReady] = useState(false);
+  // [Claude] these changes have been recommended by claude —
+  // true when the API answered but the song id does not exist ("Song not found").
+  const [notFound, setNotFound] = useState(false);
   // Catalog total for header SONGS (N) — independent of song payload timing.
   useEffect(() => {
     let cancelled = false;
@@ -66,6 +59,7 @@ export default function CLSongDetailsClient({ id }: { id: string }) {
     setSong(null);
     setSongVersions([]);
     setRelated(null);
+    setNotFound(false);
 
     void (async () => {
       try {
@@ -78,9 +72,11 @@ export default function CLSongDetailsClient({ id }: { id: string }) {
           songData?.status === false || !songData?.data ? null : songData.data;
 
         if (!songDetails) {
-          setSong(MOCK_DETAIL);
-          setSongVersions(MOCK_VERSIONS);
-          setRelated(MOCK_RELATED);
+          /* [Claude] these changes have been recommended by claude —
+             The API answered but this song id doesn't exist. Show a real
+             "Song not found" state instead of silently rendering mock content
+             (which displayed a different song's versions and fake related items). */
+          setNotFound(true);
           setSongReady(true);
           return;
         }
@@ -151,8 +147,39 @@ export default function CLSongDetailsClient({ id }: { id: string }) {
     };
   }, [id]);
 
-  if (!songReady || !song) {
+  if (!songReady) {
     return <SongsLoadingShell />;
+  }
+
+  /* [Claude] these changes have been recommended by claude —
+     not-found state, same pattern as the poems detail page */
+  if (notFound || !song) {
+    return (
+      <div className="cl-songs-page-root">
+        <div className="min-h-screen">
+          <Header />
+          <main className="relative z-10">
+            <div
+              style={{
+                padding: '120px 24px',
+                textAlign: 'center',
+                fontFamily: 'var(--ajab-font-serif)',
+                color: 'var(--ajab-ink-500)',
+              }}
+            >
+              <p>Song not found.</p>
+              <a
+                href="/songs"
+                style={{ color: 'var(--ajab-pink-primary)', marginTop: 16, display: 'inline-block' }}
+              >
+                ← Back to Songs
+              </a>
+            </div>
+          </main>
+          <Footer />
+        </div>
+      </div>
+    );
   }
 
   return (

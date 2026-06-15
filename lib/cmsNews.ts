@@ -15,7 +15,13 @@ type NewsPopup = {
   category?: string;
   published?: string | null;
   show_on_home?: string | null;
+  video_url?: string | null;
 };
+
+export function isRenderableNewsPopupCategory(category: unknown): boolean {
+  const c = String(category || '').toLowerCase();
+  return c === 'single' || c === 'multiple' || c === 'video';
+}
 
 type NewsRow = {
   published?: string | null;
@@ -27,9 +33,7 @@ export function filterNewsForPublicSite(items: NewsRow[]): NewsRow[] {
   return items
     .map((item) => {
       const popup_items = (item.popup_items || []).filter(
-        (p) =>
-          isCmsPublished(p.published) &&
-          (p.category === 'single' || p.category === 'multiple')
+        (p) => isCmsPublished(p.published) && isRenderableNewsPopupCategory(p.category)
       );
       return { ...item, popup_items };
     })
@@ -43,7 +47,7 @@ export function filterHomeNewsPopups(items: NewsRow[]): NewsPopup[] {
     for (const p of item.popup_items || []) {
       if (!isCmsPublished(p.published)) continue;
       if (!isPopupForHome(p.show_on_home)) continue;
-      if (p.category === 'single' || p.category === 'multiple') {
+      if (isRenderableNewsPopupCategory(p.category)) {
         popups.push(p);
       }
     }
