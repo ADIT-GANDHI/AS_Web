@@ -11,20 +11,20 @@ RewriteBase /new/
 RewriteCond %{REQUEST_FILENAME} -f
 RewriteRule ^ - [L]
 
-# 2. If path.html exists on disk, serve it (listing pages: /songs, /films, etc.)
+# 2. Exact .html exists on disk - serve it (handles all listing pages)
 RewriteCond %{DOCUMENT_ROOT}/new/$1.html -f
 RewriteRule ^(.+?)/?$ $1.html [L]
 
-# 3. Detail page SPA fallbacks - serve the correct section shell
-#    Each shell hydrates with the right component; useParams() reads the real URL id.
-RewriteRule ^songs/details/ songs/details/0.html [L]
-RewriteRule ^reflections/details/ reflections/details/0.html [L]
-RewriteRule ^films/details/ films/details/0.html [L]
-RewriteRule ^poems/[^/]+ poems/0.html [L]
-RewriteRule ^people/[^/]+ people/0.html [L]
+# 3. Dynamic SPA stub - works for ANY detail section automatically.
+#    If parent/0.html exists on disk, serve it. No need to hardcode routes.
+#    e.g. songs/details/252 -> songs/details/0.html
+#         poems/123         -> poems/0.html
+#         people/67         -> people/0.html
+RewriteCond %{REQUEST_URI} ^/new/(.+)/[^./]+/?$
+RewriteCond %{DOCUMENT_ROOT}/new/%1/0.html -f
+RewriteRule ^(.+)/[^./]+/?$ $1/0.html [L]
 
-# 4. Final fallback for any other unknown path
+# 4. Final fallback for anything else
 RewriteRule ^ /new/index.html [L]
 
-# Custom 404 page
 ErrorDocument 404 /new/404.html
