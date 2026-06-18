@@ -15,7 +15,7 @@ import KeywordCloud from '@/components/shared/KeywordCloud';
 import './CLSongs.css'; // for the root marble bg + floating button overrides
 import './CLSongDetails.css';
 import { keywordsFromRelatedBucket } from '@/lib/parseKeywords';
-import { resolveCmsAssetUrl } from '@/lib/resolveCmsAssetUrl';
+import { resolveCmsAssetUrl, withAppBasePath } from '@/lib/resolveCmsAssetUrl';
 
 type Script = 'devanagari' | 'transliteration' | 'english';
 
@@ -426,7 +426,7 @@ export default function CLSongDetailsPage({
                     <WavyCard
                       key={`${card.id ?? 'v'}-${idx}`}
                       as="a"
-                      href={`/songs/details/${card.id}`}
+                      href={withAppBasePath(`/songs/details/${card.id}`)}
                       imageSrc={card.image}
                       imageAlt={card.title}
                       className={`cld-version-card${idx === currentVersionIdx ? '' : ' is-active'}`}

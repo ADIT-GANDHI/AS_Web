@@ -4,7 +4,7 @@
 // and renders the title/saysBy header, YouTube embed, description and related section.
 
 import { useEffect, useMemo, useRef, useState, useContext } from 'react';
-import { useParams } from 'next/navigation';
+import { usePathname } from 'next/navigation';
 import LiteYouTubeEmbed from 'react-lite-youtube-embed';
 import 'react-lite-youtube-embed/dist/LiteYouTubeEmbed.css';
 import Link from 'next/link';
@@ -134,8 +134,9 @@ function ReflectionDescription({ text }: { text: string }) {
 function LoadingShell() { return <Loader />; }
 
 export default function CLReflectionDetail({ id: idProp }: { id?: string }) {
-  const params = useParams();
-  const id = (params?.id as string) || idProp;
+  const pathname = usePathname();
+  const urlId = pathname?.split('/').filter(Boolean).pop();
+  const id = (urlId && urlId !== '0') ? urlId : idProp;
   const shellRef = useRef<HTMLDivElement>(null);
   const { setReflectionsNavTotal } = useContext(ReflectionsNavCountContext);
   const [data, setData] = useState<ReflectionDetail | null>(null);

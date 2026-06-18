@@ -53,7 +53,7 @@ export default function HomeCardShell({ className, media, children, href }: Home
 
   if (href) {
     return (
-      <a className={`clh-card ${className}`.trim()} href={href}>
+      <a className={`clh-card ${className}`.trim()} href={withAppBasePath(href)}>
         {inner}
       </a>
     );

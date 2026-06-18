@@ -10,6 +10,7 @@ import { toEnglishPoet } from './poetTransliteration';
 import RelatedSection from '@/components/RelatedSection/RelatedSection';
 import { ChevronLeft, ChevronRight, Languages } from 'lucide-react';
 import { useMemo, useRef, useState } from 'react';
+import { withAppBasePath } from '@/lib/resolveCmsAssetUrl';
 import LiteYouTubeEmbed from 'react-lite-youtube-embed';
 import 'react-lite-youtube-embed/dist/LiteYouTubeEmbed.css';
 
@@ -224,7 +225,7 @@ const SongDetails = ({
                             const thumb = normalizeImageUrl(card.image) || '/TN-About-Basavalingaiah-Hiremath.jpg';
                             return (
                             <div key={card.id} className="song-card-landing-p version-slide-card">
-                              <a href={`/songs/details/${card.id}`} className="version-card">
+                              <a href={withAppBasePath(`/songs/details/${card.id}`)} className="version-card">
                                 <div className="version-card-thumb">
                                   <img src={thumb} alt={card.umbrellaTitle} />
                                 </div>

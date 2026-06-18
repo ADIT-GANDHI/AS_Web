@@ -84,7 +84,7 @@ function ReflectionCard({ data }: { data: ReflectionCardData }) {
   return (
     <WavyCard
       as="a"
-      href={`/reflections/details/${data.id}`}
+      href={`${process.env.NEXT_PUBLIC_BASE_PATH || ''}/reflections/details/${data.id}`}
       imageSrc={data.thumbnailUrl}
       imageAlt={data.title}
       thumb={

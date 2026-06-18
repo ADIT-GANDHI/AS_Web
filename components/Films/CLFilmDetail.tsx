@@ -3,7 +3,7 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import LiteYouTubeEmbed from 'react-lite-youtube-embed';
 import 'react-lite-youtube-embed/dist/LiteYouTubeEmbed.css';
-import { useRouter, useParams } from 'next/navigation';
+import { useRouter, usePathname } from 'next/navigation';
 import Footer from '@/components/Footer';
 import Header from '@/components/Header';
 import Loader from '@/components/Loader';
@@ -158,8 +158,9 @@ function LoadingShell() {
 }
 
 export default function CLFilmDetail({ id: idProp }: { id?: string }) {
-  const params = useParams();
-  const id = (params?.id as string) || idProp;
+  const pathname = usePathname();
+  const urlId = pathname?.split('/').filter(Boolean).pop();
+  const id = (urlId && urlId !== '0') ? urlId : idProp;
   const shellRef = useRef<HTMLDivElement>(null);
   const router = useRouter();
   const [data, setData] = useState<FilmDetail | null>(null);
