@@ -1,0 +1,27 @@
+# ── Ajab Shahar static Next.js export — Apache rewrite rules ──────────────
+# The site lives under /new/ (basePath).
+# Next.js static export produces extensionless URLs (e.g. songs/details/252)
+# but the actual files on disk are 252.html.  These rules map one to the other.
+# ──────────────────────────────────────────────────────────────────────────
+
+Options -Indexes
+
+RewriteEngine On
+RewriteBase /new/
+
+# ① Let real files and directories pass through unchanged
+RewriteCond %{REQUEST_FILENAME} !-f
+RewriteCond %{REQUEST_FILENAME} !-d
+
+# ② If appending .html resolves to a real file, serve it transparently
+RewriteCond %{DOCUMENT_ROOT}/new/$1.html -f
+RewriteRule ^(.+)$ $1.html [L]
+
+# ③ SPA fallback — anything else falls back to the root index.html
+#    (handles client-side routes that have no pre-built .html)
+RewriteCond %{REQUEST_FILENAME} !-f
+RewriteCond %{REQUEST_FILENAME} !-d
+RewriteRule ^ /new/index.html [L]
+
+# ④ Custom 404 page
+ErrorDocument 404 /new/404.html

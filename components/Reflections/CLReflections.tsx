@@ -1,6 +1,26 @@
 'use client';
 
-import { useCallback, useEffect, useMemo, useRef, useState, useContext } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState, useContext, type ReactNode } from 'react';
+
+/** Shows description text wrapped in curly quotes — but only when the text
+ *  is short enough to fit without being clamped (max 4 lines at ~14px).
+ *  Uses a ref to measure scroll vs client height after paint. */
+function CardDesc({ text }: { text: string }) {
+  const ref = useRef<HTMLParagraphElement>(null);
+  const [clamped, setClamped] = useState(true); // start conservative (no quotes)
+
+  useEffect(() => {
+    const el = ref.current;
+    if (!el) return;
+    setClamped(el.scrollHeight > el.clientHeight + 2); // 2px tolerance
+  }, [text]);
+
+  return (
+    <p ref={ref} className="clr-card-desc">
+      {!clamped && text ? `\u201C${text}\u201D` : text}
+    </p>
+  );
+}
 import LoadMoreButton from '@/components/shared/LoadMoreButton';
 import Footer from '@/components/Footer';
 import Header from '@/components/Header';
@@ -98,7 +118,7 @@ function ReflectionCard({ data }: { data: ReflectionCardData }) {
           <span className="clr-card-says-name">{data.saysBy}</span>
         </div>
       )}
-      <p className="clr-card-desc">{data.description}</p>
+      <CardDesc text={data.description} />
       <div className="clr-card-mediatype">{data.mediaType}</div>
     </WavyCard>
   );

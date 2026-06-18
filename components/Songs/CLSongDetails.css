@@ -295,9 +295,10 @@
 /* ── Song header row (title, sings, location/year) ── */
 .cld-song-header {
   display: flex;
-  flex-direction: column;
-  align-items: flex-start;
-  gap: 4px;
+  flex-direction: row;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 12px;
   max-width: var(--cld-media-max-width);
   width: 100%;
   margin: 0 0 var(--cld-gap-header-video);
@@ -305,14 +306,12 @@
   box-sizing: border-box;
 }
 
-/* REVERT: .cld-song-header margin was 60px 0 24px */
-
 .cld-song-header-top {
   display: flex;
   flex-wrap: wrap;
   align-items: baseline;
   gap: 8px 10px;
-  width: 100%;
+  flex: 1;
 }
 
 .cld-song-header-left {
@@ -366,10 +365,9 @@
 }
 
 .cld-song-header-meta-row {
-  width: 100%;
-  max-width: var(--cld-media-max-width);
+  flex-shrink: 0;
   display: flex;
-  justify-content: flex-end;
+  align-self: baseline;
 }
 
 .cld-song-header-meta {

@@ -207,7 +207,7 @@ export default function CLFilterPanel({
         style={{
           color: triggerPink ? '#E31E79' : '#828282',
           fontFamily: FONT,
-          fontWeight: 300,
+          fontWeight: 600,
           fontSize: '18px',   /* --ajab-fs-button = 21px per design tokens */
           lineHeight: '100%',
           letterSpacing: '0.04em',

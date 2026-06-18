@@ -290,7 +290,9 @@ body:has(.cl-home-page-root) footer.footer-bg .footer-inner {
   line-height: 1;
 }
 
-/* ── A–Z row — spread evenly across remaining width (matches Figma) ── */
+/* ── A–Z row — spread evenly across remaining width (matches Figma).
+   overflow-x: auto enables horizontal scroll on narrow viewports while
+   the outer .cl-filter-bar stays overflow:visible for the portal dropdown. */
 .cl-az-row {
   display: flex;
   flex: 1;
@@ -299,7 +301,12 @@ body:has(.cl-home-page-root) footer.footer-bg .footer-inner {
   justify-content: space-between;
   flex-shrink: 1;
   padding-right: 20px;
+  overflow-x: auto;
+  overflow-y: visible;
+  scrollbar-width: none;
+  -webkit-overflow-scrolling: touch;
 }
+.cl-az-row::-webkit-scrollbar { display: none; }
 
 .cl-az-btn {
   color: var(--ajab-ink-300);
@@ -318,13 +325,12 @@ body:has(.cl-home-page-root) footer.footer-bg .footer-inner {
   flex-shrink: 0;
 }
 
-/* "All" button — PDF: MerriweatherSans-Regular (400), visibly heavier than A–Z Light (300).
-   margin-right 24px creates the visible gap seen in the PDF between "All" and "A". */
+/* "All" button — PDF: bold, visibly heavier than A–Z letters. */
 .cl-az-btn--all {
   margin-right: 40px;
   margin-left: 2px;
   color: var(--ajab-ink-300);
-  font-weight: 300;
+  font-weight: 600;
 }
 
 .cl-az-btn.active {
@@ -332,16 +338,16 @@ body:has(.cl-home-page-root) footer.footer-bg .footer-inner {
   font-weight: 400;
 }
 
-/* When "All" is active, color it pink and reduce its boldness to 300. */
+/* When "All" is active, keep bold weight. */
 .cl-az-btn--all.active {
   color: var(--ajab-pink-primary) !important;
-  font-weight: 300 !important;
+  font-weight: 600 !important;
 }
 
-/* Reflections/People: All stays grey until filters are selected. */
+/* Reflections/People: All stays grey until filters are selected — keep bold. */
 .cl-az-btn--all.cl-az-btn--all-idle {
   color: var(--ajab-ink-300) !important;
-  font-weight: 300 !important;
+  font-weight: 600 !important;
 }
 
 .cl-az-btn:hover {

@@ -188,7 +188,7 @@ body:has(.clrd-page) .floating-actions {
 .clr-card-mediatype {
   font-family: var(--ajab-font-sans);
   font-weight: 300;
-  font-size: var(--ajab-fs-micro);
+  font-size: var(--ajab-fs-tag);
   color: var(--ajab-ink-300);
   letter-spacing: 0.04em;
   text-align: right;
