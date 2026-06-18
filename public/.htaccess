@@ -1,27 +1,30 @@
-# ── Ajab Shahar static Next.js export — Apache rewrite rules ──────────────
+# -- Ajab Shahar static Next.js export - Apache rewrite rules --
 # The site lives under /new/ (basePath).
-# Next.js static export produces extensionless URLs (e.g. songs/details/252)
-# but the actual files on disk are 252.html.  These rules map one to the other.
-# ──────────────────────────────────────────────────────────────────────────
+# -----------------------------------------------------------------------
 
 Options -Indexes
 
 RewriteEngine On
 RewriteBase /new/
 
-# ① Let real files and directories pass through unchanged
-RewriteCond %{REQUEST_FILENAME} !-f
-RewriteCond %{REQUEST_FILENAME} !-d
+# 1. Real files (JS, CSS, images, fonts) - serve directly
+RewriteCond %{REQUEST_FILENAME} -f
+RewriteRule ^ - [L]
 
-# ② If appending .html resolves to a real file, serve it transparently
+# 2. If path.html exists on disk, serve it (listing pages: /songs, /films, etc.)
 RewriteCond %{DOCUMENT_ROOT}/new/$1.html -f
-RewriteRule ^(.+)$ $1.html [L]
+RewriteRule ^(.+?)/?$ $1.html [L]
 
-# ③ SPA fallback — anything else falls back to the root index.html
-#    (handles client-side routes that have no pre-built .html)
-RewriteCond %{REQUEST_FILENAME} !-f
-RewriteCond %{REQUEST_FILENAME} !-d
+# 3. Detail page SPA fallbacks - serve the correct section shell
+#    Each shell hydrates with the right component; useParams() reads the real URL id.
+RewriteRule ^songs/details/ songs/details/0.html [L]
+RewriteRule ^reflections/details/ reflections/details/0.html [L]
+RewriteRule ^films/details/ films/details/0.html [L]
+RewriteRule ^poems/[^/]+ poems/0.html [L]
+RewriteRule ^people/[^/]+ people/0.html [L]
+
+# 4. Final fallback for any other unknown path
 RewriteRule ^ /new/index.html [L]
 
-# ④ Custom 404 page
+# Custom 404 page
 ErrorDocument 404 /new/404.html

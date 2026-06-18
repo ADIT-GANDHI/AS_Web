@@ -7,6 +7,7 @@ import Loader from '@/components/Loader';
 import '@/components/Songs/CLSongs.css';
 import '@/styles/CustomStyle.css';
 import { useContext, useEffect, useState } from 'react';
+import { useParams } from 'next/navigation';
 import { AJAB_API_BASE } from '@/lib/ajabEnv';
 import { parseCatalogTotal } from '@/lib/parseCatalogTotal';
 import { MOCK_DETAIL, MOCK_VERSIONS, MOCK_RELATED } from '@/components/Songs/CLdetailMocks';
@@ -16,7 +17,9 @@ function SongsLoadingShell() {
   return <Loader />;
 }
 
-export default function CLSongDetailsClient({ id }: { id: string }) {
+export default function CLSongDetailsClient({ id: idProp }: { id: string }) {
+  const params = useParams();
+  const id = (params?.id as string) || idProp;
   const { setSongsNavTotal } = useContext(SongsNavCountContext);
   const [song, setSong] = useState<any>(null);
   const [songVersions, setSongVersions] = useState<any[]>([]);

@@ -4,6 +4,7 @@
 // and renders the title/saysBy header, YouTube embed, description and related section.
 
 import { useEffect, useMemo, useRef, useState, useContext } from 'react';
+import { useParams } from 'next/navigation';
 import LiteYouTubeEmbed from 'react-lite-youtube-embed';
 import 'react-lite-youtube-embed/dist/LiteYouTubeEmbed.css';
 import Link from 'next/link';
@@ -132,7 +133,9 @@ function ReflectionDescription({ text }: { text: string }) {
 // [Claude] these changes have been recommended by claude — fullscreen loader: pure white + logo only, no chrome
 function LoadingShell() { return <Loader />; }
 
-export default function CLReflectionDetail({ id }: { id?: string }) {
+export default function CLReflectionDetail({ id: idProp }: { id?: string }) {
+  const params = useParams();
+  const id = (params?.id as string) || idProp;
   const shellRef = useRef<HTMLDivElement>(null);
   const { setReflectionsNavTotal } = useContext(ReflectionsNavCountContext);
   const [data, setData] = useState<ReflectionDetail | null>(null);

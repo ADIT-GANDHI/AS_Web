@@ -6,6 +6,7 @@ import Loader from '@/components/Loader';
 import Link from 'next/link';
 import { ChevronLeft, Volume2 } from 'lucide-react';
 import { useEffect, useMemo, useState } from 'react';
+import { useParams } from 'next/navigation';
 import { AJAB_API_BASE } from '@/lib/ajabEnv';
 import { CLGlossaryPopup, CLPlayerPopup } from '@/components/Poems/CLPoemPopups';
 import GlossaryStrip from '@/components/shared/GlossaryStrip';
@@ -96,7 +97,9 @@ function PoemsLoadingShell() {
   return <Loader />;
 }
 
-export default function CLPoemDetailClient({ id }: { id: string }) {
+export default function CLPoemDetailClient({ id: idProp }: { id: string }) {
+  const params = useParams();
+  const id = (params?.id as string) || idProp;
   const [poem, setPoem] = useState<PoemDetail | null>(null);
   const [loading, setLoading] = useState(true);
   const [script, setScript] = useState<Script>('transliteration');

@@ -4,6 +4,7 @@
 // and renders the bio with gallery wrap, caption row and related section.
 
 import { useEffect, useMemo, useRef, useState } from 'react';
+import { useParams } from 'next/navigation';
 import Link from 'next/link';
 import { ChevronLeft } from 'lucide-react';
 import Footer from '@/components/Footer';
@@ -68,7 +69,9 @@ function mapApiItem(it: any): PersonDetail {
 // [Claude] these changes have been recommended by claude — fullscreen loader: pure white + logo only, no chrome
 function LoadingShell() { return <Loader />; }
 
-export default function CLPeopleDetail({ id }: { id?: string }) {
+export default function CLPeopleDetail({ id: idProp }: { id?: string }) {
+  const params = useParams();
+  const id = (params?.id as string) || idProp;
   const shellRef = useRef<HTMLDivElement>(null);
   const [person, setPerson] = useState<PersonDetail | null>(null);
   const [loading, setLoading] = useState(true);
