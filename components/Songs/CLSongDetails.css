@@ -96,13 +96,13 @@
    Widths scale from PDF/Figma artboard (1925 pt) so video + related match Page 3 proportions. ── */
 .cld-detail-body-align {
   --cld-artboard-w: 1925;
-  --cld-media-max-width: min(1027px, calc(100vw * (var(--cld-pdf-col-right) - var(--cld-pdf-col-x)) / var(--cld-artboard-w)));
-  --cld-about-max-width: min(1004px, calc(100vw * 1004 / var(--cld-artboard-w)));
-  --cld-related-max-width: min(1034px, calc(100vw * 1034 / var(--cld-artboard-w)));
+  --cld-media-max-width: min(800px, 100%);
+  --cld-about-max-width: min(800px, 100%);
+  --cld-related-max-width: min(836px, 100%);
   --cld-related-thumb-w: min(280px, calc(100vw * 280 / var(--cld-artboard-w)));
   --cld-related-thumb-h: min(156px, calc(100vw * 156 / var(--cld-artboard-w)));
-  max-width: 1100px;
-  margin-left: var(--cld-rail-margin-left);
+  max-width: 920px;
+  margin-left: auto;
   margin-right: auto;
   padding-left: var(--cld-rail-inset);
   box-sizing: border-box;
@@ -112,13 +112,12 @@
    Revert baseline: components/Songs/CLSongDetails.carousel-revert.md ── */
 .cld-versions-section {
   --cld-version-card-w: 250px;
-  --cld-version-thumb-h: 130px;
-  --cld-version-gap: 35px;
+  --cld-version-thumb-h: 120px;
+  --cld-version-gap: 25px;
   --cld-artboard-w: 1925;
   margin: 0 auto var(--cld-gap-versions-header);
-  margin-left: var(--cld-rail-margin-left);
-  margin-right: auto;
-  max-width: 1100px;
+  max-width: 920px;
+  box-sizing: border-box;
 }
 
 /* REVERT: margin was 22px auto 40px */
@@ -154,48 +153,49 @@
 
 .cld-versions-slider-wrap {
   position: relative;
-  display: flex;
-  align-items: center;
-  gap: var(--cld-version-nav-gap);
-  /* Left-align rail so first card shares the same column edge as video/about.
-     Chevrons sit in-flow before the slider; body-align padding-left must match
-     nav width + gap (44 + 16 = 60px). Do NOT center this wrap — that breaks alignment. */
-  max-width: calc(3 * var(--cld-version-card-w) + 2 * var(--cld-version-gap) + 2 * var(--cld-version-nav-w) + 2 * var(--cld-version-nav-gap));
-  margin-left: 0;
+  max-width: 800px;
+  margin-left: auto;
   margin-right: auto;
 }
 
 /* REVERT: gap was 16px; no max-width on wrap */
 
 .cld-slider-nav {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
   width: var(--cld-version-nav-w);
-  height: var(--cld-version-nav-w);
-  background: #ffffff;
-  border: 1px solid rgba(177, 177, 177, 0.28);
-  border-radius: 999px;
-  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.08);
+  height: 64px;
+  background: transparent;
+  border: none;
+  box-shadow: none;
   cursor: pointer;
-  color: var(--ajab-ink-400);
-  flex-shrink: 0;
+  color: #777;
   display: flex;
   align-items: center;
   justify-content: center;
-  position: relative;
+  padding: 0;
   z-index: 2;
-  transition: color 0.15s ease, border-color 0.15s ease, box-shadow 0.15s ease;
+  transition: color 0.15s ease;
+}
+
+.cld-slider-nav:first-child {
+  right: calc(100% + var(--cld-version-nav-gap));
+}
+
+.cld-slider-nav:last-child {
+  left: calc(100% + var(--cld-version-nav-gap));
 }
 
 /* REVERT: width 44px; height 64px */
 
 .cld-slider-nav:hover {
-  color: var(--ajab-pink-primary);
-  border-color: rgba(227, 30, 121, 0.32);
-  box-shadow: 0 2px 14px rgba(227, 30, 121, 0.18);
+  color: var(--ajab-ink-900);
 }
 
 .cld-slider-nav svg {
-  width: 30px;
-  height: 30px;
+  width: 28px;
+  height: 52px;
 }
 
 /* REVERT: svg 36px */
@@ -205,13 +205,10 @@
   gap: var(--cld-version-gap);
   overflow-x: auto;
   overflow-y: hidden;
-  /* prevents vertical scroll bug */
   scroll-behavior: smooth;
   scrollbar-width: none;
-  flex: 1;
-  min-width: 0;
-  padding: 0 0 36px;
-  /* gives enough space for absolute bottom shadow */
+  width: 100%;
+  padding: 0 0 24px;
 }
 
 /* REVERT: gap 66px; padding 8px 0 48px */
@@ -223,7 +220,7 @@
 .cld-version-card {
   --wc-width: var(--cld-version-card-w);
   --wc-thumb-h: var(--cld-version-thumb-h);
-  flex: 0 0 var(--cld-version-card-w);
+  flex: 0 0 250px;
 }
 
 /* REVERT: --wc-width var(--ajab-card-w); --wc-thumb-h 156px; flex 0 0 var(--ajab-card-w) */
@@ -236,9 +233,9 @@
 
 .cld-version-card-body {
   --ajab-card-body-pad-t: 12px;
-  --ajab-card-body-pad-x: 16px;
-  --ajab-card-body-pad-b: 42px;
-  padding: 12px 16px 42px;
+  --ajab-card-body-pad-x: 14px;
+  --ajab-card-body-pad-b: 14px;
+  padding: 12px 14px 14px;
 }
 
 /* REVERT: padding 12px 14px 14px */
@@ -589,11 +586,22 @@
 
 /* CMS HTML — base normal; only <em>/<i> italic (matches ajabshahar.com). */
 .cld-lyrics--html p {
-  margin: 0 0 1.05em;
+  margin: 0 0 0.2em;
 }
 
 .cld-lyrics--html p:last-child {
   margin-bottom: 0;
+}
+
+/* Reset pre-wrap for CMS HTML path — the \n\n text nodes between <p> tags
+   would render as blank lines under white-space:pre-wrap on the parent. */
+.cld-lyrics--html {
+  white-space: normal;
+}
+
+/* Stanza separator — replaces blank <p>&nbsp;</p> CMS tags */
+.cld-lyrics--html .cld-lyric-sep {
+  height: 1.2em;
 }
 
 .cld-lyrics em,
@@ -1018,6 +1026,13 @@
   max-width: var(--cld-related-max-width);
 }
 
+/* Lift the glossary strip above the footer (z-index: 10, margin-top: -120px)
+   so hover and click events are not intercepted by the footer overlay. */
+.cld-glossary-align {
+  position: relative;
+  z-index: 11;
+}
+
 /* ── Keywords Block ── */
 .cld-keywords-wrap {
   text-align: center;
@@ -1054,12 +1069,12 @@
   }
 
   .cld-version-card {
-    --wc-width: 240px;
-    flex: 0 0 240px;
+    --wc-width: 220px;
+    flex: 0 0 220px;
   }
 
   .cld-versions-slider {
-    gap: 28px;
+    gap: 20px;
   }
 }
 

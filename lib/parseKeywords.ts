@@ -64,3 +64,32 @@ export function keywordsFromRelatedBucket(keywords: unknown[]): string[] {
   }
   return out;
 }
+
+/** Related API keywords bucket → { term, meaning } pairs for GlossaryStrip.
+ *  Reads word_transliteration as the display term and word_translation as
+ *  the English meaning. Shows all entries that have both fields populated. */
+export function glossaryTermsFromKeywords(
+  keywords: unknown[]
+): Array<{ term: string; meaning: string }> {
+  if (!Array.isArray(keywords)) return [];
+  const seen = new Set<string>();
+  const out: Array<{ term: string; meaning: string }> = [];
+  for (const k of keywords) {
+    const term = String(
+      (k as Record<string, unknown>)?.word_transliteration || ''
+    )
+      .replace(/\s+/g, ' ')
+      .trim();
+    const meaning = String(
+      (k as Record<string, unknown>)?.word_translation || ''
+    )
+      .replace(/\s+/g, ' ')
+      .trim();
+    const key = term.toLowerCase();
+    if (term.length > 1 && meaning.length > 0 && !seen.has(key)) {
+      seen.add(key);
+      out.push({ term, meaning });
+    }
+  }
+  return out;
+}

@@ -110,6 +110,25 @@ export default function CLFilterPanel({
   const [mounted, setMounted] = useState(false);
   const [activeCategory, setActiveCategory] = useState<FilterType>('Singer');
 
+  // Tracks the header's current bottom edge in the viewport so the filter content
+  // starts exactly below the header at page-top and fills the full panel when scrolled.
+  const [headerBottom, setHeaderBottom] = useState(191);
+  useEffect(() => {
+    if (!open) return;
+    let rafId: number;
+    let last = -1;
+    const tick = () => {
+      const header = document.querySelector('header');
+      if (header) {
+        const b = Math.max(0, Math.round(header.getBoundingClientRect().bottom));
+        if (b !== last) { last = b; setHeaderBottom(b); }
+      }
+      rafId = requestAnimationFrame(tick);
+    };
+    rafId = requestAnimationFrame(tick);
+    return () => cancelAnimationFrame(rafId);
+  }, [open]);
+
   // Issue 11: List of singers should continue till the end of the screen.
   // We use a dynamic calculation based on clientHeight instead of hardcoded LIST_MAX_H.
   const [listMaxHeight, setListMaxHeight] = useState(480);
@@ -303,11 +322,11 @@ export default function CLFilterPanel({
                       flexDirection: 'column',
                       flex: '1 1 auto',
                       minHeight: 0,
-                      paddingTop: FILTER_DRAWER_CONTENT_INSET_TOP,
+                      paddingTop: `${headerBottom}px`,
                       boxSizing: 'border-box',
                     }}
                   >
-                  <div style={{ padding: '20px 44px 0', flex: '0 0 auto' }}>
+                  <div style={{ padding: '24px 44px 0', flex: '0 0 auto' }}>
                     <div style={{ height: '1px', background: '#B1B1B1' }} />
                     <div
                       style={{
@@ -399,39 +418,6 @@ export default function CLFilterPanel({
                     <div style={{ height: '1px', background: '#B1B1B1' }} />
                   </div>
 
-                  {selectedFilters.length > 0 && (
-                    <div
-                      style={{
-                        padding: '12px 44px 0',
-                        display: 'flex',
-                        flexWrap: 'wrap',
-                        gap: '8px',
-                        flex: '0 0 auto',
-                      }}
-                    >
-                      {selectedFilters.map(({ type, value }) => (
-                        <button
-                          key={`${type}-${value}`}
-                          type="button"
-                          onClick={() => onRemoveFilter(type, value)}
-                          style={{
-                            fontFamily: FONT,
-                            fontSize: '14px',
-                            fontWeight: 300,
-                            color: '#E31E79',
-                            background: 'rgba(227, 30, 121, 0.07)',
-                            border: '1px solid rgba(227, 30, 121, 0.35)',
-                            borderRadius: '99px',
-                            padding: '4px 10px',
-                            cursor: 'pointer',
-                          }}
-                        >
-                          {value} ×
-                        </button>
-                      ))}
-                    </div>
-                  )}
-
                   {/* ── Filter list ── */}
                   <div style={{ position: 'relative', paddingLeft: '44px', paddingRight: '72px', flex: '1 1 0%', minHeight: 0, display: 'flex', flexDirection: 'column' }}>
                     <div
@@ -514,11 +500,69 @@ export default function CLFilterPanel({
                   {(showClearAllAlways || selectedFilters.length > 0) && onClearAll && (
                     <div
                       style={{
-                        padding: '16px 44px 28px',
-                        borderTop: '1px solid #E0E0E0',
+                        padding: '14px 44px 28px',
+                        borderTop: '1px solid #B1B1B1',
                         flex: '0 0 auto',
                       }}
                     >
+                      {/* Selected items — plain text + pink ×, 2 per row (PDF spec) */}
+                      {selectedFilters.length > 0 && (
+                        <div
+                          style={{
+                            display: 'grid',
+                            gridTemplateColumns: '1fr 1fr',
+                            rowGap: 0,
+                            columnGap: '8px',
+                            marginBottom: '6px',
+                          }}
+                        >
+                          {selectedFilters.map(({ type, value }) => (
+                            <button
+                              key={`${type}-${value}`}
+                              type="button"
+                              onClick={() => onRemoveFilter(type, value)}
+                              style={{
+                                fontFamily: FONT,
+                                fontSize: '17px',
+                                fontWeight: 300,
+                                color: '#6F6F72',
+                                background: 'none',
+                                border: 'none',
+                                cursor: 'pointer',
+                                padding: '5px 0',
+                                textAlign: 'left',
+                                display: 'flex',
+                                alignItems: 'center',
+                                gap: '5px',
+                                minWidth: 0,
+                              }}
+                            >
+                              <span
+                                style={{
+                                  overflow: 'hidden',
+                                  textOverflow: 'ellipsis',
+                                  whiteSpace: 'nowrap',
+                                  minWidth: 0,
+                                }}
+                              >
+                                {value}
+                              </span>
+                              <span
+                                style={{
+                                  color: '#E31E79',
+                                  fontWeight: 400,
+                                  flexShrink: 0,
+                                  lineHeight: 1,
+                                }}
+                              >
+                                ×
+                              </span>
+                            </button>
+                          ))}
+                        </div>
+                      )}
+
+                      {/* CLEAR ALL */}
                       <button
                         type="button"
                         onClick={() => {
@@ -535,7 +579,8 @@ export default function CLFilterPanel({
                           border: 'none',
                           cursor: 'pointer',
                           textTransform: 'uppercase',
-                          padding: 0,
+                          padding: '4px 0 0',
+                          display: 'block',
                         }}
                       >
                         Clear all

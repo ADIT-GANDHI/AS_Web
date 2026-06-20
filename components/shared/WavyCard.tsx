@@ -80,19 +80,14 @@ export default function WavyCard({
             src={imageSrc}
             alt={imageAlt}
             onError={(e) => {
-              // Replace broken / empty thumbnails with a clean placeholder that
-              // matches the card's cream palette — avoids the ugly broken-image icon.
               const t = e.currentTarget;
               t.onerror = null; // prevent infinite loop
-              t.style.objectFit = 'contain';
-              t.style.background = '#f0ece5';
-              t.src = "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='280' height='141' viewBox='0 0 280 141'%3E%3Crect width='280' height='141' fill='%23f0ece5'/%3E%3Ccircle cx='140' cy='65' r='22' fill='none' stroke='%23E31E79' stroke-width='1.5' opacity='0.5'/%3E%3Cpath d='M132 65 L132 56 L150 65 L132 74 Z' fill='%23E31E79' opacity='0.5'/%3E%3C/svg%3E";
+              t.src = '/placeholder.svg';
             }}
           />
         ) : (
-          // No src at all — render placeholder directly
           <img
-            src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='280' height='141' viewBox='0 0 280 141'%3E%3Crect width='280' height='141' fill='%23f0ece5'/%3E%3Ccircle cx='140' cy='65' r='22' fill='none' stroke='%23E31E79' stroke-width='1.5' opacity='0.5'/%3E%3Cpath d='M132 65 L132 56 L150 65 L132 74 Z' fill='%23E31E79' opacity='0.5'/%3E%3C/svg%3E"
+            src="/placeholder.svg"
             alt={imageAlt}
             style={{ objectFit: 'contain', background: '#f0ece5' }}
           />

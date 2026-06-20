@@ -70,6 +70,7 @@
 .gs-term:hover .gs-term-word,
 .gs-term:focus-visible .gs-term-word {
   color: var(--ajab-pink-related);
+  text-shadow: 0 0 12px rgba(237, 30, 121, 0.35);
 }
 
 a.gs-term {

@@ -108,6 +108,17 @@ body:has(.cl-home-page-root) footer.footer-bg {
   z-index: 10;
 }
 
+/* The footer's negative-margin wave overlaps the glossary strip on the
+   detail page, blocking hover/click events. Disable pointer events on the
+   footer shell (transparent wave region) and re-enable on all real content
+   inside it so footer links still work. */
+body:has(.cld-page) footer.footer-bg {
+  pointer-events: none;
+}
+body:has(.cld-page) footer.footer-bg * {
+  pointer-events: auto;
+}
+
 /* Drop 100vw full-bleed when a vertical scrollbar is present — `50% - 50vw` shifts
    the footer right once the page is tall enough to scroll (after API/content load). */
 body:has(.cld-page) footer.footer-bg,

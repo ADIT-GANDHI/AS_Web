@@ -2,22 +2,33 @@
 
 import { useCallback, useEffect, useMemo, useRef, useState, useContext, type ReactNode } from 'react';
 
-/** Shows description text wrapped in curly quotes — but only when the text
- *  is short enough to fit without being clamped (max 4 lines at ~14px).
- *  Uses a ref to measure scroll vs client height after paint. */
+/** Strip surrounding quotes/whitespace so we can wrap consistently. */
+function normalizeCardDesc(text: string): string {
+  if (!text) return '';
+  return text.replace(/^[\s"'“”]+/, '').replace(/[\s"'“”]+$/, '').trim();
+}
+
+/** Card excerpt — always opens with “; closing ” only when text fits without clamping. */
 function CardDesc({ text }: { text: string }) {
   const ref = useRef<HTMLParagraphElement>(null);
-  const [clamped, setClamped] = useState(true); // start conservative (no quotes)
+  const [clamped, setClamped] = useState(true);
+  const cleaned = useMemo(() => normalizeCardDesc(text), [text]);
 
   useEffect(() => {
     const el = ref.current;
     if (!el) return;
-    setClamped(el.scrollHeight > el.clientHeight + 2); // 2px tolerance
-  }, [text]);
+    setClamped(el.scrollHeight > el.clientHeight + 2);
+  }, [cleaned]);
+
+  const display = cleaned
+    ? clamped
+      ? `\u201C${cleaned}`
+      : `\u201C${cleaned}\u201D`
+    : '';
 
   return (
     <p ref={ref} className="clr-card-desc">
-      {!clamped && text ? `\u201C${text}\u201D` : text}
+      {display}
     </p>
   );
 }

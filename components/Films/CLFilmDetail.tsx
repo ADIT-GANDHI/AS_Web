@@ -386,24 +386,24 @@ export default function CLFilmDetail({ id: idProp }: { id?: string }) {
                 </div>
               )}
 
-              <div className="clfd-header">
-                <div className="clfd-header-titlerow">
-                  <span className="clfd-header-title">{data.title}</span>
+            <div className="clfd-header">
+              <div className="clfd-header-titlerow">
+                <span className="clfd-header-title">{data.title}</span>
                   {data.subtitle && (
-                    <span className="clfd-header-subtitle">{data.subtitle}</span>
+                <span className="clfd-header-subtitle">{data.subtitle}</span>
                   )}
                 </div>
                 {data.director && (
                   <div className="clfd-header-byline">
                     Film by <span className="caps">{data.director}</span>
-                  </div>
+              </div>
                 )}
                 {(data.duration || data.year) && (
-                  <div className="clfd-header-meta">
+              <div className="clfd-header-meta">
                     {[data.duration, data.year].filter(Boolean).join(', ')}
                   </div>
                 )}
-              </div>
+            </div>
 
               {/* [Claude] these changes have been recommended by claude —
                   Order fixed to match PDF: video → language pills → description.
@@ -411,8 +411,8 @@ export default function CLFilmDetail({ id: idProp }: { id?: string }) {
               {activeFilmTab === 'film' ? (
                 <>
                   <div className="clfd-media-stage">
-                    <div className="clfd-video-wrap">
-                      {videoId ? (
+            <div className="clfd-video-wrap">
+              {videoId ? (
                         <LiteYouTubeEmbed
                           key={videoId}
                           id={videoId}

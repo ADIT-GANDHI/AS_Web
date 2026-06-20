@@ -14,7 +14,7 @@ import WavyCard from '@/components/shared/WavyCard';
 import KeywordCloud from '@/components/shared/KeywordCloud';
 import './CLSongs.css'; // for the root marble bg + floating button overrides
 import './CLSongDetails.css';
-import { keywordsFromRelatedBucket } from '@/lib/parseKeywords';
+import { keywordsFromRelatedBucket, glossaryTermsFromKeywords } from '@/lib/parseKeywords';
 import { resolveCmsAssetUrl, withAppBasePath } from '@/lib/resolveCmsAssetUrl';
 
 type Script = 'devanagari' | 'transliteration' | 'english';
@@ -90,6 +90,16 @@ function SongAboutClamp({ html }: { html: string }) {
   );
 }
 
+/** Strip blank CMS paragraphs and convert them into stanza-break markers. */
+function cleanLyricsHtml(html: string): string {
+  if (!html) return html;
+  return html
+    // blank <p> = only whitespace / &nbsp; / <br> variants → stanza break marker
+    .replace(/<p[^>]*>(\s|&nbsp;|<br\s*\/?>)*<\/p>/gi, '<div class="cld-lyric-sep"></div>')
+    // collapse consecutive separators into one
+    .replace(/(<div class="cld-lyric-sep"><\/div>\s*){2,}/gi, '<div class="cld-lyric-sep"></div>');
+}
+
 /** First non-empty string from CMS fields (string or nested getText object). */
 function firstLyricsField(...vals: any[]): string {
   for (const v of vals) {
@@ -155,28 +165,19 @@ function relatedEntryKey(bucket: string, item: any, index: number): string {
 }
 
 function buildAllRelatedEntries(buckets: {
-  keywords: any[];
   songs: any[];
   poems: any[];
   reflections: any[];
   other: any[];
 }): RelatedListEntry[] {
-  const { keywords, songs, poems, reflections, other } = buckets;
-  const blocks: Array<[string, any[]]> =
-    keywords.length > 0
-      ? [
-        ['keywords', keywords],
-        ['songs', songs],
-        ['poems', poems],
-        ['reflections', reflections],
-        ['other', other],
-      ]
-      : [
-        ['songs', songs],
-        ['poems', poems],
-        ['reflections', reflections],
-        ['other', other],
-      ];
+  const { songs, poems, reflections, other } = buckets;
+  // Keywords are shown in the KeywordCloud strip — exclude them from the list.
+  const blocks: Array<[string, any[]]> = [
+    ['songs', songs],
+    ['poems', poems],
+    ['reflections', reflections],
+    ['other', other],
+  ];
   return blocks.flatMap(([bucket, items]) => items.map((item) => ({ bucket, item })));
 }
 
@@ -341,12 +342,27 @@ export default function CLSongDetailsPage({
     const songs = sortRelatedByTitle(relatedBucket(relatedData, 'songs'));
     const poems = sortRelatedByTitle(relatedBucket(relatedData, 'poems'));
     const reflections = sortRelatedByTitle(relatedBucket(relatedData, 'reflections'));
-    const other = sortRelatedByTitle(relatedBucket(relatedData, 'other'));
+    // Merge people + films + any legacy "other" key into the OTHER tab
+    const other = sortRelatedByTitle([
+      ...relatedBucket(relatedData, 'people'),
+      ...relatedBucket(relatedData, 'films'),
+      ...relatedBucket(relatedData, 'other'),
+    ]);
     return { keywords, songs, poems, reflections, other };
   }, [relatedData]);
 
   const keywords = useMemo(
     () => keywordsFromRelatedBucket(relatedBuckets.keywords as unknown[]),
+    [relatedBuckets.keywords]
+  );
+
+  // GlossaryStrip terms — live API keywords with { term, meaning } pairs.
+  // Falls back to the hardcoded mock when the API returns no usable keywords.
+  const glossaryTerms = useMemo(
+    () => glossaryTermsFromKeywords(relatedBuckets.keywords as unknown[]).map((t) => ({
+      ...t,
+      href: `/searche?search=${encodeURIComponent(t.term)}`,
+    })),
     [relatedBuckets.keywords]
   );
 
@@ -356,14 +372,17 @@ export default function CLSongDetailsPage({
   const songsCount = relatedCounts.songs || relatedBuckets.songs.length;
   const poemsCount = relatedCounts.poems || relatedBuckets.poems.length;
   const reflectionsCount = relatedCounts.reflections || relatedBuckets.reflections.length;
-  const otherCount = relatedCounts.other || relatedBuckets.other.length;
+  const otherCount =
+    relatedCounts.other ||
+    (relatedCounts.people || 0) + (relatedCounts.films || 0) ||
+    relatedBuckets.other.length;
   const tabs: Array<{ key: typeof activeTab; label: string; count: number }> = [
     {
       key: 'all',
       label: 'ALL',
       count:
         relatedCounts.all ||
-        keywordsCount + songsCount + poemsCount + reflectionsCount + otherCount,
+        songsCount + poemsCount + reflectionsCount + otherCount,
     },
     { key: 'songs', label: 'SONGS', count: songsCount },
     { key: 'poems', label: 'POEMS', count: poemsCount },
@@ -373,7 +392,8 @@ export default function CLSongDetailsPage({
 
   const visibleRelatedEntries = useMemo((): RelatedListEntry[] => {
     if (activeTab === 'all') {
-      return buildAllRelatedEntries(relatedBuckets);
+      const { songs, poems, reflections, other } = relatedBuckets;
+      return buildAllRelatedEntries({ songs, poems, reflections, other });
     }
     const items = relatedBuckets[activeTab] || [];
     return items.map((item) => ({ bucket: activeTab, item }));
@@ -409,16 +429,17 @@ export default function CLSongDetailsPage({
                 <div className="cld-versions-title-rule" aria-hidden="true" />
               </div>
               <div className="cld-versions-slider-wrap">
-                {versionCards.length > 1 && (
-                  <button
-                    type="button"
-                    className="cld-slider-nav"
-                    onClick={() => scrollVersions('left')}
-                    aria-label="Previous song version"
-                  >
-                  <ChevronLeft size={26} strokeWidth={2.4} />
+                {/* Always render nav buttons so first card edge aligns with video below.
+                    Hide them visually when there is only one version. */}
+                <button
+                  type="button"
+                  className="cld-slider-nav"
+                  onClick={() => scrollVersions('left')}
+                  aria-label="Previous song version"
+                  style={{ visibility: versionCards.length > 1 ? 'visible' : 'hidden' }}
+                >
+                  <ChevronLeft size={28} strokeWidth={2.8} />
                 </button>
-                )}
                 <div className="cld-versions-slider" ref={sliderRef}>
                   {versionCards.map((card, idx) => (
                     // Figma 361:1437 / 361:1444 / 361:1456 — current version
@@ -449,16 +470,15 @@ export default function CLSongDetailsPage({
                     </WavyCard>
                   ))}
                 </div>
-                {versionCards.length > 1 && (
-                  <button
-                    type="button"
-                    className="cld-slider-nav"
-                    onClick={() => scrollVersions('right')}
-                    aria-label="Next song version"
-                  >
-                  <ChevronRight size={26} strokeWidth={2.4} />
+                <button
+                  type="button"
+                  className="cld-slider-nav"
+                  onClick={() => scrollVersions('right')}
+                  aria-label="Next song version"
+                  style={{ visibility: versionCards.length > 1 ? 'visible' : 'hidden' }}
+                >
+                  <ChevronRight size={28} strokeWidth={2.8} />
                 </button>
-                )}
               </div>
             </section>
 
@@ -550,7 +570,7 @@ export default function CLSongDetailsPage({
             {lyricsHtml ? (
               <div
                 className="cld-lyrics cld-lyrics--html"
-                dangerouslySetInnerHTML={{ __html: lyricsHtml }}
+                dangerouslySetInnerHTML={{ __html: cleanLyricsHtml(lyricsHtml) }}
               />
             ) : (
             <div className="cld-lyrics">
@@ -735,7 +755,16 @@ export default function CLSongDetailsPage({
 
             {/* ===== Glossary strip — aligned to video/related column (Figma 361:1569) ===== */}
             <div className="cld-detail-body-align cld-glossary-align">
-              <GlossaryStrip rows={[GLOSSARY_TERMS_LINE_1, GLOSSARY_TERMS_LINE_2]} />
+              <GlossaryStrip
+                terms={
+                  glossaryTerms.length > 0
+                    ? glossaryTerms
+                    : [...GLOSSARY_TERMS_LINE_1, ...GLOSSARY_TERMS_LINE_2].map((t) => ({
+                        ...t,
+                        href: `/searche?search=${encodeURIComponent(t.term)}`,
+                      }))
+                }
+              />
             </div>
           </div>
         </main>
