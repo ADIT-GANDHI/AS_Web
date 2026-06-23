@@ -11,7 +11,7 @@ await page.goto('http://localhost:3000/songs', { waitUntil: 'networkidle', timeo
 await page.click('button:has-text("Filters")');
 await page.waitForTimeout(800);
 
-const lis = page.locator('.ajab-filter-list li');
+const lis = page.locator('.cl-filter-parda-list li:not(.is-empty)');
 for (const i of [0, 2, 3, 4]) {
   await lis.nth(i).click();
   await page.waitForTimeout(200);
@@ -19,46 +19,28 @@ for (const i of [0, 2, 3, 4]) {
 await page.waitForTimeout(400);
 
 async function measure(label, scrollPx) {
-  const list = page.locator('.ajab-filter-list');
+  const list = page.locator('.cl-filter-parda-list');
   if (scrollPx) await list.evaluate((el, y) => { el.scrollTop = y; }, scrollPx);
   await page.waitForTimeout(300);
 
   const m = await page.evaluate(() => {
-    const panels = [...document.querySelectorAll('div')].filter((d) => {
-      const s = getComputedStyle(d);
-      return s.position === 'fixed' && s.left === '0px' && s.width === '422px';
-    });
-    const panel = panels[0];
-    const listEl = document.querySelector('.ajab-filter-list');
-    const footers = [...document.querySelectorAll('div')].filter((d) => {
-      const s = getComputedStyle(d);
-      return s.borderTopWidth === '1px' && s.borderTopColor === 'rgb(177, 177, 177)' && s.paddingBottom === '28px';
-    });
-    const footer = footers[footers.length - 1];
+    const panel = document.querySelector('.cl-filter-parda-panel');
+    const pardaImg = panel?.querySelector('.cl-filter-parda-bg img');
     const clearBtn = [...document.querySelectorAll('button')].find(
       (b) => b.textContent?.trim().toLowerCase() === 'clear all'
     );
-    const pardaImg = panel?.querySelector('img');
     const pr = panel?.getBoundingClientRect();
-    const fr = footer?.getBoundingClientRect();
-    const cr = clearBtn?.getBoundingClientRect();
     const ir = pardaImg?.getBoundingClientRect();
-
+    const cr = clearBtn?.getBoundingClientRect();
+    const vh = window.innerHeight;
     return {
-      viewportH: window.innerHeight,
-      panelH: pr ? Math.round(pr.height) : null,
+      viewportH: vh,
+      pardaH: ir ? Math.round(ir.height) : null,
       panelBottom: pr ? Math.round(pr.bottom) : null,
-      pardaImgH: ir ? Math.round(ir.height) : null,
-      listScrollTop: listEl ? Math.round(listEl.scrollTop) : 0,
-      listScrollH: listEl?.scrollHeight ?? 0,
-      listClientH: listEl?.clientHeight ?? 0,
-      clearAllBottom: cr ? Math.round(cr.bottom) : null,
-      footerBottom: fr ? Math.round(fr.bottom) : null,
-      gapClearToPanelBottomPx: pr && cr ? Math.round(pr.bottom - cr.bottom) : null,
-      gapFooterToPanelBottomPx: pr && fr ? Math.round(pr.bottom - fr.bottom) : null,
-      gapClearToPanelBottomPct: pr && cr ? +(((pr.bottom - cr.bottom) / pr.height) * 100).toFixed(1) : null,
-      footerPaddingBottomPx: footer ? parseFloat(getComputedStyle(footer).paddingBottom) : null,
-      listPaddingBottomPx: listEl ? parseFloat(getComputedStyle(listEl).paddingBottom) : null,
+      pardaEndsBelowViewport: pr ? Math.round(pr.bottom - vh) : null,
+      gapClearToPardaBottomPx: ir && cr ? Math.round(ir.bottom - cr.bottom) : null,
+      gapClearToPardaBottomPct: ir && cr ? +(((ir.bottom - cr.bottom) / ir.height) * 100).toFixed(1) : null,
+      listScrollTop: document.querySelector('.cl-filter-parda-list')?.scrollTop ?? 0,
     };
   });
 
@@ -67,8 +49,23 @@ async function measure(label, scrollPx) {
 }
 
 const s0 = await measure('scroll0', 0);
-const s1 = await measure('scroll1', Math.round(s0.listClientH * 0.95));
-const s2 = await measure('scroll2', Math.round(s0.listClientH * 1.9));
+const listH = await page.locator('.cl-filter-parda-list').evaluate((el) => el.clientHeight);
+const s1 = await measure('scroll1', Math.round(listH * 0.95));
+const s2 = await measure('scroll2', Math.round(listH * 1.9));
 
-console.log(JSON.stringify({ scroll0: s0, scroll1: s1, scroll2: s2 }, null, 2));
+// Page scroll — parda should end above marble
+await page.evaluate(() => window.scrollTo(0, 400));
+await page.waitForTimeout(300);
+await page.screenshot({ path: path.join(OUT, 'filter-parda-page-scroll.png') });
+const pageScroll = await page.evaluate(() => {
+  const panel = document.querySelector('.cl-filter-parda-panel');
+  const pr = panel?.getBoundingClientRect();
+  return {
+    panelTop: pr ? Math.round(pr.top) : null,
+    panelBottom: pr ? Math.round(pr.bottom) : null,
+    scrollY: window.scrollY,
+  };
+});
+
+console.log(JSON.stringify({ scroll0: s0, scroll1: s1, scroll2: s2, pageScroll }, null, 2));
 await browser.close();

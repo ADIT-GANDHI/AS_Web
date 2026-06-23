@@ -154,29 +154,21 @@ export default function CLSongsIndex() {
   const [catalogTotal, setCatalogTotal] = useState<number | null>(null);
   const [visibleCount, setVisibleCount] = useState(SONGS_PER_PAGE);
 
-  const MAX_FILTERS = 5;
-
   const handleFilterSelect = (type: FilterType, value: string) => {
     if (type === 'Singer') {
-      setSingerNames((prev) => {
-        if (prev.includes(value)) return prev.filter((i) => i !== value);
-        if (prev.length + poetNames.length + themeNames.length >= MAX_FILTERS) return prev;
-        return [...prev, value];
-      });
+      setSingerNames((prev) =>
+        prev.includes(value) ? prev.filter((i) => i !== value) : [...prev, value]
+      );
     }
     if (type === 'Poet') {
-      setPoetNames((prev) => {
-        if (prev.includes(value)) return prev.filter((i) => i !== value);
-        if (singerNames.length + prev.length + themeNames.length >= MAX_FILTERS) return prev;
-        return [...prev, value];
-      });
+      setPoetNames((prev) =>
+        prev.includes(value) ? prev.filter((i) => i !== value) : [...prev, value]
+      );
     }
     if (type === 'Theme') {
-      setThemeNames((prev) => {
-        if (prev.includes(value)) return prev.filter((i) => i !== value);
-        if (singerNames.length + poetNames.length + prev.length >= MAX_FILTERS) return prev;
-        return [...prev, value];
-      });
+      setThemeNames((prev) =>
+        prev.includes(value) ? prev.filter((i) => i !== value) : [...prev, value]
+      );
     }
   };
 
@@ -381,8 +373,6 @@ export default function CLSongsIndex() {
                 availableSingers,
                 availablePoets,
                 availableThemes,
-                maxFilters: MAX_FILTERS,
-                useSongsMockFallback: false,
               }}
               azRow={
                 <div className="cl-az-row">

@@ -23,7 +23,7 @@ export type ListingFilterPanelProps = ListingFilterHandlers &
     availablePoets?: string[];
     availableThemes?: string[];
     categoryLabels?: ListingFilterLabels;
-    /** Max combined chips across all categories (default 5). */
+    /** Max combined chips — omit for unlimited (Songs listing). */
     maxFilters?: number;
     /** Single-column list (e.g. People occupation categories) — hides Singer/Poet/Theme tabs. */
     singleListMode?: boolean;
@@ -31,7 +31,7 @@ export type ListingFilterPanelProps = ListingFilterHandlers &
     filterTriggerAlwaysPink?: boolean;
     /** Show Clear all in drawer footer even when nothing is selected. */
     showClearAllAlways?: boolean;
-    /** Songs module only — fall back to built-in singer/poet mocks when lists are empty. */
+    /** @deprecated Songs listing uses API lists only; prop ignored if removed later. */
     useSongsMockFallback?: boolean;
     /** Hide the default "Filters" trigger (use a custom trigger elsewhere). */
     hideTrigger?: boolean;
