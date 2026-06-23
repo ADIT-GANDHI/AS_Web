@@ -27,10 +27,17 @@
   box-shadow: none;
 }
 
+/* Song detail side cards — positioned by .cld-lyrics-stage, not document flow. */
+.wp-popup.wp-popup--inline.cld-notes-panel,
+.wp-popup.wp-popup--inline.cld-glossary-panel {
+  position: relative;
+}
+
 /* Inline variant — Song Notes (single PNG, full card baked in). */
 .wp-popup--inline {
   width: 332px;
   min-height: 432px;
+  height: 100%;
   padding: 32px 32px 64px 28px;
   background: url('/songs-assets/song_notes.png') center / 100% 100% no-repeat;
 }

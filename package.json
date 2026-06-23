@@ -11,12 +11,14 @@
     "test:e2e:cms": "playwright test e2e/cms-api.spec.ts",
     "capture:song-detail-api-review": "playwright test -c playwright.capture.config.ts",
     "start": "next start",
-    "prebuild": "node -e \"const fs=require('fs');fs.rmSync('.next',{recursive:true,force:true});fs.rmSync('out',{recursive:true,force:true});fs.rmSync('build',{recursive:true,force:true});\" && node scripts/build-songs-listing-bg.mjs && node scripts/build-page-backgrounds.mjs",
+    "prebuild": "node -e \"const fs=require('fs');fs.rmSync('.next',{recursive:true,force:true});fs.rmSync('out',{recursive:true,force:true});fs.rmSync('build',{recursive:true,force:true});\" && node scripts/build-songs-listing-bg.mjs && node scripts/build-song-detail-bg.mjs && node scripts/build-page-backgrounds.mjs",
     "build:songs-bg": "node scripts/build-songs-listing-bg.mjs",
+    "build:song-detail-bg": "node scripts/build-song-detail-bg.mjs",
     "build:page-bg": "node scripts/build-page-backgrounds.mjs",
     "build:reflections-bg": "node scripts/build-page-backgrounds.mjs",
     "build:people-bg": "node scripts/build-page-backgrounds.mjs",
-    "postbuild": "node scripts/fix-basepath-assets.mjs"
+    "postbuild": "node scripts/fix-basepath-assets.mjs",
+    "build:final": "node scripts/build-final.mjs"
   },
   "dependencies": {
     "@hookform/resolvers": "^3.10.0",

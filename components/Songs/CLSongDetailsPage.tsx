@@ -12,12 +12,34 @@ import { CLGlossaryPopup } from '../Poems/CLPoemPopups';
 import GlossaryStrip from '@/components/shared/GlossaryStrip';
 import WavyCard from '@/components/shared/WavyCard';
 import KeywordCloud from '@/components/shared/KeywordCloud';
+import WavyPaperPopup from '@/components/shared/WavyPaperPopup';
 import './CLSongs.css'; // for the root marble bg + floating button overrides
 import './CLSongDetails.css';
+import SongDetailBackground from '@/components/Songs/SongDetailBackground';
 import { keywordsFromRelatedBucket, glossaryTermsFromKeywords } from '@/lib/parseKeywords';
+import { getRelatedDetailHref } from '@/lib/relatedDetailHref';
 import { resolveCmsAssetUrl, withAppBasePath } from '@/lib/resolveCmsAssetUrl';
 
 type Script = 'devanagari' | 'transliteration' | 'english';
+
+function firstExploreSongsText(data: Record<string, unknown> | undefined, keys: string[]): string {
+  if (!data) return '';
+  for (const key of keys) {
+    const value = data[key];
+    if (typeof value === 'string' && value.trim()) return value.trim();
+    const text = getText(value);
+    if (text.trim()) return text.trim();
+  }
+  return '';
+}
+
+function exploreSongsPanelText(
+  data: Record<string, unknown> | undefined,
+  keys: string[]
+): string {
+  const raw = firstExploreSongsText(data, keys);
+  return raw ? htmlToPlainText(raw) : '';
+}
 
 function extractYouTubeId(url?: string): string {
   if (!url || typeof url !== 'string') return '';
@@ -185,10 +207,6 @@ export default function CLSongDetailsPage({
   data,
   songVersions = [],
   related = null,
-}: {
-  data: any;
-  songVersions?: any[];
-  related?: any;
 }) {
   const sliderRef = useRef<HTMLDivElement | null>(null);
   const [script, setScript] = useState<Script>('transliteration');
@@ -282,17 +300,22 @@ export default function CLSongDetailsPage({
       ? lyricsSource
       : '';
   const lyrics: string = lyricsHtml ? '' : htmlToPlainText(lyricsSource);
-  const notesRaw =
-    data?.songnotes ||
-    data?.song_notes ||
-    data?.songNotes ||
-    data?.SongNotes ||
-    data?.song_notes_text ||
-    data?.meta_notes ||
-    data?.songNotesText ||
-    data?.songLyricsNotes ||
-    '';
-  const notesText = htmlToPlainText(typeof notesRaw === 'string' ? notesRaw : getText(notesRaw));
+  const notesText = exploreSongsPanelText(data, [
+    'notes',
+    'songnotes',
+    'song_notes',
+    'songNotes',
+    'songLyricsNotes',
+    'note_text',
+  ]);
+  const glossaryText = exploreSongsPanelText(data, [
+    'glossary',
+    'songglossary',
+    'song_glossary',
+    'songGlossary',
+  ]);
+  const hasNotes = notesText.trim().length > 0;
+  const hasGlossary = glossaryText.trim().length > 0;
   const videoId = extractYouTubeId(data?.youtube_video_id || data?.youtubeVideoId || '');
 
   // Split lyrics into stanzas (separated by blank lines)
@@ -410,13 +433,12 @@ export default function CLSongDetailsPage({
   const hasMoreRelated =
     visibleRelatedEntries.length > RELATED_INITIAL_COUNT;
 
+  const pageShellRef = useRef<HTMLDivElement>(null);
+
   return (
     <div className="cl-songs-page-root">
-      {/* ── Single marble plate (see CLSongDetails.css). ── */}
-      <div className="cld-bg-stack" aria-hidden="true">
-        <div className="cld-bg-marble" />
-      </div>
-      <div className="min-h-screen">
+      <SongDetailBackground containerRef={pageShellRef} />
+      <div ref={pageShellRef} className="min-h-screen">
         <Header />
         <main className="relative z-10">
           <div className="cld-page">
@@ -566,39 +588,70 @@ export default function CLSongDetailsPage({
               )}
             </div>
 
-            {/* ===== Lyrics ===== */}
-            {lyricsHtml ? (
-              <div
-                className="cld-lyrics cld-lyrics--html"
-                dangerouslySetInnerHTML={{ __html: cleanLyricsHtml(lyricsHtml) }}
-              />
-            ) : (
-            <div className="cld-lyrics">
-              {stanzas.length > 0 ? (
-                stanzas.map((stanza, i) => (
-                  <div key={i} className="cld-lyrics-stanza">
-                    {stanza.split('\n').map((line, j) => (
-                      <div key={j}>{line}</div>
-                    ))}
-                  </div>
-                ))
+            {/* ===== Lyrics + Song Notes — card bottom aligns with NOTES|GLOSSARY rule (PDF) ===== */}
+            <div className="cld-lyrics-notes-wrap">
+            <div className="cld-lyrics-stage">
+              <WavyPaperPopup
+                variant="inline"
+                isOpen={showNotes && hasNotes}
+                onClose={() => setShowNotes(false)}
+                title="Song Notes"
+                className="cld-notes-panel"
+              >
+                {notesText}
+              </WavyPaperPopup>
+
+              <WavyPaperPopup
+                variant="inline"
+                isOpen={showGlossary && hasGlossary}
+                onClose={() => setShowGlossary(false)}
+                title="Glossary"
+                className="cld-glossary-panel"
+              >
+                {glossaryText}
+              </WavyPaperPopup>
+
+              {lyricsHtml ? (
+                <div
+                  className="cld-lyrics cld-lyrics--html"
+                  dangerouslySetInnerHTML={{ __html: cleanLyricsHtml(lyricsHtml) }}
+                />
               ) : (
-                <div className="cld-lyrics-stanza">Lyrics unavailable</div>
+                <div className="cld-lyrics">
+                  {stanzas.length > 0 ? (
+                    stanzas.map((stanza, i) => (
+                      <div key={i} className="cld-lyrics-stanza">
+                        {stanza.split('\n').map((line, j) => (
+                          <div key={j}>{line}</div>
+                        ))}
+                      </div>
+                    ))
+                  ) : (
+                    <div className="cld-lyrics-stanza">Lyrics unavailable</div>
+                  )}
+                </div>
               )}
             </div>
-            )}
-
 
             {/* ===== NOTES | GLOSSARY links ===== */}
+            {(hasNotes || hasGlossary) && (
             <div className="cld-notes-glossary-row">
+              {hasNotes && (
               <button
                 type="button"
-                className="cld-notes-link"
-                onClick={() => setShowNotes((v) => !v)}
+                className={`cld-notes-link${showNotes ? ' is-active' : ''}`}
+                onClick={() => {
+                  setShowGlossary(false);
+                  setShowNotes((v) => !v);
+                }}
               >
                 NOTES
               </button>
+              )}
+              {hasNotes && hasGlossary && (
               <span className="cld-notes-glossary-sep">|</span>
+              )}
+              {hasGlossary && (
               <button
                 type="button"
                 className={`cld-glossary-link${showGlossary ? ' is-active' : ''}`}
@@ -609,53 +662,10 @@ export default function CLSongDetailsPage({
               >
                 GLOSSARY
               </button>
+              )}
             </div>
-
-            {/* ===== Song Notes overlay — fixed to left side, does NOT move lyrics ===== */}
-            <aside
-              className={`cld-notes-sidebar${showNotes ? ' is-open' : ''}`}
-              aria-label="Song Notes"
-            >
-              <div className="cld-notes-sidebar-inner">
-                <div className="cld-notes-sidebar-header">
-                  <span className="cld-notes-sidebar-title">Song Notes</span>
-                  <button
-                    type="button"
-                    className="cld-notes-sidebar-close"
-                    aria-label="Close notes"
-                    onClick={() => setShowNotes(false)}
-                  >
-                    ×
-                  </button>
-                </div>
-                <p className="cld-notes-body">
-                  {notesText || 'No song notes are available for this song yet.'}
-                </p>
-              </div>
-            </aside>
-
-            {/* ===== Glossary overlay — fixed to right side, same card style as Notes ===== */}
-            <aside
-              className={`cld-glossary-sidebar${showGlossary ? ' is-open' : ''}`}
-              aria-label="Glossary"
-            >
-              <div className="cld-notes-sidebar-inner">
-                <div className="cld-notes-sidebar-header">
-                  <span className="cld-notes-sidebar-title">Glossary</span>
-                  <button
-                    type="button"
-                    className="cld-notes-sidebar-close"
-                    aria-label="Close glossary"
-                    onClick={() => setShowGlossary(false)}
-                  >
-                    ×
-                  </button>
-                </div>
-                <p className="cld-notes-body">
-                  {data?.glossary || "Here's a lay of this land — Ajab Shahar, a wondrous city of songs, poems, images and conversations from Bhakti, Sufi & Baul oral traditions from India and around."}
-                </p>
-              </div>
-            </aside>
+            )}
+            </div>
 
             {/* ===== Related section — aligned with video column ===== */}
             <div className="cld-detail-body-align">
@@ -693,21 +703,22 @@ export default function CLSongDetailsPage({
                       const expanded = !!relatedExpanded[relKey];
                       const newlineCount = (descPlain.match(/\n/g) || []).length;
                       const needsClamp = descPlain.length > 140 || newlineCount >= 2;
-                      return (
-                        <div key={relKey} className="cld-related-item">
+                      const detailHref = getRelatedDetailHref(bucket, item);
+                      const itemInner = (
+                        <>
                           <div className={thumbClass}>
                             <img
                               src={resolveCmsAssetUrl(item.thumbnailUrl || item.thumbnail_url)}
                               alt={itemTitle}
                             />
-                      </div>
-                      <div className="cld-related-body">
-                        <div className="cld-related-titlerow">
+                          </div>
+                          <div className="cld-related-body">
+                            <div className="cld-related-titlerow">
                               <span className={titleClass}>{itemTitle}</span>
                               {itemSubtitle && (
                                 <span className="cld-related-itemsubtitle">{itemSubtitle}</span>
-                          )}
-                        </div>
+                              )}
+                            </div>
                             <div
                               className={`cld-related-itemdesc${needsClamp && !expanded ? ' cld-related-itemdesc--clamped' : ''}`}
                             >
@@ -717,15 +728,30 @@ export default function CLSongDetailsPage({
                               <button
                                 type="button"
                                 className="cld-related-readmore"
-                                onClick={() =>
-                                  setRelatedExpanded((prev) => ({ ...prev, [relKey]: !prev[relKey] }))
-                                }
+                                onClick={(e) => {
+                                  e.preventDefault();
+                                  e.stopPropagation();
+                                  setRelatedExpanded((prev) => ({ ...prev, [relKey]: !prev[relKey] }));
+                                }}
                               >
                                 {expanded ? 'read less' : 'read more'}
                               </button>
                             )}
-                      </div>
-                    </div>
+                          </div>
+                        </>
+                      );
+                      return detailHref ? (
+                        <Link
+                          key={relKey}
+                          href={withAppBasePath(detailHref)}
+                          className="cld-related-item cld-related-item--link"
+                        >
+                          {itemInner}
+                        </Link>
+                      ) : (
+                        <div key={relKey} className="cld-related-item">
+                          {itemInner}
+                        </div>
                       );
                     })
                 ) : (

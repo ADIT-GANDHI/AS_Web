@@ -33,7 +33,7 @@
 import React, { useEffect, useState } from 'react';
 import './CLNews.css';
 import { AJAB_API_BASE } from '@/lib/ajabEnv';
-import { filterNewsForPublicSite } from '@/lib/cmsNews';
+import { filterNewsForPublicSite, getPopupItemsForNewsRow } from '@/lib/cmsNews';
 import { withAppBasePath } from '@/lib/resolveCmsAssetUrl';
 import { extractYouTubeId } from '@/lib/youtube';
 import LiteYouTubeEmbed from 'react-lite-youtube-embed';
@@ -472,7 +472,7 @@ function buildSections(raw: ApiNewsItem[]): Section[] {
   const items = filterNewsForPublicSite(raw);
 
   const all: Section[] = items.flatMap((news) => {
-    const pops = (news.popup_items || []).filter(
+    const pops = getPopupItemsForNewsRow(news).filter(
       (p) => p?.category === 'single' || p?.category === 'multiple' || p?.category === 'video'
     );
 

@@ -15,9 +15,7 @@ import '@/styles/CustomStyle.css';
 import '@/components/Songs/CLSongs.css';
 import './CLHome.css';
 import { AJAB_API_BASE } from '@/lib/ajabEnv';
-import { isCmsPublished, isPopupForHome, isRenderableNewsPopupCategory } from '@/lib/cmsNews';
-import { extractYouTubeId } from '@/lib/youtube';
-import { resolveCmsAssetUrl, CMS_IMAGE_PLACEHOLDER } from '@/lib/resolveCmsAssetUrl';
+import { mapNewsToHomePopupSlides } from '@/lib/mapNewsPopupSlides';
 import { mapHomeLatest } from '@/lib/homeApiMapper';
 import HomeCardImage from './HomeCardImage';
 import HomeCardShell from './HomeCardShell';
@@ -185,72 +183,14 @@ export default function CLHero() {
         if (newsResponse.ok) {
           const newsPayload = await newsResponse.json();
           const newsItems: any[] = Array.isArray(newsPayload?.data) ? newsPayload.data : [];
-          const slides: NewsPopupSlide[] = newsItems.flatMap((newsItem) => {
-            const popupItems = Array.isArray(newsItem?.popup_items) ? newsItem.popup_items : [];
-            return popupItems
-              .filter(
-                (p: any) =>
-                  isCmsPublished(p?.published) &&
-                  isPopupForHome(p?.show_on_home) &&
-                  isRenderableNewsPopupCategory(p?.category)
-              )
-              .map((p: any, i: number) => {
-                if (p.category === 'video') {
-                  const videoId = extractYouTubeId(p.video_url);
-                  return {
-                    slideId: `${newsItem?.id ?? 'n'}-${i}`,
-                    newsId: String(newsItem?.id ?? ''),
-                    category: 'video' as const,
-                    title: p.title || '',
-                    secondTitle: p.second_title || '',
-                    content: p.content || '',
-                    images: videoId ? [] : [CMS_IMAGE_PLACEHOLDER],
-                    videoId: videoId || undefined,
-                    sequenceOrder: Number(p.sequence_order) || 99,
-                  } as NewsPopupSlide;
-                }
-                const images =
-                  p.category === 'single'
-                    ? [toImageUrl(p.image)].filter(Boolean)
-                    : Array.isArray(p.images)
-                      ? p.images.map((e: any) => toImageUrl(e)).filter(Boolean)
-                      : [];
-                const resolved = images.map((u) => resolveCmsAssetUrl(u));
-                return {
-                  slideId: `${newsItem?.id ?? 'n'}-${i}`,
-                  newsId: String(newsItem?.id ?? ''),
-                  category: p.category,
-                  title: p.title || '',
-                  secondTitle: p.second_title || '',
-                  content: p.content || '',
-                  images: resolved.length ? resolved : [CMS_IMAGE_PLACEHOLDER],
-                  sequenceOrder: Number(p.sequence_order) || 99,
-                } as NewsPopupSlide;
-              });
-          });
-          slides.sort(
-            (a, b) => (a.sequenceOrder ?? 99) - (b.sequenceOrder ?? 99)
-          );
+          const slides = mapNewsToHomePopupSlides(newsItems, toImageUrl);
           if (slides.length) {
             setPopupSlides(slides);
             setShowAjabNews(true);
           }
         }
       } catch {
-        const fallbackSlides: NewsPopupSlide[] = [
-          {
-            slideId: 'fallback-0',
-            newsId: 'fallback',
-            category: 'single',
-            title: 'Gulshan-e-Armaan',
-            secondTitle: 'by KABIR PROJECT',
-            content:
-              'The story highlights the gulshan-e-na-afreeda (the Uncreated Garden) that Shah Inayat spoke of, to evoke his utopian vision of a world in which the human spirit was not driven by fear, mistrust, oppression and exploitation, but rather was guided by a non-egoic spirit of connection and love.',
-            images: [CMS_IMAGE_PLACEHOLDER],
-          },
-        ];
-        setPopupSlides(fallbackSlides);
-        setShowAjabNews(true);
+        /* No mock popup — only show carousel when `/Api/news` returns slides */
       }
     };
 

@@ -3,11 +3,10 @@
    All selectors scoped with .cld- prefix
 ───────────────────────────────────────────── */
 
-/* ── Root wrapper — song detail marble (single plate, no dual-layer join).
+/* ── Root wrapper — song detail marble (mirrored repeat-y, same seam trick as listing).
 
-   Asset: `/songs-assets/song_detail_3.png` (1930 × 7150), copied from `Images/`.
-   Background width is capped at the artwork’s native width so we do not
-   upscale wider than the PNG; extra page height shows the cream fill. */
+   Tile: `/songs-assets/song_detail_3-mirror.png` (1931 × 14282) built from
+   `song_detail_3.png` — module + vertical flip stitched below for seamless repeat-y. */
 .cl-songs-page-root:has(.cld-page) {
   background: #ede8df;
   overflow-x: hidden;
@@ -23,9 +22,12 @@
   align-items: center;
 }
 
-.cld-bg-stack {
+/* Layered detail bg (SongDetailBackground) — height tracks content + footer wave */
+.cld-bg-layers {
   position: absolute;
-  inset: 0;
+  top: 0;
+  left: 0;
+  width: 100%;
   z-index: 0;
   pointer-events: none;
   overflow: hidden;
@@ -36,11 +38,10 @@
   inset: 0;
   pointer-events: none;
   background-color: #ede8df;
-  background-image: url(/songs-assets/song_detail_3.png);
-  background-repeat: no-repeat;
-  background-position: center top;
-  /* Fit width to column without horizontal upscale past native 1930px art. */
-  background-size: min(100%, 1930px) auto;
+  background-image: url(/songs-assets/song_detail_3-mirror.png);
+  background-repeat: repeat-y;
+  background-size: 100% auto;
+  background-position: left top;
 }
 
 /* ── DISABLED — last round's custom 100 % × 100 % vertical-stretch hack on
@@ -82,6 +83,7 @@
   --cld-gap-about-lang: min(64px, calc(100vw * 86 / var(--cld-artboard-w)));
   --cld-gap-lang-title: min(44px, calc(100vw * 58 / var(--cld-artboard-w)));
   --cld-gap-title-lyrics: min(32px, calc(100vw * 42 / var(--cld-artboard-w)));
+  --cld-notes-h: min(432px, calc(100vw * 432 / var(--cld-artboard-w)));
   --cld-gap-lyrics-notes: min(36px, calc(100vw * 48 / var(--cld-artboard-w)));
   --cld-gap-notes-related: min(32px, calc(100vw * 42 / var(--cld-artboard-w)));
   padding: 0 50px clamp(32px, 4vw, 48px);
@@ -558,6 +560,144 @@
 
 /* ── Lyrics — DO NOT change line-height / stanza spacing in layout passes.
    Typography + stanza rhythm are locked; only outer block margin may shift. ── */
+/* Lyrics stay centered; notes card bottom sits on the NOTES|GLOSSARY rule (PDF). */
+.cld-lyrics-notes-wrap {
+  position: relative;
+  width: 100%;
+}
+
+.cld-lyrics-stage {
+  /* Figma 361:1488 lyrics column ≈423px wide; 361:1575 notes card sits ~47px outside that edge */
+  --cld-lyrics-col-half: min(212px, calc(100vw * 211.5 / var(--cld-artboard-w)));
+  --cld-panel-gap: min(66px, calc(100vw * 68 / var(--cld-artboard-w)));
+  --cld-panel-inset: calc(var(--cld-lyrics-col-half) + var(--cld-panel-gap));
+  --cld-side-card-w: min(332px, calc(100vw * 332 / var(--cld-artboard-w)));
+  --cld-side-card-h: min(432px, calc(100vw * 432 / var(--cld-artboard-w)));
+  --cld-panel-lift: min(16px, calc(100vw * 20 / var(--cld-artboard-w)));
+  position: relative;
+  width: 100%;
+  margin: 0 auto var(--cld-gap-lyrics-notes);
+  overflow: visible;
+}
+
+/* When notes or glossary open: pad lyrics above the rule; card bottom locks to that rule */
+.cld-lyrics-stage:has(.cld-notes-panel),
+.cld-lyrics-stage:has(.cld-glossary-panel) {
+  margin-bottom: 0;
+  padding-bottom: var(--cld-gap-lyrics-notes);
+}
+
+.cld-lyrics-stage .cld-lyrics {
+  margin: 0 auto;
+  width: 100%;
+  max-width: 700px;
+}
+
+/* Shared side-card placement (PDF 361:1575) — bottom near NOTES|GLOSSARY rule */
+.cld-lyrics-stage .cld-notes-panel,
+.cld-lyrics-stage .cld-glossary-panel {
+  position: absolute !important;
+  top: auto;
+  bottom: var(--cld-panel-lift);
+  width: var(--cld-side-card-w);
+  height: var(--cld-side-card-h);
+  min-height: 0;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  box-sizing: border-box;
+  z-index: 2;
+}
+
+.cld-lyrics-stage .cld-notes-panel {
+  right: calc(50% + var(--cld-panel-inset));
+  left: auto;
+}
+
+.cld-lyrics-stage .cld-glossary-panel {
+  left: calc(50% + var(--cld-panel-inset));
+  right: auto;
+  background: transparent;
+}
+
+/* Mirror only the paper art — keep title, × and scrollbar on the right */
+.cld-lyrics-stage .cld-glossary-panel.wp-popup--inline::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: url(/songs-assets/song_notes.png) center / 100% 100% no-repeat;
+  transform: scaleX(-1);
+  z-index: 0;
+  pointer-events: none;
+}
+
+.cld-lyrics-stage .cld-glossary-panel.wp-popup--inline > *:not(.wp-popup-close) {
+  position: relative;
+  z-index: 1;
+}
+
+.cld-lyrics-stage .cld-glossary-panel .wp-popup-close {
+  position: absolute;
+  top: 22px;
+  right: 14px;
+  left: auto;
+}
+
+.cld-lyrics-stage .cld-glossary-panel.wp-popup--inline {
+  padding: 24px 28px 52px 20px;
+}
+
+.cld-lyrics-stage .cld-notes-panel.wp-popup--inline {
+  padding: 24px 20px 52px 28px;
+}
+
+.cld-lyrics-stage .cld-notes-panel .wp-popup-header,
+.cld-lyrics-stage .cld-glossary-panel .wp-popup-header {
+  margin-bottom: 6px;
+}
+
+.cld-lyrics-stage .cld-notes-panel .wp-popup-title,
+.cld-lyrics-stage .cld-glossary-panel .wp-popup-title {
+  font-family: var(--ajab-font-serif);
+  font-size: 20px;
+  font-weight: 400;
+  line-height: 1.2;
+  color: var(--ajab-ink-300);
+}
+
+.cld-lyrics-stage .cld-notes-panel .wp-popup-close,
+.cld-lyrics-stage .cld-glossary-panel .wp-popup-close {
+  top: 22px;
+}
+
+.cld-lyrics-stage .cld-notes-panel .wp-popup-body,
+.cld-lyrics-stage .cld-glossary-panel .wp-popup-body {
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow-y: auto;
+  white-space: pre-wrap;
+  font-family: var(--ajab-font-sans);
+  font-size: 14px;
+  font-weight: 300;
+  line-height: 1.55;
+  color: #6d6f71;
+  scrollbar-width: thin;
+  scrollbar-color: #c9c9c9 transparent;
+  direction: ltr;
+}
+
+.cld-lyrics-stage .cld-notes-panel .wp-popup-body::-webkit-scrollbar,
+.cld-lyrics-stage .cld-glossary-panel .wp-popup-body::-webkit-scrollbar {
+  width: 6px;
+}
+
+.cld-lyrics-stage .cld-notes-panel .wp-popup-body::-webkit-scrollbar-thumb,
+.cld-lyrics-stage .cld-glossary-panel .wp-popup-body::-webkit-scrollbar-thumb {
+  background: #c9c9c9;
+  border-radius: 3px;
+}
+
 .cld-lyrics {
   font-family: var(--ajab-font-serif);
   font-style: normal;
@@ -566,9 +706,6 @@
   line-height: 1.42;
   color: var(--ajab-ink-400);
   text-align: center;
-  margin: 0 auto var(--cld-gap-lyrics-notes);
-  width: 100%;
-  max-width: 700px;
   white-space: pre-wrap;
 }
 
@@ -610,8 +747,7 @@
 }
 
 /* ── NOTES | GLOSSARY links ──
-   Figma (361:1478): Merriweather Sans Light 18 / 300; NOTES pink var(--ajab-pink-primary),
-   pipe var(--ajab-ink-200), GLOSSARY dark var(--ajab-ink-950); no letter-spacing, no uppercase. ── */
+   Default: dark ink; pink only on hover or when the panel is open. ── */
 .cld-notes-glossary-row {
   display: flex;
   justify-content: center;
@@ -638,17 +774,13 @@
   border: none;
   cursor: pointer;
   padding: 0;
-}
-
-.cld-notes-link {
-  color: var(--ajab-pink-primary);
-}
-
-.cld-glossary-link {
   color: var(--ajab-ink-950);
+  transition: color 0.2s ease;
 }
 
-/* GLOSSARY turns pink when the panel is open */
+.cld-notes-link:hover,
+.cld-glossary-link:hover,
+.cld-notes-link.is-active,
 .cld-glossary-link.is-active {
   color: var(--ajab-pink-primary);
 }
@@ -657,130 +789,23 @@
   color: var(--ajab-ink-200);
 }
 
-/* ── Song Notes floating overlay — positioned on the LEFT side of the page.
-   Uses song_notes.png (353 × 450) as the card background image.
-   Does NOT affect the lyrics layout (position: fixed, z-index overlay).
-   Figma reference: node 361:1575, x=375 from left edge of canvas. ── */
-.cld-notes-sidebar {
-  position: fixed;
-  /* Align with the left margin of the centred 1280px page column.
-     At 1280px viewport: (100vw - 1280px)/2 + ~40px ≈ 40px from viewport left.
-     clamp keeps it visible on narrower screens. */
-  left: max(12px, calc(50vw - 620px));
-  top: 50%;
-  transform: translateY(-50%) translateX(-12px);
-  width: 353px;
-  z-index: 200;
-  opacity: 0;
-  pointer-events: none;
-  transition: opacity 0.25s ease, transform 0.25s ease;
-}
-
-.cld-notes-sidebar.is-open {
-  opacity: 1;
-  pointer-events: auto;
-  transform: translateY(-50%) translateX(0);
-}
-
-/* Inner card — uses song_notes.png composite (top wave + body + bottom wave).
-   Padding insets chosen to clear the wave shapes painted in the PNG:
-   top wave ≈ 38px tall, bottom wave ≈ 55px tall. ── */
-.cld-notes-sidebar-inner {
-  width: 353px;
-  min-height: 450px;
-  background: url(/songs-assets/song_notes.png) no-repeat center center / 100% 100%;
-  background-color: transparent;
-  padding: 50px 36px 70px;
-  box-sizing: border-box;
-  position: relative;
-}
-
-.cld-notes-sidebar-header {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  margin-bottom: 18px;
-}
-
-.cld-notes-sidebar-title {
-  font-family: var(--ajab-font-serif);
-  font-weight: 400;
-  font-size: var(--ajab-fs-body-lg);
-  color: var(--ajab-ink-700);
-}
-
-.cld-notes-sidebar-close {
-  color: var(--ajab-pink-primary);
-  font-size: 22px;
-  line-height: 1;
-  background: none;
-  border: none;
-  cursor: pointer;
-  padding: 0 2px;
-  flex-shrink: 0;
-}
-
-.cld-notes-body {
-  margin: 0;
-  font-family: var(--ajab-font-sans);
-  font-weight: 300;
-  font-size: var(--ajab-fs-body-sm);
-  line-height: 1.55;
-  color: var(--ajab-ink-700);
-  white-space: pre-wrap;
-}
-
-/* ── Responsive: on narrow screens anchor the notes card to the bottom of the viewport ── */
-@media screen and (max-width: 800px) {
-  .cld-notes-sidebar {
-    left: 50%;
-    top: auto;
-    bottom: 80px;
-    transform: translateX(-50%) translateY(12px);
-    width: min(353px, 92vw);
-  }
-
-  .cld-notes-sidebar.is-open {
-    transform: translateX(-50%) translateY(0);
-  }
-
-  .cld-notes-sidebar-inner {
-    width: 100%;
-    min-height: 0;
+/* Narrow viewports — scale side cards */
+@media screen and (max-width: 1100px) {
+  .cld-lyrics-stage {
+    --cld-side-card-w: min(280px, 30vw);
+    --cld-side-card-h: min(400px, 55vh);
   }
 }
 
-/* ── Glossary floating overlay — mirrored on the RIGHT side of the page.
-   Same song_notes.png card style as the Notes sidebar. ── */
-.cld-glossary-sidebar {
-  position: fixed;
-  right: max(12px, calc(50vw - 620px));
-  top: 50%;
-  transform: translateY(-50%) translateX(12px);
-  width: 353px;
-  z-index: 200;
-  opacity: 0;
-  pointer-events: none;
-  transition: opacity 0.25s ease, transform 0.25s ease;
-}
-
-.cld-glossary-sidebar.is-open {
-  opacity: 1;
-  pointer-events: auto;
-  transform: translateY(-50%) translateX(0);
-}
-
-@media screen and (max-width: 800px) {
-  .cld-glossary-sidebar {
-    right: 50%;
-    top: auto;
-    bottom: 80px;
-    transform: translateX(50%) translateY(12px);
-    width: min(353px, 92vw);
+@media screen and (max-width: 720px) {
+  .cld-lyrics-stage {
+    --cld-side-card-w: min(220px, 32vw);
+    --cld-side-card-h: min(320px, 48vh);
   }
 
-  .cld-glossary-sidebar.is-open {
-    transform: translateX(50%) translateY(0);
+  .cld-lyrics-stage .cld-notes-panel.wp-popup--inline,
+  .cld-lyrics-stage .cld-glossary-panel.wp-popup--inline {
+    padding: 20px 16px 40px 20px;
   }
 }
 
@@ -858,6 +883,22 @@
   align-items: flex-start;
   padding-bottom: 0;
   border-bottom: none;
+}
+
+.cld-related-item--link {
+  text-decoration: none;
+  color: inherit;
+  cursor: pointer;
+  transition: opacity 0.15s ease;
+}
+
+.cld-related-item--link:hover {
+  opacity: 0.88;
+}
+
+.cld-related-item--link:focus-visible {
+  outline: 2px solid var(--ajab-pink-primary);
+  outline-offset: 2px;
 }
 
 /* REVERT (mid-body pass): gap was 32px */

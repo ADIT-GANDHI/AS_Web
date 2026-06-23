@@ -1,6 +1,6 @@
 /**
  * Post-build: ensure all public/ assets exist in out/, prefix CSS/HTML/JS asset
- * paths with /new for ajab.damnetworks.com/new
+ * paths with basePath (/new legacy, or '' for ajab.damnetworks.com root).
  */
 
 import {
@@ -18,7 +18,8 @@ import { join, extname, dirname, relative } from 'path';
 const ROOT = process.cwd();
 const PUBLIC_DIR = join(ROOT, 'public');
 const OUT_DIR = join(ROOT, 'out');
-const BASE_PATH = '/new';
+/** Match next.config basePath — empty string for ajabuifinal root deploy. */
+const BASE_PATH = process.env.NEXT_PUBLIC_BASE_PATH ?? '/new';
 
 /** Root-relative public asset prefixes referenced in CSS/JS (not page routes). */
 const ASSET_PREFIXES = [
@@ -247,4 +248,11 @@ if (missing.length) {
   process.exit(1);
 } else {
   console.log(`✅ All ${walk(PUBLIC_DIR).length} public assets present in out/`);
+}
+
+// Deploy target: root .htaccess for ajabuifinal, /new .htaccess for legacy path.
+const htaccessSrc = join(PUBLIC_DIR, BASE_PATH === '' ? '.htaccess.root' : '.htaccess');
+if (existsSync(htaccessSrc)) {
+  copyFileSync(htaccessSrc, join(OUT_DIR, '.htaccess'));
+  console.log(`✅ Wrote out/.htaccess (${BASE_PATH === '' ? 'root' : 'basePath ' + BASE_PATH})`);
 }

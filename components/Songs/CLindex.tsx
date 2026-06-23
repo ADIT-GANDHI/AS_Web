@@ -13,6 +13,7 @@ import './CLSongs.css';
 import { SongsNavCountContext } from '@/components/Songs/SongsNavCountContext';
 import { AJAB_API_BASE } from '@/lib/ajabEnv';
 import { catalogHasMore, mergeCatalogById } from '@/lib/catalogPagination';
+import { dedupeOrderedStrings } from '@/lib/dedupeStrings';
 import { parseCatalogTotal } from '@/lib/parseCatalogTotal';
 
 type FilterType = 'Singer' | 'Poet' | 'Theme';
@@ -106,6 +107,31 @@ function buildFilterOptionsFromSongs(songs: ReturnType<typeof formatSongListItem
     singers: Array.from(singersSet).sort(),
     poets: Array.from(poetsSet).sort(),
   };
+}
+
+function parseSongFiltersResponse(data: Record<string, unknown> | undefined) {
+  const bucket = data || {};
+  const singers = dedupeOrderedStrings(
+    (Array.isArray(bucket.song) ? bucket.song : []).map((item) =>
+      String((item as { singer_name?: string }).singer_name || '')
+    )
+  ).sort((a, b) => a.localeCompare(b));
+  const poets = dedupeOrderedStrings(
+    (Array.isArray(bucket.poet) ? bucket.poet : []).map((item) =>
+      String((item as { poet_name?: string }).poet_name || '')
+    )
+  ).sort((a, b) => a.localeCompare(b));
+  const themeBucket = Array.isArray(bucket.theme)
+    ? bucket.theme
+    : Array.isArray(bucket.them)
+      ? bucket.them
+      : [];
+  const themes = dedupeOrderedStrings(
+    themeBucket.map((item) =>
+      String((item as { word_transliteration?: string }).word_transliteration || '')
+    )
+  ).sort((a, b) => a.localeCompare(b));
+  return { singers, poets, themes };
 }
 
 export default function CLSongsIndex() {
@@ -223,27 +249,28 @@ export default function CLSongsIndex() {
   }, [fetchSongsPage]);
 
   useEffect(() => {
-    const { singers, poets } = buildFilterOptionsFromSongs(allSongs);
-    setAvailableSingers(singers);
-    setAvailablePoets(poets);
-  }, [allSongs]);
-
-  useEffect(() => {
-    const fetchSongFilterThemes = async () => {
+    const fetchSongFilters = async () => {
       try {
         const res = await fetch(`${AJAB_API_BASE}/Api/song_filters`, { cache: 'no-store' });
         if (!res.ok) return;
         const json = await res.json();
-        const themes = (json?.data?.them || json?.data?.theme || [])
-          .map((t: { word_transliteration?: string }) => t.word_transliteration || '')
-          .filter(Boolean);
+        if (!json?.status) return;
+        const { singers, poets, themes } = parseSongFiltersResponse(json.data);
+        if (singers.length) setAvailableSingers(singers);
+        if (poets.length) setAvailablePoets(poets);
         if (themes.length) setAvailableThemes(themes);
       } catch {
-        /* Theme list empty until CMS populates song_filters */
+        /* Fallback to options derived from loaded song rows */
       }
     };
-    void fetchSongFilterThemes();
+    void fetchSongFilters();
   }, []);
+
+  useEffect(() => {
+    const { singers, poets } = buildFilterOptionsFromSongs(allSongs);
+    setAvailableSingers((prev) => (prev.length ? prev : singers));
+    setAvailablePoets((prev) => (prev.length ? prev : poets));
+  }, [allSongs]);
 
   // Client-side dynamic filtering
   const filteredSongs = useMemo(() => {
@@ -355,7 +382,7 @@ export default function CLSongsIndex() {
                 availablePoets,
                 availableThemes,
                 maxFilters: MAX_FILTERS,
-                useSongsMockFallback: true,
+                useSongsMockFallback: false,
               }}
               azRow={
                 <div className="cl-az-row">
