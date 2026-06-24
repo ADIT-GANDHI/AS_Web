@@ -18,7 +18,8 @@
     "build:reflections-bg": "node scripts/build-page-backgrounds.mjs",
     "build:people-bg": "node scripts/build-page-backgrounds.mjs",
     "postbuild": "node scripts/fix-basepath-assets.mjs",
-    "build:final": "node scripts/build-final.mjs"
+    "build:final": "node scripts/build-final.mjs",
+    "build:ajab": "node scripts/build-ajab.mjs"
   },
   "dependencies": {
     "@hookform/resolvers": "^3.10.0",

@@ -174,7 +174,6 @@ export default function CLRadio() {
                       availablePoets={FILTER_CURATED}
                       availableThemes={[]}
                       categoryLabels={{ Singer: 'Singer', Poet: 'Curated', Theme: 'Theme' }}
-                      maxFilters={5}
                     />
                   </div>
 

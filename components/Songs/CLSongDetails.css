@@ -517,13 +517,14 @@
   border-color: rgba(227, 30, 121, 0.32);
 }
 
-/* ── Big song title + poet ── */
+/* ── Big song title + poet (inside lyrics stage) ── */
 .cld-song-title-block {
   text-align: center;
-  margin: 0 auto var(--cld-gap-title-lyrics);
 }
 
-/* REVERT (mid-body pass): margin-bottom was 48px */
+.cld-lyrics-stage .cld-song-title-block {
+  margin: 0 0 var(--cld-gap-title-lyrics);
+}
 
 .cld-song-title {
   font-family: var(--ajab-font-serif);
@@ -575,7 +576,8 @@
   --cld-side-card-h: min(432px, calc(100vw * 432 / var(--cld-artboard-w)));
   --cld-panel-lift: min(16px, calc(100vw * 20 / var(--cld-artboard-w)));
   position: relative;
-  width: 100%;
+  min-width: 0;
+  width: 60%;
   margin: 0 auto var(--cld-gap-lyrics-notes);
   overflow: visible;
 }
@@ -590,7 +592,7 @@
 .cld-lyrics-stage .cld-lyrics {
   margin: 0 auto;
   width: 100%;
-  max-width: 700px;
+  max-width: 100%;
 }
 
 /* Shared side-card placement (PDF 361:1575) — bottom near NOTES|GLOSSARY rule */
@@ -789,9 +791,10 @@
   color: var(--ajab-ink-200);
 }
 
-/* Narrow viewports — scale side cards */
+/* Narrow viewports — scale side cards; full-width lyrics column */
 @media screen and (max-width: 1100px) {
   .cld-lyrics-stage {
+    width: 100%;
     --cld-side-card-w: min(280px, 30vw);
     --cld-side-card-h: min(400px, 55vh);
   }

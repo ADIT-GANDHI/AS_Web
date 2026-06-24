@@ -16,8 +16,9 @@ fs.mkdirSync(OUT, { recursive: true });
 
 const browser = await chromium.launch();
 const page = await browser.newPage({ viewport: { width: 1440, height: 900 } });
-await page.goto('http://localhost:3000/songs', { waitUntil: 'networkidle', timeout: 90000 });
-await page.click('button:has-text("Filters")');
+await page.goto('http://localhost:3000/songs', { waitUntil: 'networkidle', timeout: 120000 });
+await page.waitForSelector('.cl-filter-trigger', { timeout: 120000 });
+await page.click('.cl-filter-trigger');
 await page.waitForTimeout(700);
 
 // Match PDF: 4 selected filters visible in footer

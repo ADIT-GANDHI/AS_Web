@@ -222,7 +222,6 @@ export default function CLPeople() {
                 availablePoets: [],
                 availableThemes: [],
                 singleListMode: true,
-                maxFilters: 5,
                 filterTriggerAlwaysPink: true,
                 showClearAllAlways: true,
               }}

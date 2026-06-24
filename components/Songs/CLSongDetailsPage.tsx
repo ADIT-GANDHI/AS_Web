@@ -577,20 +577,19 @@ export default function CLSongDetailsPage({
               </button>
             </div>
 
-            {/* ===== Big song title + poet ===== */}
-            <div className="cld-song-title-block">
-              <h1 className="cld-song-title">{title}</h1>
-              {poet && (
-                <div>
-                  <span className="cld-song-poet-label cld-song-poet">poet </span>
-                  <span className="cld-song-poet">{poet}</span>
-                </div>
-              )}
-            </div>
-
-            {/* ===== Lyrics + Song Notes — card bottom aligns with NOTES|GLOSSARY rule (PDF) ===== */}
+            {/* ===== Lyrics column: title + poem + notes/glossary (PDF) ===== */}
             <div className="cld-lyrics-notes-wrap">
             <div className="cld-lyrics-stage">
+              <div className="cld-song-title-block">
+                <h1 className="cld-song-title">{title}</h1>
+                {poet && (
+                  <div>
+                    <span className="cld-song-poet-label cld-song-poet">poet </span>
+                    <span className="cld-song-poet">{poet}</span>
+                  </div>
+                )}
+              </div>
+
               <WavyPaperPopup
                 variant="inline"
                 isOpen={showNotes && hasNotes}

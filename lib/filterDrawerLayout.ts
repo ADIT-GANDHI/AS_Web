@@ -12,12 +12,10 @@ export const FILTER_DRAWER_CONTENT_INSET_TOP = 'var(--ajab-header-height, 191px)
 export const FILTER_DRAWER_Z_BACKDROP = 9998;
 export const FILTER_DRAWER_Z_PANEL = 9999;
 
-/** Original Songs filter parda export (`song_filter_opaque.svg` viewBox). */
-export const FILTER_PARDA_WIDTH_PX = 422;
-export const FILTER_PARDA_HEIGHT_PX = 1424;
+/** Wavy filter panel artwork — slight transparency so page texture shows through. */
+export const FILTER_DRAWER_BG_OPACITY = 0.92;
 
-/**
- * PDF: chip footer sits above empty band before the parda artwork ends (~10% of parda).
- * The parda itself does not grow with page length or “load more”.
- */
-export const FILTER_PARDA_BOTTOM_INSET_PX = 150;
+/** Selected chip grid in drawer footer — max visible rows before older chips scroll up. */
+export const FILTER_DRAWER_SELECTION_MAX_ROWS = 2;
+/** Chip row height (17px type × 1.3 line-height + 10px vertical padding). */
+export const FILTER_DRAWER_SELECTION_ROW_PX = 32;

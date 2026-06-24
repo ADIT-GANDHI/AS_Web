@@ -18,8 +18,11 @@ import { join, extname, dirname, relative } from 'path';
 const ROOT = process.cwd();
 const PUBLIC_DIR = join(ROOT, 'public');
 const OUT_DIR = join(ROOT, 'out');
-/** Match next.config basePath — empty string for ajabuifinal root deploy. */
+/** Match next.config basePath — '' root, '/ajab' live deploy, '/new' legacy. */
 const BASE_PATH = process.env.NEXT_PUBLIC_BASE_PATH ?? '/new';
+const BASE_SEG = BASE_PATH.replace(/^\//, '');
+const ESCAPED_BASE_SEG = BASE_SEG.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+const NOT_BASE_PATH = BASE_SEG ? `(?!${ESCAPED_BASE_SEG}/)` : '(?!/)';
 
 /** Root-relative public asset prefixes referenced in CSS/JS (not page routes). */
 const ASSET_PREFIXES = [
@@ -127,14 +130,21 @@ function syncPublicToOut() {
 }
 
 function fixCssUrls(content) {
-  return content.replace(/url\((['"]?)\/(?!new\/)/g, `url($1${BASE_PATH}/`);
+  if (!BASE_SEG) return content;
+  return content.replace(
+    new RegExp(`url\\((['"]?)/${NOT_BASE_PATH}`, 'g'),
+    `url($1${BASE_PATH}/`
+  );
 }
 
 function fixHtmlSrc(content) {
+  if (!BASE_SEG) return content;
   return content
-    .replace(/src="\/(?!new\/)/g, `src="${BASE_PATH}/`)
-    .replace(/href="\/(?!new\/)([^"]*\.(css|js|png|jpg|jpeg|svg|webp|gif|ico|woff|woff2|ttf))/g,
-      `href="${BASE_PATH}/$1`);
+    .replace(new RegExp(`src="/${NOT_BASE_PATH}`, 'g'), `src="${BASE_PATH}/`)
+    .replace(
+      new RegExp(`href="/${NOT_BASE_PATH}([^"]*\\.(css|js|png|jpg|jpeg|svg|webp|gif|ico|woff|woff2|ttf))`, 'g'),
+      `href="${BASE_PATH}/$1`
+    );
 }
 
 /** Prefix quoted root-relative asset paths in JS chunks (mocks, inline strings). */
@@ -143,11 +153,14 @@ function fixJsAssetStrings(content) {
   for (const prefix of ASSET_PREFIXES) {
     const escaped = prefix.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
     const patch = (quote) => {
-      const re = new RegExp(`${quote}/(?!new/)(${escaped})`, 'g');
+      const re = new RegExp(`${quote}/${NOT_BASE_PATH}(${escaped})`, 'g');
       out = out.replace(re, (match, asset, offset, str) => {
         const before = str.slice(Math.max(0, offset - 28), offset);
-        // Webpack often emits `${BP}/asset` as concat("/new","/asset") — do not prefix twice.
-        if (/\/new['"],\s*$/.test(before) || /concat\(["']\/new["'],\s*$/.test(before)) {
+        // Webpack often emits `${BP}/asset` as concat("/ajab","/asset") — do not prefix twice.
+        if (
+          (BASE_SEG && new RegExp(`/${ESCAPED_BASE_SEG}['"],\\s*$`).test(before)) ||
+          (BASE_SEG && new RegExp(`concat\\(["']/${ESCAPED_BASE_SEG}["'],\\s*$`).test(before))
+        ) {
           return match;
         }
         return quote + BASE_PATH + '/' + asset;
@@ -250,9 +263,19 @@ if (missing.length) {
   console.log(`✅ All ${walk(PUBLIC_DIR).length} public assets present in out/`);
 }
 
-// Deploy target: root .htaccess for ajabuifinal, /new .htaccess for legacy path.
-const htaccessSrc = join(PUBLIC_DIR, BASE_PATH === '' ? '.htaccess.root' : '.htaccess');
-if (existsSync(htaccessSrc)) {
-  copyFileSync(htaccessSrc, join(OUT_DIR, '.htaccess'));
-  console.log(`✅ Wrote out/.htaccess (${BASE_PATH === '' ? 'root' : 'basePath ' + BASE_PATH})`);
+// Deploy target: root .htaccess for ajabuifinal; subpath template for /ajab, /new, etc.
+const htaccessDest = join(OUT_DIR, '.htaccess');
+if (BASE_PATH === '') {
+  const htaccessSrc = join(PUBLIC_DIR, '.htaccess.root');
+  if (existsSync(htaccessSrc)) {
+    copyFileSync(htaccessSrc, htaccessDest);
+    console.log('✅ Wrote out/.htaccess (root)');
+  }
+} else {
+  const htaccessTemplate = join(PUBLIC_DIR, '.htaccess');
+  if (existsSync(htaccessTemplate)) {
+    const htaccess = readFileSync(htaccessTemplate, 'utf-8').replace(/\/new/g, BASE_PATH);
+    writeFileSync(htaccessDest, htaccess);
+    console.log(`✅ Wrote out/.htaccess (basePath ${BASE_PATH})`);
+  }
 }

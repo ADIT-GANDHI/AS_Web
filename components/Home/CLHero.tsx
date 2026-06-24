@@ -17,6 +17,10 @@ import './CLHome.css';
 import { AJAB_API_BASE } from '@/lib/ajabEnv';
 import { mapNewsToHomePopupSlides } from '@/lib/mapNewsPopupSlides';
 import { mapHomeLatest } from '@/lib/homeApiMapper';
+import {
+  shouldAutoOpenAjabNewsPopup,
+  snoozeAjabNewsPopup,
+} from '@/lib/ajabNewsPopup';
 import HomeCardImage from './HomeCardImage';
 import HomeCardShell from './HomeCardShell';
 
@@ -186,7 +190,9 @@ export default function CLHero() {
           const slides = mapNewsToHomePopupSlides(newsItems, toImageUrl);
           if (slides.length) {
             setPopupSlides(slides);
-            setShowAjabNews(true);
+            if (shouldAutoOpenAjabNewsPopup()) {
+              setShowAjabNews(true);
+            }
           }
         }
       } catch {
@@ -203,7 +209,12 @@ export default function CLHero() {
     return () => window.removeEventListener('open-ajab-news', handleOpen);
   }, []);
 
-  // Popup auto-opens on first visit when news slides exist; footer can re-open via `open-ajab-news`.
+  // Auto-open once per snooze window; footer can still open via `open-ajab-news`.
+
+  const handleCloseAjabNews = () => {
+    setShowAjabNews(false);
+    snoozeAjabNewsPopup();
+  };
 
   return (
     <div className="cl-home-page-root">
@@ -236,7 +247,7 @@ export default function CLHero() {
         <ContentSliderModal
           items={popupSlides}
           isOpen={showAjabNews}
-          onClose={() => setShowAjabNews(false)}
+          onClose={handleCloseAjabNews}
         />
 
         <Footer
