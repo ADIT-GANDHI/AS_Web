@@ -51,7 +51,6 @@
   --clh-marble-w: min(1568px, calc(1568 / 1920 * 100vw));
   --clh-gap: calc(192 / 1568 * var(--clh-marble-w));
   --clh-card-w-wide: calc(440 / 1568 * var(--clh-marble-w));
-  --clh-card-w-poem: calc(420 / 1568 * var(--clh-marble-w));
   /* Shorter media + lap vs full PDF export (299px @ 1920) — reduces overall card height */
   --clh-media-h: calc(248 / 1568 * var(--clh-marble-w));
   --clh-sheet-lap: calc(50 / 1568 * var(--clh-marble-w));
@@ -63,10 +62,15 @@
   --clh-lh-subtitle: clamp(22px, calc(5px + 21 / 1568 * var(--clh-marble-w)), 23px);
   --clh-fs-meta: clamp(15px, calc(4px + 14 / 1568 * var(--clh-marble-w)), 16px);
   --clh-lh-meta: clamp(17px, calc(4px + 17 / 1568 * var(--clh-marble-w)), 19px);
-  --clh-fs-desc: clamp(15px, calc(4px + 14.5 / 1568 * var(--clh-marble-w)), 16.5px);
-  --clh-lh-desc: clamp(21px, calc(4px + 21 / 1568 * var(--clh-marble-w)), 23px);
+  --clh-fs-desc: clamp(14px, calc(3px + 13.5 / 1568 * var(--clh-marble-w)), 15.5px);
+  --clh-lh-desc: clamp(20px, calc(3px + 20 / 1568 * var(--clh-marble-w)), 22px);
   --clh-fs-cta: 12px;
   --clh-lh-cta: 14px;
+  /* Space between excerpt / poet line and EXPLORE ___ */
+  --clh-cta-gap: clamp(10px, calc(12 / 1568 * var(--clh-marble-w)), 14px);
+  --clh-pink-line: #E31E79;
+  /* Equal inset from thumbnail left/right edges to text (both sides use the same value). */
+  --clh-side-pad: clamp(14px, calc(18 / 1568 * var(--clh-marble-w)), 20px);
   --clh-fs-poem: clamp(17px, calc(4px + 16 / 1568 * var(--clh-marble-w)), 18px);
   --clh-lh-poem: clamp(21px, calc(4px + 20 / 1568 * var(--clh-marble-w)), 22px);
   width: var(--clh-marble-w);
@@ -131,15 +135,11 @@
 }
 
 .clh-song-card,
+.clh-poem-card,
 .clh-reflection-card,
 .clh-people-card,
 .clh-film-card {
   width: var(--clh-card-w-wide);
-  max-width: 100%;
-}
-
-.clh-poem-card {
-  width: var(--clh-card-w-poem);
   max-width: 100%;
 }
 
@@ -254,13 +254,37 @@
   color: var(--ajab-ink-500);
 }
 
+/* Song / reflection / people / film — align text column with media slot; poem excluded. */
+.clh-card:not(.clh-poem-card) .clh-card-body {
+  padding-left: 0;
+  padding-right: 0;
+  padding-bottom: clamp(8px, calc(12 / 1568 * var(--clh-marble-w)), 14px);
+  padding-top: calc(var(--clh-sheet-pad-top) + 2px);
+}
+
+.clh-card-frame {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  min-height: 0;
+  /* Match .clh-media-slot horizontal alignment (PNG white body: 3px L / 18px R @ 503 native). */
+  margin-left: calc(100% * var(--clh-sheet-body-inset-l) / var(--clh-sheet-native-w));
+  margin-right: calc(
+    100% * (var(--clh-sheet-native-w) - var(--clh-sheet-body-inset-l) - var(--clh-sheet-body-w)) /
+      var(--clh-sheet-native-w)
+  );
+  padding-left: var(--clh-side-pad);
+  padding-right: var(--clh-side-pad);
+}
+
 .clh-card-title {
   font-family: var(--ajab-font-serif);
   font-weight: 400;
   font-size: var(--clh-fs-title);
   line-height: var(--clh-lh-title);
   letter-spacing: 0;
-  color: var(--ajab-pink-primary);
+  color: var(--clh-pink-line);
   margin: 0 0 4px;
 }
 
@@ -288,10 +312,17 @@
 .clh-card-meta-name { color: var(--ajab-ink-500); font-weight: 300; }
 
 .clh-card-divider {
-  height: 1px;
-  background: var(--ajab-pink-primary);
-  margin: 10px 0 8px;
+  border: 0;
+  border-top: 1px solid var(--clh-pink-line);
+  height: 0;
+  margin: 12px 0 10px;
   width: 100%;
+}
+
+@supports (border-width: 0.5px) {
+  .clh-card-divider {
+    border-top-width: 0.5px;
+  }
 }
 
 .clh-card-desc {
@@ -310,20 +341,45 @@
   overflow: hidden;
 }
 
+.clh-card-footer {
+  position: relative;
+  padding-top: var(--clh-cta-gap);
+  padding-bottom: 2px;
+}
+
+.clh-card-footer::before {
+  content: '';
+  position: absolute;
+  left: calc(-1 * var(--clh-side-pad));
+  right: calc(-1 * var(--clh-side-pad));
+  bottom: 0;
+  border-top: 1px solid transparent;
+  pointer-events: none;
+}
+
+@supports (border-width: 0.5px) {
+  .clh-card-footer::before {
+    border-top-width: 0.5px;
+  }
+}
+
 .clh-card-cta {
-  display: inline-block;
+  position: relative;
+  z-index: 1;
+  display: block;
   font-family: var(--ajab-font-sans);
   font-weight: 300;
   font-size: var(--clh-fs-cta);
   line-height: var(--clh-lh-cta);
-  color: var(--ajab-pink-primary);
+  color: var(--clh-pink-line);
   letter-spacing: 0.05em;
   text-transform: uppercase;
   text-decoration: none;
   cursor: pointer;
   text-align: right;
   width: 100%;
-  margin-top: 5px;
+  margin: 0 0 7px;
+  padding: 0;
   flex-shrink: 0;
 }
 
@@ -343,8 +399,20 @@ a.clh-card {
 
 .clh-poem-card .clh-card-body {
   text-align: center;
+  box-sizing: border-box;
+  width: auto;
+  margin-left: calc(100% * var(--clh-sheet-body-inset-l) / var(--clh-sheet-native-w));
+  margin-right: calc(
+    100% * (var(--clh-sheet-native-w) - var(--clh-sheet-body-inset-l) - var(--clh-sheet-body-w)) /
+      var(--clh-sheet-native-w)
+  );
+  padding-top: var(--clh-sheet-pad-top);
+  padding-bottom: var(--clh-sheet-pad-bottom);
+  padding-left: var(--clh-side-pad);
+  padding-right: var(--clh-side-pad);
 }
 
+/* PDF home poem: 4 transliteration lines, gap, then 2 translation lines */
 .clh-poem-text {
   font-family: var(--ajab-font-serif);
   font-style: italic;
@@ -354,18 +422,12 @@ a.clh-card {
   letter-spacing: 0;
   color: var(--ajab-ink-500);
   white-space: pre-line;
-  margin: 0 0 8px;
+  margin: 0 0 10px;
   display: -webkit-box;
   -webkit-box-orient: vertical;
-  -webkit-line-clamp: var(--clh-desc-lines);
-  line-clamp: var(--clh-desc-lines);
+  -webkit-line-clamp: 4;
+  line-clamp: 4;
   overflow: hidden;
-}
-
-/* Verse + translation: 3 + 2 lines so nothing is clipped mid-glyph */
-.clh-poem-card .clh-card-body:has(.clh-poem-translation) .clh-poem-text {
-  -webkit-line-clamp: 3;
-  line-clamp: 3;
 }
 
 .clh-poem-spacer {
@@ -408,7 +470,22 @@ a.clh-card {
   letter-spacing: 0;
   margin: 0;
 }
-.clh-poem-poet .pink { color: var(--ajab-pink-primary); }
+
+.clh-poem-poet-label {
+  text-transform: lowercase;
+  color: var(--ajab-ink-500);
+}
+
+.clh-poem-poet-name {
+  font-weight: 300;
+  color: var(--ajab-ink-500);
+  text-transform: uppercase;
+}
+
+.clh-poem-card .clh-card-cta {
+  margin-top: var(--clh-cta-gap);
+  margin-bottom: 0;
+}
 
 /* Staggered layout collapses to centred single-column only on narrow tablets/phones */
 @media screen and (max-width: 900px) {
@@ -417,7 +494,6 @@ a.clh-card {
   .clh-marble-stage {
     --clh-gap: 60px;
     --clh-card-w-wide: min(100%, 323px);
-    --clh-card-w-poem: min(100%, 323px);
     --clh-media-h: 224px;
     --clh-sheet-lap: 49px;
     --clh-fs-title: 22px;
@@ -426,10 +502,11 @@ a.clh-card {
     --clh-lh-subtitle: 21px;
     --clh-fs-meta: 14px;
     --clh-lh-meta: 17px;
-    --clh-fs-desc: 14.5px;
-    --clh-lh-desc: 21px;
+    --clh-fs-desc: 13.5px;
+    --clh-lh-desc: 20px;
     --clh-fs-cta: 12px;
     --clh-lh-cta: 14px;
+    --clh-side-pad: 16px;
     --clh-fs-poem: 16px;
     --clh-lh-poem: 20px;
   }

@@ -64,9 +64,8 @@
   pointer-events: none;
 }
 
-/* ── Thumbnail ── 4 px inset on Songs (listing); flush with the card on
-   the Reflections / version-slider variants.  Consumers control the inset
-   by passing the `wc-thumb--inset` class on the wrapper. */
+/* ── Thumbnail ── inset on listing cards (Songs, Reflections); flush on
+   version-slider variants. Pass `insetThumb` on WavyCard to enable. */
 .wc-thumb {
   width: 100%;
   height: var(--wc-thumb-h);
@@ -77,8 +76,8 @@
 }
 
 .wc-thumb--inset {
-  width: calc(var(--wc-width) - 8px);
-  margin: 4px 4px 0 4px;
+  width: calc(var(--wc-width) - 2 * var(--ajab-card-thumb-pad, 2px));
+  margin: var(--ajab-card-thumb-pad, 2px) var(--ajab-card-thumb-pad, 2px) 0;
 }
 
 .wc-thumb img {

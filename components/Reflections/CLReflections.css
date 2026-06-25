@@ -39,14 +39,9 @@ body:has(.clrd-page) .floating-actions {
   max-width: none;
   padding: 0 0 clamp(16px, 2vw, 28px);
   font-weight: 300;
-  --clr-artboard-w: 1920;
   /* Intro: centred block, widest line ~769pt (PyMuPDF page 1) */
-  --clr-intro-w: min(770px, calc(100vw * 770 / var(--clr-artboard-w)));
-  --clr-intro-y: min(8px, calc(100vw * 8 / var(--clr-artboard-w)));
-  /* Cards: ~280pt wide; grid follows default listing gap (filter → cards) */
-  --clr-card-w: min(280px, calc(100vw * 280 / var(--clr-artboard-w)));
-  --clr-grid-col-gap: min(66px, calc(100vw * 66 / var(--clr-artboard-w)));
-  --clr-grid-max-w: calc(var(--clr-card-w) * 3 + var(--clr-grid-col-gap) * 2);
+  --clr-intro-w: min(770px, calc(100vw * 770 / var(--ajab-artboard-w)));
+  --clr-intro-y: min(8px, calc(100vw * 8 / var(--ajab-artboard-w)));
 }
 
 /* PDF — 3-line intro centred on page (x union 578–1347, centre ≈ 963) */
@@ -68,19 +63,9 @@ body:has(.clrd-page) .floating-actions {
   box-sizing: border-box;
 }
 
-/* Grid — dynamic card heights, start from top */
+/* Grid — top margin only; sizing tokens live in globals.css */
 .clr-page.clr-listing-page .cl-song-grid {
-  --ajab-card-w: var(--clr-card-w);
-  --ajab-grid-col-gap: var(--clr-grid-col-gap);
-  --ajab-grid-max-w: var(--clr-grid-max-w);
-  grid-template-columns: repeat(3, var(--clr-card-w));
   margin-top: clamp(24px, 1.6vw, 32px);
-  align-items: start;
-}
-
-.clr-page.clr-listing-page .cl-song-grid-item {
-  max-width: var(--clr-card-w);
-  align-items: flex-start;
 }
 
 .clr-page.clr-listing-page .cl-load-more-wrap {
@@ -108,7 +93,7 @@ body:has(.clrd-page) .floating-actions {
 
 /* White outline via box-shadow (no border gaps on rounded corners). */
 .clr-card {
-  --wc-width: var(--clr-card-w, var(--ajab-card-w));
+  --wc-width: var(--ajab-card-w);
   --wc-thumb-h: clamp(100px, 8.9vw, 141px);
   --wc-shadow: var(--ajab-card-shadow);
   --wc-radius: var(--ajab-card-radius);

@@ -903,6 +903,12 @@ MODULE_GROUPS: dict[str, callable] = {
     "radio": radio_specs,
 }
 
+def filter_comparison_specs(specs: list[ComparisonSpec]) -> list[ComparisonSpec]:
+    skip = os.environ.get("COMPARISON_SKIP_NEWS_POPUP", "").lower() in ("1", "true", "yes")
+    if not skip:
+        return specs
+    return [s for s in specs if s.out_path.parent.name != "2_News_Popup"]
+
 ONLY_CHOICES = ("home", "songs", "poems", "reflections", "people", "films", "about", "glossary", "radio", "modules", "all")
 
 # Screens that often fail on slow CMS / first-compile — use --retry-failed
@@ -927,7 +933,7 @@ def retry_failed_specs() -> list[ComparisonSpec]:
         pdf = module_pdf(key)
         if pdf.exists():
             specs.extend(MODULE_GROUPS[key]())
-    return [s for s in specs if s.out_path.parent.name in RETRY_FOLDER_NAMES]
+    return filter_comparison_specs([s for s in specs if s.out_path.parent.name in RETRY_FOLDER_NAMES])
 
 
 def collect_specs(only: str) -> list[ComparisonSpec]:
@@ -979,7 +985,7 @@ def collect_specs(only: str) -> list[ComparisonSpec]:
                 continue
             specs.extend(MODULE_GROUPS[key]())
 
-    return specs
+    return filter_comparison_specs(specs)
 
 
 def main() -> None:
@@ -995,7 +1001,15 @@ def main() -> None:
         action="store_true",
         help="Regenerate only the five screens that often time out (popup, song detail, etc.)",
     )
+    parser.add_argument(
+        "--skip-news-popup",
+        action="store_true",
+        help="Skip Home PDF page 2 (AJAB News popup on /) — popup disabled in .env.local",
+    )
     args = parser.parse_args()
+
+    if args.skip_news_popup:
+        os.environ["COMPARISON_SKIP_NEWS_POPUP"] = "1"
 
     if args.retry_failed:
         specs = retry_failed_specs()

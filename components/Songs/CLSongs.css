@@ -473,10 +473,7 @@ body:has(.cl-home-page-root) footer.footer-bg .footer-inner {
   opacity: 1;
 }
 
-/* ── Song card grid — Figma-exact spacing.
-   Card width token raised: clamp(180px, 17.7vw, 280px) → hits 280px at
-   ~1581px viewport (vs old 15vw which only hit 288px at ≥1920px).
-   Grid max-w updated to 3×280 + 2×66 = 972 → rounded up to 1020px. ── */
+/* ── Listing card grid — shared by Songs + Reflections (tokens in globals.css). ── */
 .cl-song-grid {
   display: grid;
   grid-template-columns: repeat(3, var(--ajab-card-w));
@@ -486,21 +483,6 @@ body:has(.cl-home-page-root) footer.footer-bg .footer-inner {
   align-items: start;
   max-width: var(--ajab-grid-max-w);
   margin: 30px auto 64px;
-}
-
-/* Laptop ≤ 1280px — reduce column gap so the 3-col grid still fits */
-@media screen and (max-width: 1280px) {
-  .cl-song-grid {
-    column-gap: 40px;
-  }
-}
-
-/* Narrow laptop ≤ 1024px — further reduce gap and width budget */
-@media screen and (max-width: 1024px) {
-  .cl-song-grid {
-    column-gap: 24px;
-    padding: 0 20px;
-  }
 }
 
 .cl-song-grid-item {
@@ -751,8 +733,9 @@ html body:has(.cl-home-page-root) .floating-actions {
 /* ── Responsive — 2 columns at 1024px ── */
 @media screen and (max-width: 1024px) {
   .cl-song-grid {
-    grid-template-columns: repeat(2, 280px);
-    column-gap: 40px;
+    grid-template-columns: repeat(2, var(--ajab-card-w));
+    max-width: calc(var(--ajab-card-w) * 2 + var(--ajab-grid-col-gap));
+    padding: 0 20px;
   }
 
   .cl-songs-inner {

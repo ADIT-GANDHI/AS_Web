@@ -98,6 +98,7 @@ function ReflectionCard({ data }: { data: ReflectionCardData }) {
       href={`${process.env.NEXT_PUBLIC_BASE_PATH || ''}/reflections/details/${data.id}`}
       imageSrc={data.thumbnailUrl}
       imageAlt={data.title}
+      insetThumb
       thumb={
         data.thumbnailUrl ? (
           <>
@@ -364,7 +365,6 @@ export default function CLReflections() {
                 availableThemes: filterLists.themes,
                 categoryLabels: { Singer: 'Speaker', Poet: 'Format', Theme: 'Theme' },
                 filterTriggerAlwaysPink: true,
-                showClearAllAlways: true,
               }}
             />
 

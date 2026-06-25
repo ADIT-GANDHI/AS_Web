@@ -32,7 +32,9 @@ export default function HomeCardShell({ className, media, children, href }: Home
               height={485}
               decoding="async"
             />
-            <div className="clh-card-body">{children}</div>
+            <div className="clh-card-body">
+              <div className="clh-card-frame">{children}</div>
+            </div>
           </div>
         </div>
       ) : (

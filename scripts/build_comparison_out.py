@@ -15,6 +15,7 @@ Usage:
 from __future__ import annotations
 
 import argparse
+import os
 import shutil
 import sys
 from datetime import datetime, timezone
@@ -31,6 +32,7 @@ from generate_all_pdf_comparisons import (  # noqa: E402
     about_specs,
     collect_specs,
     films_specs,
+    filter_comparison_specs,
     glossary_specs,
     home_specs,
     module_pdf,
@@ -77,6 +79,7 @@ def regenerate_all(*, retry_failed: bool = False) -> list[str]:
     errors: list[str] = []
     ensure_module_pdfs()
     specs = retry_failed_specs() if retry_failed else collect_specs("all")
+    specs = filter_comparison_specs(specs)
     print(f"Base URL: {BASE_URL}")
     print(f"Regenerating {len(specs)} comparison screen(s)…\n")
 
@@ -115,6 +118,8 @@ def copy_asset(src: Path, dest: Path) -> None:
 
 
 def build_out_folder() -> list[str]:
+    global INDEX_ROWS
+    INDEX_ROWS = []
     missing: list[str] = []
 
     if OUT.exists():
@@ -137,7 +142,7 @@ def build_out_folder() -> list[str]:
     )
 
     for module, spec_fn in PACKAGES:
-        for spec in spec_fn():
+        for spec in filter_comparison_specs(spec_fn()):
             rel_folder = spec.out_path.parent.relative_to(ROOT / f"{module}_Localhost_Comparison")
             dest = OUT / module / rel_folder / spec.out_path.name
             if spec.out_path.exists():
@@ -256,7 +261,23 @@ def main() -> None:
         action="store_true",
         help="Regenerate only the five previously failing screens, then repack",
     )
+    parser.add_argument(
+        "--out-dir",
+        type=Path,
+        default=None,
+        help="Output pack folder (default: Comparison_Out at repo root)",
+    )
+    parser.add_argument(
+        "--skip-news-popup",
+        action="store_true",
+        help="Skip Home PDF page 2 (AJAB News popup on /)",
+    )
     args = parser.parse_args()
+
+    global OUT
+    OUT = (args.out_dir or (ROOT / "Comparison_Out")).resolve()
+    if args.skip_news_popup:
+        os.environ["COMPARISON_SKIP_NEWS_POPUP"] = "1"
 
     regen_errors: list[str] = []
     if args.pack_only:

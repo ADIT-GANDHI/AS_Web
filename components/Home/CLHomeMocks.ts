@@ -19,12 +19,11 @@ export const MOCK_HOME_SONG = {
 
 export const MOCK_HOME_POEM = {
   id: 2,
-  text: `Maati kahe kumhaar se
+  transliteration: `Maati kahe kumhaar se
 tu kya roendat moye?
 Ik din aisa aayega,
-main roendungi toye.
-
-The potter tells the earth -
+main roendungi toye.`,
+  translation: `The potter tells the earth -
 "Thus and thus I pound you..."`,
   poet: 'AMIR KHUSRO',
 };

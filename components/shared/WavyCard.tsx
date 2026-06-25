@@ -13,7 +13,7 @@ import './WavyCard.css';
 //     drop-shadow (::after on card) using the Figma-exported PNGs.
 //   • Card layout (column flex, drop shadow, hover lift, top radius,
 //     overflow visible so the wavy ornaments hang outside).
-//   • Thumbnail wrapper (with optional 4 px inset for the Songs listing).
+//   • Thumbnail wrapper (with optional inset for listing cards).
 //
 // What the consumer owns:
 //   • Title / subtitle / meta typography (per-module CSS class on children).
@@ -35,9 +35,7 @@ export interface WavyCardProps {
   imageAlt?: string;
   /** Custom thumbnail content (e.g. play overlay, video, etc.). */
   thumb?: ReactNode;
-  /** Inset the thumbnail by 4 px on all sides — matches the Songs
-   *  listing card. Defaults to false (flush thumb, used by Reflections
-   *  and version slider). */
+  /** Inset the thumbnail by `--ajab-card-thumb-pad` (default 2px) — listing cards. */
   insetThumb?: boolean;
 
   /** Card body content (title / subtitle / meta etc.). */

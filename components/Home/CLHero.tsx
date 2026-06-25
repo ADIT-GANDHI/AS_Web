@@ -4,12 +4,19 @@ import { useEffect, useRef, useState } from 'react';
 import Footer from '@/components/Footer';
 import Header from '@/components/Header';
 import ContentSliderModal, { NewsPopupSlide } from '@/components/CLContentSliderModal';
+import type {
+  HomeFilmCard,
+  HomePeopleCard,
+  HomePoemCard,
+  HomeReflectionCard,
+  HomeSongCard,
+} from '@/lib/homeApiMapper';
 import {
-  MOCK_HOME_SONG,
+  MOCK_HOME_FILM,
+  MOCK_HOME_PEOPLE,
   MOCK_HOME_POEM,
   MOCK_HOME_REFLECTION,
-  MOCK_HOME_PEOPLE,
-  MOCK_HOME_FILM,
+  MOCK_HOME_SONG,
 } from './CLHomeMocks';
 import '@/styles/CustomStyle.css';
 import '@/components/Songs/CLSongs.css';
@@ -17,6 +24,7 @@ import './CLHome.css';
 import { AJAB_API_BASE } from '@/lib/ajabEnv';
 import { mapNewsToHomePopupSlides } from '@/lib/mapNewsPopupSlides';
 import { mapHomeLatest } from '@/lib/homeApiMapper';
+import { isHomeApiOnlyMode } from '@/lib/homePageConfig';
 import {
   shouldAutoOpenAjabNewsPopup,
   snoozeAjabNewsPopup,
@@ -32,13 +40,13 @@ const toImageUrl = (value?: string) => {
   return `${NEWS_ASSET_BASE}${value.replace(/^\/+/, '')}`;
 };
 
-function SongCard({ data }: { data: typeof MOCK_HOME_SONG }) {
+function SongCard({ data, imageFallback }: { data: HomeSongCard; imageFallback: string }) {
   return (
     <HomeCardShell
       className="clh-song-card"
       href={`/songs/details/${data.id}`}
       media={
-        <HomeCardImage src={data.image} fallbackSrc={MOCK_HOME_SONG.image} alt={data.title} />
+        <HomeCardImage src={data.image} fallbackSrc={imageFallback} alt={data.title || 'Song'} />
       }
     >
       <div className="clh-card-title">{data.title}</div>
@@ -57,38 +65,46 @@ function SongCard({ data }: { data: typeof MOCK_HOME_SONG }) {
       )}
       <div className="clh-card-divider" />
       <p className="clh-card-desc">{data.description}</p>
-      <span className="clh-card-cta">EXPLORE SONG</span>
+      <div className="clh-card-footer">
+        <span className="clh-card-cta">EXPLORE SONG</span>
+      </div>
     </HomeCardShell>
   );
 }
 
-function PoemCard({ data }: { data: typeof MOCK_HOME_POEM }) {
-  const lines = (data.text || '').split('\n');
-  const splitIdx = lines.findIndex((l) => l.trim() === '');
-  const original = splitIdx >= 0 ? lines.slice(0, splitIdx).join('\n') : data.text;
-  const translation = splitIdx >= 0 ? lines.slice(splitIdx + 1).join('\n') : '';
-
+function PoemCard({ data }: { data: HomePoemCard }) {
   return (
     <HomeCardShell className="clh-poem-card" href={`/poems/details/${data.id}`}>
-      <div className="clh-poem-text">{original}</div>
-      {translation && <div className="clh-poem-translation">{translation}</div>}
+      {data.transliteration && <div className="clh-poem-text">{data.transliteration}</div>}
+      {data.translation && <div className="clh-poem-translation">{data.translation}</div>}
       <div className="clh-poem-spacer" />
       <div className="clh-poem-divider" />
       <div className="clh-poem-poet">
-        poet <span className="pink">{data.poet}</span>
+        <span className="clh-poem-poet-label">poet </span>
+        <span className="clh-poem-poet-name">{data.poet}</span>
       </div>
       <span className="clh-card-cta">EXPLORE POEM</span>
     </HomeCardShell>
   );
 }
 
-function ReflectionCard({ data }: { data: typeof MOCK_HOME_REFLECTION }) {
+function ReflectionCard({
+  data,
+  imageFallback,
+}: {
+  data: HomeReflectionCard;
+  imageFallback: string;
+}) {
   return (
     <HomeCardShell
       className="clh-reflection-card"
       href={`/reflections/details/${data.id}`}
       media={
-        <HomeCardImage src={data.image} fallbackSrc={MOCK_HOME_REFLECTION.image} alt={data.title} />
+        <HomeCardImage
+          src={data.image}
+          fallbackSrc={imageFallback}
+          alt={data.title || 'Reflection'}
+        />
       }
     >
       <div className="clh-card-title">{data.title}</div>
@@ -100,42 +116,46 @@ function ReflectionCard({ data }: { data: typeof MOCK_HOME_REFLECTION }) {
       )}
       <div className="clh-card-divider" />
       <p className="clh-card-desc">{data.description}</p>
-      <span className="clh-card-cta">EXPLORE REFLECTION</span>
+      <div className="clh-card-footer">
+        <span className="clh-card-cta">EXPLORE REFLECTION</span>
+      </div>
     </HomeCardShell>
   );
 }
 
-function PeopleCard({ data }: { data: typeof MOCK_HOME_PEOPLE }) {
+function PeopleCard({ data, imageFallback }: { data: HomePeopleCard; imageFallback: string }) {
   return (
     <HomeCardShell
       className="clh-people-card"
       href={`/people/${data.id}`}
       media={
-        <HomeCardImage src={data.image} fallbackSrc={MOCK_HOME_PEOPLE.image} alt={data.title} />
+        <HomeCardImage src={data.image} fallbackSrc={imageFallback} alt={data.title || 'Person'} />
       }
     >
       <div className="clh-card-title">{data.title}</div>
       {data.subtitle && <div className="clh-card-subtitle">{data.subtitle}</div>}
       {data.introBy && (
         <div className="clh-card-meta">
-          <span className="clh-card-meta-label">intro by </span>
+          <span className="clh-card-meta-label">by </span>
           <span className="clh-card-meta-name">{data.introBy}</span>
         </div>
       )}
       <div className="clh-card-divider" />
       <p className="clh-card-desc">{data.description}</p>
-      <span className="clh-card-cta">EXPLORE PEOPLE</span>
+      <div className="clh-card-footer">
+        <span className="clh-card-cta">EXPLORE PEOPLE</span>
+      </div>
     </HomeCardShell>
   );
 }
 
-function FilmCard({ data }: { data: typeof MOCK_HOME_FILM }) {
+function FilmCard({ data, imageFallback }: { data: HomeFilmCard; imageFallback: string }) {
   return (
     <HomeCardShell
       className="clh-film-card"
       href={`/films/details/${data.id}`}
       media={
-        <HomeCardImage src={data.image} fallbackSrc={MOCK_HOME_FILM.image} alt={data.title} />
+        <HomeCardImage src={data.image} fallbackSrc={imageFallback} alt={data.title || 'Film'} />
       }
     >
       <div className="clh-card-title">{data.title}</div>
@@ -148,17 +168,23 @@ function FilmCard({ data }: { data: typeof MOCK_HOME_FILM }) {
       )}
       <div className="clh-card-divider" />
       <p className="clh-card-desc">{data.description}</p>
-      <span className="clh-card-cta">EXPLORE FILM</span>
+      <div className="clh-card-footer">
+        <span className="clh-card-cta">EXPLORE FILM</span>
+      </div>
     </HomeCardShell>
   );
 }
 
 export default function CLHero() {
-  const [song, setSong] = useState(MOCK_HOME_SONG);
-  const [poem, setPoem] = useState(MOCK_HOME_POEM);
-  const [reflection, setReflection] = useState(MOCK_HOME_REFLECTION);
-  const [people, setPeople] = useState(MOCK_HOME_PEOPLE);
-  const [film, setFilm] = useState(MOCK_HOME_FILM);
+  const homeApiOnly = isHomeApiOnlyMode();
+
+  const [song, setSong] = useState<HomeSongCard | null>(homeApiOnly ? null : MOCK_HOME_SONG);
+  const [poem, setPoem] = useState<HomePoemCard | null>(homeApiOnly ? null : MOCK_HOME_POEM);
+  const [reflection, setReflection] = useState<HomeReflectionCard | null>(
+    homeApiOnly ? null : MOCK_HOME_REFLECTION
+  );
+  const [people, setPeople] = useState<HomePeopleCard | null>(homeApiOnly ? null : MOCK_HOME_PEOPLE);
+  const [film, setFilm] = useState<HomeFilmCard | null>(homeApiOnly ? null : MOCK_HOME_FILM);
 
   const [showAjabNews, setShowAjabNews] = useState(false);
   const [popupSlides, setPopupSlides] = useState<NewsPopupSlide[]>([]);
@@ -170,7 +196,7 @@ export default function CLHero() {
         if (res.ok) {
           const payload = await res.json();
           if (payload?.status && payload?.latest) {
-            const mapped = mapHomeLatest(payload.latest);
+            const mapped = mapHomeLatest(payload.latest, homeApiOnly);
             setSong(mapped.song);
             setPoem(mapped.poem);
             setReflection(mapped.reflection);
@@ -179,7 +205,7 @@ export default function CLHero() {
           }
         }
       } catch {
-        // mocks already in state
+        /* Mock cards remain when API is unavailable (default mode). */
       }
 
       try {
@@ -201,7 +227,7 @@ export default function CLHero() {
     };
 
     loadData();
-  }, []);
+  }, [homeApiOnly]);
 
   useEffect(() => {
     const handleOpen = () => setShowAjabNews(true);
@@ -224,21 +250,43 @@ export default function CLHero() {
           <div className="clh-page">
             <div className="clh-marble-stage">
               <div className="clh-cards">
-                <div className="clh-card-row clh-card-row--song">
-                  <SongCard data={song} />
-                </div>
-                <div className="clh-card-row clh-card-row--poem">
-                  <PoemCard data={poem} />
-                </div>
-                <div className="clh-card-row clh-card-row--reflection">
-                  <ReflectionCard data={reflection} />
-                </div>
-                <div className="clh-card-row clh-card-row--people">
-                  <PeopleCard data={people} />
-                </div>
-                <div className="clh-card-row clh-card-row--film">
-                  <FilmCard data={film} />
-                </div>
+                {(homeApiOnly ? song : song ?? MOCK_HOME_SONG) && (
+                  <div className="clh-card-row clh-card-row--song">
+                    <SongCard
+                      data={(homeApiOnly ? song : song ?? MOCK_HOME_SONG)!}
+                      imageFallback={MOCK_HOME_SONG.image}
+                    />
+                  </div>
+                )}
+                {(homeApiOnly ? poem : poem ?? MOCK_HOME_POEM) && (
+                  <div className="clh-card-row clh-card-row--poem">
+                    <PoemCard data={(homeApiOnly ? poem : poem ?? MOCK_HOME_POEM)!} />
+                  </div>
+                )}
+                {(homeApiOnly ? reflection : reflection ?? MOCK_HOME_REFLECTION) && (
+                  <div className="clh-card-row clh-card-row--reflection">
+                    <ReflectionCard
+                      data={(homeApiOnly ? reflection : reflection ?? MOCK_HOME_REFLECTION)!}
+                      imageFallback={MOCK_HOME_REFLECTION.image}
+                    />
+                  </div>
+                )}
+                {(homeApiOnly ? people : people ?? MOCK_HOME_PEOPLE) && (
+                  <div className="clh-card-row clh-card-row--people">
+                    <PeopleCard
+                      data={(homeApiOnly ? people : people ?? MOCK_HOME_PEOPLE)!}
+                      imageFallback={MOCK_HOME_PEOPLE.image}
+                    />
+                  </div>
+                )}
+                {(homeApiOnly ? film : film ?? MOCK_HOME_FILM) && (
+                  <div className="clh-card-row clh-card-row--film">
+                    <FilmCard
+                      data={(homeApiOnly ? film : film ?? MOCK_HOME_FILM)!}
+                      imageFallback={MOCK_HOME_FILM.image}
+                    />
+                  </div>
+                )}
               </div>
             </div>
           </div>

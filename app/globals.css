@@ -166,15 +166,13 @@ p {
   --ajab-lh-base:      1.3;
   --ajab-lh-relaxed:   1.5;
 
-  /* ── Songs card geometry (Figma 361:692) ── */
-  /* [Claude] these changes have been recommended by claude —
-     Card width reduced: 280px → 220px max so the card grid occupies ~41% of the
-     1920px artboard (was 52%), matching the AI design where the marble background
-     is clearly visible on both sides. 14.5vw hits 220px at 1517px viewport. */
-  --ajab-card-w:           clamp(180px, 14.5vw, 220px);
+  /* ── Listing card geometry (Songs + Reflections share one grid) ──
+     PDF artboard 1920px — card ~280pt, col-gap ~66pt; grid max-w = 3×card + 2×gap. */
+  --ajab-artboard-w:       1920;
+  --ajab-card-w:           min(280px, calc(100vw * 280 / var(--ajab-artboard-w)));
   --ajab-card-h-min:       287px;   /* reference only; height is now content-driven  */
   --ajab-card-thumb-h:     156px;   /* Figma 156.17                             */
-  --ajab-card-thumb-pad:   4px;     /* thumb is 4px inset from card edge        */
+  --ajab-card-thumb-pad:   2px;     /* thumb inset from card edge (listing cards) */
   --ajab-card-body-pad-x:  16px;
   --ajab-card-body-pad-t:  0px;     /* title sits flush with thumb              */
   --ajab-card-body-pad-b:  24px;
@@ -184,12 +182,9 @@ p {
   --ajab-card-shadow:      0 4px 14px rgba(0, 0, 0, 0.10);
 
   /* ── Grid spacing (PDF-proportional, 3-col layout) ── */
-  /* [Claude] these changes have been recommended by claude —
-     col-gap cap reduced 81px → 60px to stay proportional to smaller 220px cards.
-     grid-max-w updated: 3×220 + 2×60 = 780px → 800px with breathing room. */
-  --ajab-grid-col-gap:     clamp(24px, 4.2vw, 60px);
+  --ajab-grid-col-gap:     min(66px, calc(100vw * 66 / var(--ajab-artboard-w)));
   --ajab-grid-row-gap:     clamp(32px, 4.3vw, 83px);
-  --ajab-grid-max-w:       800px;
+  --ajab-grid-max-w:       calc(var(--ajab-card-w) * 3 + var(--ajab-grid-col-gap) * 2);
   /* Filter + A–Z row: slightly wider than the 3-card column so letters breathe,
      without spanning the full Figma 920:67 artboard (~1324px). */
   --ajab-songs-filter-rail-max-w: 1200px;
