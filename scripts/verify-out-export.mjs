@@ -1,30 +1,32 @@
 /**
- * Smoke-test static export in out/ (served at /new like production).
+ * Smoke-test static export in out/ (served at production basePath).
  * Run after: npm run build
  */
 import http from 'http';
 import fs from 'fs';
 import path from 'path';
-import { fileURLToPath } from 'url';
 
 const ROOT = process.cwd();
 const OUT = path.join(ROOT, 'out');
-const BASE = '/new';
+const BASE = process.env.NEXT_PUBLIC_BASE_PATH ?? '';
 const PORT = 4173;
 
+const p = (path) => (BASE ? `${BASE}${path}` : path);
+
 const CHECKS = [
-  '/new/poems.html',
-  '/new/poems/1.html',
-  '/new/radio.html',
-  '/new/songs.html',
-  '/new/index.html',
-  '/new/poems-bg.png',
-  '/new/poem-detail-bg.png',
-  '/new/radio-page-bg.png',
-  '/new/radio-playlist-bg.png',
-  '/new/radio-player-strip.png',
-  '/new/poem-notes-glossary.png',
-  '/new/related-poem-handwritten.png',
+  p('/poems.html'),
+  p('/poems/1.html'),
+  p('/radio.html'),
+  p('/songs.html'),
+  p('/index.html'),
+  p('/poems-bg.png'),
+  p('/poem-detail-bg.png'),
+  p('/radio-page-bg.png'),
+  p('/radio-playlist-bg.png'),
+  p('/radio-player-strip.png'),
+  p('/poem-notes-glossary.png'),
+  p('/related-poem-handwritten.png'),
+  p('/spinner.gif'),
 ];
 
 const MIME = {
@@ -32,6 +34,7 @@ const MIME = {
   '.css': 'text/css',
   '.js': 'application/javascript',
   '.png': 'image/png',
+  '.gif': 'image/gif',
   '.svg': 'image/svg+xml',
   '.webp': 'image/webp',
   '.json': 'application/json',
@@ -39,8 +42,8 @@ const MIME = {
 };
 
 function resolveFile(urlPath) {
-  if (!urlPath.startsWith(BASE)) return null;
-  let rel = urlPath.slice(BASE.length);
+  if (BASE && !urlPath.startsWith(BASE)) return null;
+  let rel = BASE ? urlPath.slice(BASE.length) : urlPath;
   if (rel === '' || rel === '/') rel = '/index.html';
   if (rel.endsWith('/')) rel += 'index.html';
   if (!path.extname(rel)) rel += '.html';
@@ -72,11 +75,15 @@ for (const check of CHECKS) {
   }
   if (check.endsWith('.html')) {
     const html = await res.text();
-    if (html.includes('src="/') && !html.includes('src="/new/')) {
-      failures.push(`${check} → unprefixed src="/" in HTML`);
+    const nextPrefix = BASE ? `${BASE}/_next/` : '/_next/';
+    if (!html.includes(nextPrefix)) {
+      failures.push(`${check} → missing ${nextPrefix} assets`);
     }
-    if (check.includes('poems') && !html.includes('/new/_next/')) {
-      failures.push(`${check} → missing /new/_next/ assets`);
+    if (BASE && html.includes('src="/') && !html.includes(`src="${BASE}/`)) {
+      failures.push(`${check} → unprefixed src="/" in HTML (expected ${BASE}/)`);
+    }
+    if (!BASE && html.includes('/new/_next/')) {
+      failures.push(`${check} → stale /new/ paths in HTML`);
     }
   }
 }
@@ -87,14 +94,26 @@ const poemsCss = cssFiles
   .map((f) => fs.readFileSync(path.join(cssDir, f), 'utf8'))
   .find((c) => c.includes('clp-page-root-wrap'));
 if (!poemsCss) failures.push('CSS: missing clp-page-root-wrap styles');
-else if (!poemsCss.includes('url(/new/poems-bg.png)')) {
-  failures.push('CSS: poems-bg.png not prefixed with /new');
+else {
+  const poemsBgUrl = BASE ? `url(${BASE}/poems-bg.png)` : 'url(/poems-bg.png)';
+  if (!poemsCss.includes(poemsBgUrl)) {
+    failures.push(`CSS: poems-bg.png not at expected path (${poemsBgUrl})`);
+  }
 }
 if (poemsCss && !poemsCss.includes('#f0f2ff')) {
   failures.push('CSS: missing poems background color #f0f2ff');
 }
 
-/** Catch double basePath in JS (e.g. /new/new/songs-assets/… breaks filter wavy SVG). */
+const footerCss = cssFiles
+  .map((f) => fs.readFileSync(path.join(cssDir, f), 'utf8'))
+  .find((c) => c.includes('footer-bg'));
+const footerPng = BASE
+  ? `url(${BASE}/songs-assets/Footer.png)`
+  : 'url(/songs-assets/Footer.png)';
+if (footerCss && !footerCss.includes(footerPng)) {
+  failures.push(`CSS: Footer.png not at expected path (${footerPng})`);
+}
+
 function walkJs(dir) {
   let files = [];
   for (const entry of fs.readdirSync(dir, { withFileTypes: true })) {
@@ -106,27 +125,30 @@ function walkJs(dir) {
 }
 const chunksRoot = path.join(OUT, '_next', 'static', 'chunks');
 if (fs.existsSync(chunksRoot)) {
+  const double = BASE ? `${BASE}${BASE}/` : '/new/new/';
   for (const file of walkJs(chunksRoot)) {
     const js = fs.readFileSync(file, 'utf8');
-    if (js.includes('/new/new/')) {
+    if (js.includes(double)) {
       failures.push(`JS double basePath: ${path.relative(OUT, file)}`);
     }
   }
-}
-if (fs.existsSync(path.join(OUT, 'songs-assets', 'song_filter_opaque.svg'))) {
-  const filterChunk = walkJs(chunksRoot).find((f) => {
-    const js = fs.readFileSync(f, 'utf8');
-    return js.includes('song_filter_opaque');
-  });
+  const filterPath = BASE
+    ? `${BASE}/songs-assets/song_filter_opaque.svg`
+    : '/songs-assets/song_filter_opaque.svg';
+  const filterChunk = walkJs(chunksRoot).find((f) =>
+    fs.readFileSync(f, 'utf8').includes('song_filter_opaque')
+  );
   if (filterChunk) {
     const js = fs.readFileSync(filterChunk, 'utf8');
-    if (!js.includes('/new/songs-assets/song_filter_opaque.svg')) {
-      failures.push('JS: song_filter_opaque.svg missing correct /new/ path');
-    }
-    if (js.includes('/new/new/songs-assets/song_filter_opaque.svg')) {
-      failures.push('JS: song_filter_opaque.svg has doubled /new/new/ path');
+    if (!js.includes(filterPath)) {
+      failures.push(`JS: song_filter_opaque.svg missing expected path ${filterPath}`);
     }
   }
+  const spinnerPath = BASE ? `${BASE}/spinner.gif` : '/spinner.gif';
+  const hasSpinner = walkJs(chunksRoot).some((f) =>
+    fs.readFileSync(f, 'utf8').includes(spinnerPath)
+  );
+  if (!hasSpinner) failures.push(`JS: loader spinner missing path ${spinnerPath}`);
 }
 
 server.close();
@@ -137,4 +159,5 @@ if (failures.length) {
   process.exit(1);
 }
 
-console.log(`✅ out/ export OK — ${CHECKS.length} routes/assets, poems CSS, basePath /new`);
+const baseLabel = BASE || '(root)';
+console.log(`✅ out/ export OK — ${CHECKS.length} routes/assets, poems/footer CSS, basePath ${baseLabel}`);

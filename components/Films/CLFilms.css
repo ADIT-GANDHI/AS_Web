@@ -269,7 +269,7 @@ body:has(.clfd-page) footer.footer-bg {
 
 body:has(.clf-page) .nav-link--films,
 body:has(.clfd-page) .nav-link--films {
-  color: var(--ajab-pink-primary) !important;
+  color: #1a1a1a !important;
   align-items: baseline;
 }
 
@@ -279,7 +279,7 @@ body:has(.clfd-page) .nav-link--films::after {
   font: inherit;
   font-size: 0.55em;
   margin-left: 1px;
-  color: var(--ajab-pink-primary);
+  color: #1a1a1a;
 }
 
 /* ── Detail page ── */

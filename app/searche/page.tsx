@@ -1,8 +1,8 @@
 'use client';
 import React, { Suspense } from 'react';
 
-import Footer from '@/components/Footer';
 import Header from '@/components/Header';
+import Loader from '@/components/Loader';
 import SearchResults from '@/components/searche/SearchResults';
 import '@/components/searche/SearchResults.css';
 
@@ -12,11 +12,10 @@ export default function NewsPage() {
       <div className="min-h-screen">
         <Header />
         <main className="relative z-10">
-          <Suspense fallback={<div className="px-4 py-8">Loading search...</div>}>
+          <Suspense fallback={<Loader />}>
             <SearchResults />
           </Suspense>
         </main>
-        <Footer />
       </div>
     </div>
   );

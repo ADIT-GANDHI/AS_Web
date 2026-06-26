@@ -3,6 +3,7 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import Link from 'next/link';
 import { useSearchParams } from 'next/navigation';
+import Loader from '@/components/Loader';
 import './SearchResults.css';
 import { AJAB_API_BASE } from '@/lib/ajabEnv';
 import { SEARCH_ENDPOINT, emptySearchResponse, normalizeSearchPayload, type SearchApiResponse } from '@/lib/utils/search';
@@ -262,6 +263,10 @@ export default function SearchResults() {
 
   const hasNoResults = !isLoading && (data.total || 0) === 0;
 
+  if (isLoading && rawQuery) {
+    return <Loader />;
+  }
+
   return (
     <div className="mt-8" >
       <div className="custom-inner-container mx-auto pb-8">
@@ -288,9 +293,7 @@ export default function SearchResults() {
           ))}
         </div>
 
-        {isLoading && <p className="search-result-text mb-10">Loading search results...</p>}
-
-        {!!errorText && !isLoading && <p className="search-error-text mb-10">{errorText}</p>}
+        {!!errorText && <p className="search-error-text mb-10">{errorText}</p>}
 
         {hasNoResults ? (
           <div className="search-no-results-wrapper">

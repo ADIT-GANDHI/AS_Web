@@ -84,6 +84,7 @@ const ASSET_PREFIXES = [
   'tree.svg',
   'logo.svg',
   'k_logo.svg',
+  'spinner.gif',
   'header-bg.svg',
   'layout-bg.svg',
   'search-icon.svg',

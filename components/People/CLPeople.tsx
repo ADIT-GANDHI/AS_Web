@@ -3,8 +3,8 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import Link from 'next/link';
 import LoadMoreButton from '@/components/shared/LoadMoreButton';
-import Footer from '@/components/Footer';
 import Header from '@/components/Header';
+import Loader from '@/components/Loader';
 import ListingFilterBar from '@/components/shared/ListingFilterBar';
 import RepeatingPageBackground from '@/components/shared/RepeatingPageBackground';
 import { PEOPLE_LISTING_BG } from '@/lib/pageBackgroundTiles';
@@ -188,6 +188,10 @@ export default function CLPeople() {
     setVisibleCount(PEOPLE_VISIBLE_STEP);
   }, [activeLetter, selectedCategories]);
 
+  if (loading) {
+    return <Loader />;
+  }
+
   return (
     <div className="cl-songs-page-root cl-songs-page-root--listing">
       <div className="cl-songs-page-shell" ref={shellRef}>
@@ -242,9 +246,7 @@ export default function CLPeople() {
             />
 
             <div className="clpe-list">
-              {loading ? (
-                <div className="clpe-list-status">Loading people…</div>
-              ) : displayedPeople.length > 0 ? (
+              {displayedPeople.length > 0 ? (
                 displayedPeople.map((p) => (
                   /* [Claude] these changes have been recommended by claude —
                      entry is a real <Link> (was a div + router.push): enables
@@ -282,7 +284,6 @@ export default function CLPeople() {
             )}
           </div>
         </main>
-        <Footer />
       </div>
     </div>
   );

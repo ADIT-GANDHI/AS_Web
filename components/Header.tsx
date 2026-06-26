@@ -2,7 +2,7 @@
 
 import { useContext, useEffect, useMemo, useState } from 'react';
 import Link from 'next/link';
-import { Search, Menu, X } from 'lucide-react';
+import { Menu, X } from 'lucide-react';
 import { usePathname, useRouter } from 'next/navigation';
 import { Suspense } from 'react';
 import HeaderAboutDropdown from '@/components/HeaderAboutDropdown';
@@ -10,8 +10,6 @@ import { navigationItems } from '@/lib/data';
 import Image from 'next/image';
 import logo from '../public/logo.svg';
 import searchIcon from '../public/songs-assets/search_icon.png';
-import radioIcon from '../public/songs-assets/radio.png';
-import radioPinkIcon from '../public/songs-assets/radio-pink.png';
 import headerCurve from '../public/songs-assets/Header.png';
 import '../styles/Header.css';
 import { AJAB_API_BASE } from '@/lib/ajabEnv';
@@ -81,7 +79,7 @@ export default function Header() {
   const [isSearchLoading, setIsSearchLoading] = useState(false);
   const pathname = usePathname(); // ✅ Get current path
   const router = useRouter();
-  const isRadioPage = pathname?.includes('/radio');
+  const isRadioPage = pathname?.startsWith('/radio');
   const { total: songsNavTotal } = useContext(SongsNavCountContext);
   const { total: reflectionsNavTotal } = useContext(ReflectionsNavCountContext);
   const { total: poemsNavTotal } = useContext(PoemsNavCountContext);
@@ -198,7 +196,7 @@ export default function Header() {
                       href={item.href}
                       className={`nav-link nav-link--${item.name.toLowerCase()} ${isActive ? 'active' : ''}`}
                     >
-                      {item.name}
+                      <span className="nav-link-label">{item.name}</span>
                       {isSongs && songsNavTotal != null && songsNavTotal > 0 && (
                         <span className="nav-link-songs-count" aria-hidden="true">
                           ({songsNavTotal})
@@ -231,13 +229,18 @@ export default function Header() {
               >
                 <HeaderAboutDropdown />
               </Suspense>
+              <Link
+                href="/radio"
+                className={`nav-link nav-link--radio hidden md:inline-flex ${isRadioPage ? 'active' : ''}`}
+              >
+                RADIO
+              </Link>
               <button
                 onClick={() => setIsSearchOpen((prev) => !prev)}
-                className={`transition-colors cursor-pointer ${isSearchOpen ? 'text-pink-500' : 'text-gray-700 hover:text-gray-900'
+                className={`header-search-toggle transition-colors cursor-pointer ${isSearchOpen ? 'text-pink-500' : 'text-gray-700 hover:text-gray-900'
                   }`}
                 aria-label="Toggle search"
               >
-                {/* Figma-exported search icon */}
                 <img
                   src={searchIcon.src}
                   alt=""
@@ -247,21 +250,7 @@ export default function Header() {
                   fetchPriority="high"
                   decoding="async"
                 />
-                {/* OLD lucide glyph: <Search className="w-8 h-8" /> */}
               </button>
-
-              {/* [Claude] these changes have been recommended by claude — wrap radio icon in Link so clicking navigates to /radio from every page */}
-              <Link href="/radio" className="radio-logo flex items-center justify-center mr-0" aria-label="Ajab Radio">
-                <img
-                  src={(isRadioPage ? radioPinkIcon : radioIcon).src}
-                  alt="Ajab Shahar Radio"
-                  width={isRadioPage ? 71 : 50}
-                  height={isRadioPage ? 78 : 56}
-                  style={{ display: 'block', maxWidth: '50px', width: '100%', height: 'auto' }}
-                  fetchPriority="high"
-                  decoding="async"
-                />
-              </Link>
 
               {/* Mobile menu toggle */}
               <button
@@ -291,7 +280,7 @@ export default function Header() {
                       className={`nav-link nav-link--${item.name.toLowerCase()} text-lg font-medium ${isActive ? 'active' : ''}`}
                       onClick={() => setIsMenuOpen(false)}
                     >
-                      {item.name}
+                      <span className="nav-link-label">{item.name}</span>
                       {isSongs && songsNavTotal != null && songsNavTotal > 0 && (
                         <span className="nav-link-songs-count" aria-hidden="true">
                           ({songsNavTotal})
@@ -305,6 +294,13 @@ export default function Header() {
                     </Link>
                   );
                 })}
+                <Link
+                  href="/radio"
+                  className={`nav-link nav-link--radio text-lg font-medium ${isRadioPage ? 'active' : ''}`}
+                  onClick={() => setIsMenuOpen(false)}
+                >
+                  RADIO
+                </Link>
                 <div className="mt-2">
                   <Link
                     href="/about?tab=ajab"

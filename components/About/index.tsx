@@ -2,6 +2,7 @@
 
 import { useEffect } from 'react';
 import Image from 'next/image';
+import Loader from '@/components/Loader';
 import logoAjab from '../../public/logo.svg';
 import logoKabir from '../../public/k_logo.svg';
 import { formatAboutMenuLabel } from '@/lib/aboutMenus';
@@ -61,6 +62,10 @@ export default function About({ forcedTab, forcedMenu }: AboutProps) {
     })
     .filter((row): row is NonNullable<typeof row> => row != null);
 
+  if (loading) {
+    return <Loader />;
+  }
+
   return (
     <section className="about-container" data-brand={activeTab}>
       {/* Logo */}
@@ -84,7 +89,6 @@ export default function About({ forcedTab, forcedMenu }: AboutProps) {
         </div>
       ) : null}
 
-      {loading ? <p className="about-state">Loading...</p> : null}
       {error ? <p className="about-state">Error: {error}</p> : null}
 
       {!loading && !error && !displayEntries.length ? (

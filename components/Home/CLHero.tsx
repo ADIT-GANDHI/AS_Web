@@ -1,8 +1,8 @@
 'use client';
 
 import { useEffect, useRef, useState } from 'react';
-import Footer from '@/components/Footer';
 import Header from '@/components/Header';
+import Loader from '@/components/Loader';
 import ContentSliderModal, { NewsPopupSlide } from '@/components/CLContentSliderModal';
 import type {
   HomeFilmCard,
@@ -178,6 +178,8 @@ function FilmCard({ data, imageFallback }: { data: HomeFilmCard; imageFallback: 
 export default function CLHero() {
   const homeApiOnly = isHomeApiOnlyMode();
 
+  const [homeLoading, setHomeLoading] = useState(homeApiOnly);
+
   const [song, setSong] = useState<HomeSongCard | null>(homeApiOnly ? null : MOCK_HOME_SONG);
   const [poem, setPoem] = useState<HomePoemCard | null>(homeApiOnly ? null : MOCK_HOME_POEM);
   const [reflection, setReflection] = useState<HomeReflectionCard | null>(
@@ -223,6 +225,8 @@ export default function CLHero() {
         }
       } catch {
         /* No mock popup — only show carousel when `/Api/news` returns slides */
+      } finally {
+        setHomeLoading(false);
       }
     };
 
@@ -241,6 +245,10 @@ export default function CLHero() {
     setShowAjabNews(false);
     snoozeAjabNewsPopup();
   };
+
+  if (homeLoading) {
+    return <Loader />;
+  }
 
   return (
     <div className="cl-home-page-root">
@@ -296,17 +304,6 @@ export default function CLHero() {
           items={popupSlides}
           isOpen={showAjabNews}
           onClose={handleCloseAjabNews}
-        />
-
-        <Footer
-          newsHeading="Ajab News"
-          newsSubtext={
-            <>
-              To receive news, inspirations
-              <br />
-              and more from us...
-            </>
-          }
         />
       </div>
     </div>

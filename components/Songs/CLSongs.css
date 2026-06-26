@@ -677,26 +677,11 @@ body:has(.cl-home-page-root) footer.footer-bg .footer-inner {
   cursor: not-allowed;
 }
 
-/* ── Force SONGS link active styling + count ONLY on Songs listing/detail ── */
-/* (Not on reflections/films/people/etc., even though they share .cl-songs-page layout) */
+/* ── SONGS nav on listing/detail — grey + Header.css dotted underline when .active ── */
 body:has(.cl-songs-listing-page) .nav-link--songs,
 body:has(.cld-page) .nav-link--songs {
-  color: var(--ajab-pink-primary) !important;
-  /* Switch from center to baseline so the count shares the same text
-     baseline as "SONGS" and looks truly inline. */
+  color: #1a1a1a !important;
   align-items: baseline;
-}
-
-body:has(.cl-songs-listing-page) .nav-link--songs::after,
-body:has(.cld-page) .nav-link--songs::after {
-  content: none;
-}
-
-/* When listing/detail set a live total via SongsNavCountContext, hide the static ::after
-   and show the count from Header (inline span) instead. */
-body:has(.cl-songs-listing-page) .nav-link--songs.nav-link--songs-count-live::after,
-body:has(.cld-page) .nav-link--songs.nav-link--songs-count-live::after {
-  content: none;
 }
 
 body:has(.cl-songs-listing-page) .nav-link--songs .nav-link-songs-count,

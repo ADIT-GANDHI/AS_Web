@@ -1,7 +1,6 @@
 'use client';
 
 import Loader from '@/components/Loader';
-import Footer from '@/components/Footer';
 import Header from '@/components/Header';
 import { useCallback, useContext, useEffect, useMemo, useRef, useState } from 'react';
 import LoadMoreButton from '@/components/shared/LoadMoreButton';
@@ -410,7 +409,6 @@ export default function CLSongsIndex() {
             )}
           </div>
         </main>
-        <Footer />
       </div>
     </div>
   );

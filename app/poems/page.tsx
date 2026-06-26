@@ -6,6 +6,6 @@
 import CLPoems from '@/components/Poems/CLPoems';
 
 export default function PoemsPage() {
-  // CLPoems includes Header + Footer; FloatingActions is mounted globally in app/layout.tsx
+  // CLPoems includes Header; Footer is mounted globally in app/layout.tsx
   return <CLPoems />;
 }

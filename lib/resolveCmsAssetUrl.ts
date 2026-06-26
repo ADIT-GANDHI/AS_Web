@@ -18,6 +18,9 @@ export const FILTER_PANEL_SHAPE = withAppBasePath('/songs-assets/song_filter_opa
 export const RADIO_PLAYER_CONTROLS = withAppBasePath('/radio-player-controls.svg');
 export const RADIO_THUMB_SAMPLE = withAppBasePath('/radio-thumb-sample.png');
 
+/** Fullscreen route loader — animated GIF in `public/spinner.gif`. */
+export const LOADER_SPINNER = withAppBasePath('/spinner.gif');
+
 /** Paths that live on the CMS host (not on the Next `public/` origin). */
 const CMS_RELATIVE_PREFIXES = [/^\/images\//i, /^\/uploads\//i, /^\/media\//i, /^\/files\//i];
 

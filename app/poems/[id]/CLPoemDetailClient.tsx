@@ -1,6 +1,5 @@
 'use client';
 
-import Footer from '@/components/Footer';
 import Header from '@/components/Header';
 import Loader from '@/components/Loader';
 import Link from 'next/link';
@@ -217,7 +216,6 @@ export default function CLPoemDetailClient({ id: idProp }: { id: string }) {
               </Link>
             </div>
           </main>
-          <Footer />
         </div>
       </div>
     );
@@ -376,8 +374,6 @@ export default function CLPoemDetailClient({ id: idProp }: { id: string }) {
             <GlossaryStrip terms={POEMS_GLOSSARY} />
           </div>
         </main>
-        <Footer />
-
         <WavyPaperPopup
           variant="anchored"
           isOpen={showNotes}

@@ -1,6 +1,6 @@
-import Footer from '@/components/Footer';
 import Header from '@/components/Header';
 import { Suspense } from 'react';
+import Loader from '@/components/Loader';
 import AboutClient from './AboutClient';
 import '@/components/About/About.css';
 import '@/styles/CustomStyle.css';
@@ -12,11 +12,10 @@ export default function AboutPage() {
       <div className="about-page-root">
         <Header />
         <main className="about-page cl-songs-page">
-          <Suspense fallback={<p className="about-state">Loading...</p>}>
+          <Suspense fallback={<Loader />}>
             <AboutClient />
           </Suspense>
         </main>
-        <Footer />
       </div>
     </div>
   );

@@ -189,27 +189,17 @@ body:has(.clrd-page) .floating-actions {
   z-index: 2;
 }
 
-/* Active REFLECTIONS nav — count comes from Header (live API via ReflectionsNavCountContext) */
+/* Active REFLECTIONS nav — grey + Header.css dotted underline when .active */
 body:has(.clr-page) .nav-link--reflections,
 body:has(.clrd-page) .nav-link--reflections {
-  color: var(--ajab-pink-primary) !important;
+  color: #1a1a1a !important;
   align-items: baseline;
 }
 
-body:has(.clr-page) .nav-link--reflections::after,
-body:has(.clrd-page) .nav-link--reflections::after {
-  content: none !important;
-}
-
-/* Reflections listing — do not use .cl-songs-page (avoids songs nav pink on stale builds) */
-body:has(.clr-page) .nav-link--songs,
-body:has(.clrd-page) .nav-link--songs {
+/* Reflections listing — reset songs nav when not active */
+body:has(.clr-page) .nav-link--songs:not(.active),
+body:has(.clrd-page) .nav-link--songs:not(.active) {
   color: #1a1a1a !important;
-}
-
-body:has(.clr-page) .nav-link--songs::after,
-body:has(.clrd-page) .nav-link--songs::after {
-  content: none !important;
 }
 
 body:has(.clr-page) .nav-link--songs .nav-link-songs-count,

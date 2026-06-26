@@ -1,6 +1,5 @@
 'use client';
 import React, { Suspense } from 'react';
-import Footer from '@/components/Footer';
 import Header from '@/components/Header';
 import Image from 'next/image';
 import ajabNewsLogo from '@/public/ajab-news-logo.svg';
@@ -32,7 +31,6 @@ export default function NewsPage() {
             </Suspense>
           </main>
         </div>
-        <Footer />
       </div>
     </FullBackground>
   );

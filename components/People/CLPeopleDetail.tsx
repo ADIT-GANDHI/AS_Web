@@ -7,7 +7,6 @@ import { useEffect, useMemo, useRef, useState } from 'react';
 import { usePathname } from 'next/navigation';
 import Link from 'next/link';
 import { ChevronLeft } from 'lucide-react';
-import Footer from '@/components/Footer';
 import Header from '@/components/Header';
 import Loader from '@/components/Loader';
 import { MOCK_PERSON_DETAIL, PERSON_RELATED } from './CLPeopleMocks';
@@ -169,7 +168,6 @@ export default function CLPeopleDetail({ id: idProp }: { id?: string }) {
               </Link>
             </div>
           </main>
-          <Footer />
         </div>
       </div>
     );
@@ -271,7 +269,6 @@ export default function CLPeopleDetail({ id: idProp }: { id?: string }) {
             </div>
           </div>
         </main>
-        <Footer />
       </div>
     </div>
   );

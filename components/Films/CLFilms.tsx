@@ -2,7 +2,6 @@
 
 import { useEffect, useRef, useState } from 'react';
 import { useRouter } from 'next/navigation';
-import Footer from '@/components/Footer';
 import Header from '@/components/Header';
 import Loader from '@/components/Loader';
 import { MOCK_FILM_SERIES, FilmEntry, FilmSeries, TOTAL_FILMS } from './CLFilmsMocks';
@@ -111,7 +110,9 @@ export default function CLFilms() {
     return () => { document.documentElement.style.removeProperty('--clf-nav-count'); };
   }, [totalFilms]);
 
-  // Page shell always renders so API data can populate before capture.
+  if (loading) {
+    return <Loader />;
+  }
 
   return (
     <div className="cl-songs-page-root cl-songs-page-root--listing">
@@ -128,12 +129,7 @@ export default function CLFilms() {
             </div>
 
             {/* Series sections */}
-            {loading ? (
-              <div style={{ textAlign: 'center', color: '#828282', padding: 40 }}>
-                Loading films…
-              </div>
-            ) : (
-            series.map((s) => (
+            {series.map((s) => (
               <section key={s.id} className="clf-series">
                 <h2 className="clf-series-title">{s.title}</h2>
                 <p className="clf-series-intro">{s.intro}</p>
@@ -196,11 +192,9 @@ export default function CLFilms() {
                   ))}
                 </div>
               </section>
-            ))
-            )}
+            ))}
           </div>
         </main>
-        <Footer />
       </div>
     </div>
   );

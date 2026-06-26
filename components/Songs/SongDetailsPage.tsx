@@ -1,6 +1,5 @@
 'use client';
 
-import Footer from '@/components/Footer';
 import Header from '@/components/Header';
 import Loader from '@/components/Loader';
 import NoteGlossaryPopup from '@/components/NoteGlossaryPopup';
@@ -487,7 +486,6 @@ const SongDetails = ({
             </div>
           </main>
         </div>
-        <Footer />
       </div>
     </FullBackground>
   );

@@ -1,7 +1,6 @@
 'use client';
 
 import { useCallback, useContext, useEffect, useMemo, useState } from 'react';
-import Footer from '@/components/Footer';
 import Header from '@/components/Header';
 import Link from 'next/link';
 import {
@@ -248,7 +247,9 @@ export default function CLPoems() {
     activePoem?.glossary ||
     POEMS_GLOSSARY.map((g) => `${g.term} — ${g.meaning}`).join('\n\n');
 
-  // Page shell always renders; poem body shows loading inline.
+  if (poemsLoading) {
+    return <Loader />;
+  }
 
   return (
     <div className="cl-songs-page-root clp-page-root-wrap">
@@ -329,9 +330,7 @@ export default function CLPoems() {
                     <Volume2 size={24} />
                   </button>
 
-                  {poemsLoading ? (
-                    <div className="clp-poem-text">Loading poem…</div>
-                  ) : !activePoem ? (
+                  { !activePoem ? (
                     <div className="clp-poem-text">No poems match the active filters.</div>
                   ) : (
                   <>
@@ -505,8 +504,6 @@ export default function CLPoems() {
             <GlossaryStrip terms={POEMS_GLOSSARY} />
           </div>
         </main>
-        <Footer />
-
         {/* Notes — anchored wavy paper popup (left of poem) */}
         <WavyPaperPopup
           variant="anchored"

@@ -84,7 +84,7 @@ export const footerLinks = {
     { name: "FILMS", href: "/films" },
     { name: "RADIO", href: "/radio" },
     { name: "GLOSSARY", href: "/glossary" },
-    { name: "AJAB NEWS", href: "/ajab-news" },
+    { name: "NEWS", href: "/ajab-news" },
   ],
   social: [
     { name: "Youtube", href: "#" },

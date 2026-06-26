@@ -11,7 +11,7 @@ import fs from 'fs';
 import path from 'path';
 import https from 'https';
 
-const BASE = 'http://ajab.damnetworks.com/new';
+const BASE = 'http://ajab.damnetworks.com';
 const SCREENSHOTS_DIR = path.join(process.cwd(), 'scripts', 'audit-screenshots');
 fs.mkdirSync(SCREENSHOTS_DIR, { recursive: true });
 

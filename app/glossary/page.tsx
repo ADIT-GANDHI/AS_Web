@@ -1,6 +1,5 @@
 'use client';
 
-import Footer from '@/components/Footer';
 import Header from '@/components/Header';
 import Glossary from '@/components/Glossary';
 import '@/styles/CustomStyle.css';
@@ -14,7 +13,6 @@ export default function GlossaryPage() {
         <main className="relative z-10 cl-songs-page">
           <Glossary />
         </main>
-        <Footer />
       </div>
     </div>
   );

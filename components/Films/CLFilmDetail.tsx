@@ -4,7 +4,6 @@ import { useEffect, useMemo, useRef, useState } from 'react';
 import LiteYouTubeEmbed from 'react-lite-youtube-embed';
 import 'react-lite-youtube-embed/dist/LiteYouTubeEmbed.css';
 import { useRouter, usePathname } from 'next/navigation';
-import Footer from '@/components/Footer';
 import Header from '@/components/Header';
 import Loader from '@/components/Loader';
 import {
@@ -349,7 +348,6 @@ export default function CLFilmDetail({ id: idProp }: { id?: string }) {
               </div>
             </div>
           </main>
-          <Footer />
         </div>
       </div>
     );
@@ -558,7 +556,6 @@ export default function CLFilmDetail({ id: idProp }: { id?: string }) {
             </div>
           </div>
         </main>
-        <Footer />
       </div>
     </div>
   );

@@ -164,7 +164,7 @@ body:has(.clped-page) footer.footer-bg {
 
 body:has(.clpe-page) .nav-link--people,
 body:has(.clped-page) .nav-link--people {
-  color: var(--ajab-pink-primary) !important;
+  color: #1a1a1a !important;
   align-items: baseline;
 }
 
@@ -174,7 +174,7 @@ body:has(.clped-page) .nav-link--people::after {
   font: inherit;
   font-size: 0.55em;
   margin-left: 1px;
-  color: var(--ajab-pink-primary);
+  color: #1a1a1a;
 }
 
 /* ── Detail page ── */

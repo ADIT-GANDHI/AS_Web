@@ -688,13 +688,11 @@ body:has(.clp-page) .gs-strip {
     min(40px, calc(100vw * 40 / var(--clp-artboard-w)));
 }
 
-/* ── Active POEMS nav count (dynamic via --clp-nav-count on .clp-page) ── */
+/* ── Active POEMS nav — grey + Header.css dotted underline when .active ── */
 body:has(.clp-page) .nav-link--poems {
-  color: var(--ajab-pink-primary) !important;
+  color: #1a1a1a !important;
   align-items: baseline;
 }
-/* [Claude] these changes have been recommended by claude —
-   Count is now driven by PoemsNavCountContext React span in Header.tsx — no CSS ::after needed. */
 
 /* ── Responsive ── */
 @media (min-width: 1240px) and (max-width: 1439px) {

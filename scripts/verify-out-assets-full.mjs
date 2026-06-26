@@ -5,7 +5,7 @@ import fs from 'fs';
 import path from 'path';
 
 const OUT = path.join(process.cwd(), 'out');
-const BASE = '/new';
+const BASE = process.env.NEXT_PUBLIC_BASE_PATH ?? '';
 
 const CRITICAL_ASSETS = [
   'songs-assets/Header.png',
@@ -14,6 +14,7 @@ const CRITICAL_ASSETS = [
   'songs-assets/radio.png',
   'songs-assets/radio-pink.png',
   'logo.svg',
+  'spinner.gif',
   'glossary-pill-bg.png',
   'poems-bg.png',
   'poem-detail-bg.png',
@@ -129,5 +130,5 @@ if (failures.length) {
 
 console.log('✅ Critical assets and pages present');
 console.log(`   out/ size: ${(stats.bytes / 1024 / 1024).toFixed(1)} MB, ${stats.files} files`);
-console.log(`   upload target: server /var/www/html/new/ (contents of out/, not the folder)`);
-console.log(`   live base URL: https://ajab.damnetworks.com${BASE}/`);
+console.log(`   upload target: server /var/www/ajab/ (contents of out/, not the folder)`);
+console.log(`   live base URL: https://ajab.damnetworks.com${BASE || '/'}`);

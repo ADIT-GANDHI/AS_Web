@@ -19,7 +19,8 @@
     "build:people-bg": "node scripts/build-page-backgrounds.mjs",
     "postbuild": "node scripts/fix-basepath-assets.mjs",
     "build:final": "node scripts/build-final.mjs",
-    "build:ajab": "node scripts/build-ajab.mjs"
+    "build:ajab": "node scripts/build-ajab.mjs",
+    "build:staging-new": "node scripts/build-staging-new.mjs"
   },
   "dependencies": {
     "@hookform/resolvers": "^3.10.0",

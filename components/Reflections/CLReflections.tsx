@@ -33,8 +33,8 @@ function CardDesc({ text }: { text: string }) {
   );
 }
 import LoadMoreButton from '@/components/shared/LoadMoreButton';
-import Footer from '@/components/Footer';
 import Header from '@/components/Header';
+import Loader from '@/components/Loader';
 import ListingFilterBar from '@/components/shared/ListingFilterBar';
 import RepeatingPageBackground from '@/components/shared/RepeatingPageBackground';
 import { REFLECTIONS_LISTING_BG } from '@/lib/pageBackgroundTiles';
@@ -337,6 +337,10 @@ export default function CLReflections() {
   const catalogCount = totalReflections ?? 0;
   const headingCount = hasActiveFilters ? filteredReflections.length : catalogCount;
 
+  if (loading) {
+    return <Loader />;
+  }
+
   return (
     <div className="cl-songs-page-root cl-songs-page-root--listing">
       <div className="cl-songs-page-shell" ref={shellRef}>
@@ -369,9 +373,7 @@ export default function CLReflections() {
             />
 
             <div className="cl-song-grid">
-              {loading ? (
-                <div className="clr-grid-status">Loading reflections…</div>
-              ) : displayedReflections.length > 0 ? (
+              {displayedReflections.length > 0 ? (
                 displayedReflections.map((r) => (
                   <div key={r.id} className="cl-song-grid-item">
                     <ReflectionCard data={r} />
@@ -391,7 +393,6 @@ export default function CLReflections() {
             )}
           </div>
         </main>
-        <Footer />
       </div>
     </div>
   );

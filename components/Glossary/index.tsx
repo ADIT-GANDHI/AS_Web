@@ -1,4 +1,5 @@
 import React, { useMemo, useState, useRef, useCallback } from 'react';
+import Loader from '@/components/Loader';
 import { useGlossary } from '@/hooks/use-glossary';
 import { parseGlossaryTermLine } from './glossaryTermUtils';
 import './Glossary.css';
@@ -69,13 +70,7 @@ export default function Glossary() {
   );
 
   if (loading) {
-    return (
-      <div className="glossary-container">
-        <div className="loading-state">
-          <p>Loading glossary...</p>
-        </div>
-      </div>
-    );
+    return <Loader />;
   }
 
   if (error) {

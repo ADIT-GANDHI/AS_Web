@@ -1,35 +1,26 @@
 :root {
   --main-pink-color: var(--ajab-pink-primary);
+  --footer-inner-max: min(1140px, 80vw);
+  --footer-side-pad: clamp(16px, 2vw, 32px);
+  --footer-col-about: 245px;
+  --footer-col-support: 250px;
+  --footer-col-connect: 300px;
+  --footer-body-lh: 2.05;
+  /* PDF footer headings: Merriweather Sans bold caps (not Lora/Figma serif) */
+  --footer-heading-font: var(--ajab-font-sans);
+  --footer-heading-size: 18px;
+  --footer-heading-weight: 400;
+  --footer-heading-lh: 1;
+  --footer-heading-tracking: 0.02em;
+  /* Pull credit lines into the logo’s transparent side padding */
+  --footer-credits-overlap-left: 38px;
+  --footer-credits-overlap-right: 15px;
 }
 
-/* Footer.png (1920 × 666) IS the entire footer visual — it has the wavy
-   top edge AND the black body in one image. Structure:
-     y   0–80   : transparent (above the wave crests)
-     y  80–180  : wavy black-to-transparent transition (the wave edge)
-     y 180–666  : solid black (the footer body, content goes here)
-   We pull the footer UP by ~160 px so the transparent+wave zone sits over
-   the marble above, creating the same "wave caps the marble" effect the old
-   SVG ::before pseudo achieved. padding-top then pushes the content text
-   below the wave into the solid black area.
-
-   IMPORTANT: background-color is intentionally NOT set to #000 here.
-   The wave zone (y=0–180 in Footer.png) is partially or fully transparent;
-   setting a #000 background-color fallback would fill that zone with black,
-   hiding the marble/page-background behind the wave. Instead we leave it
-   transparent so the wave correctly overlaps the page content above. The
-   Footer.png's own solid black (y=180–666) covers everything below the wave. */
+/* Footer.png (1920 × 666) IS the entire footer visual — wavy top + black body. */
 .footer-bg {
-  /* --footer-wave: end of the transparent/wave zone in Footer.png, expressed as vw so
-     it scales with viewport. 9.375vw = 180px at 1920px; +~6px cap for Figma parity. */
   --footer-wave: clamp(106px, 9.6vw, 186px);
 
-  /* Layer 1 – Footer.png: the wavy edge + solid black body (1920×666).
-     background-size: 100% auto keeps the aspect ratio so the wave shape is correct
-     at every viewport width; at narrow widths the image is shorter than the footer
-     element height, which is why we add the gradient fallback below.
-     Layer 2 – gradient: transparent for the wave zone, then solid #000 for the
-     footer body.  This ensures the footer is always black below the wave, even when
-     Footer.png's rendered height doesn't reach the bottom of the element. */
   background-image:
     url(/songs-assets/Footer.png),
     linear-gradient(to bottom, transparent var(--footer-wave), #000000 var(--footer-wave));
@@ -38,9 +29,6 @@
   background-size: 100% auto, 100% 100%;
 
   position: relative;
-  /* margin-top scales with viewport so the wave always overlaps the marble by the
-     right amount: 8.333vw = 160px at 1920px.  clamp prevents over-pull at wide
-     viewports and under-pull at narrow ones. */
   margin-top: clamp(-160px, -8.333vw, -80px);
   padding: var(--footer-wave) 0 12px;
   box-sizing: border-box;
@@ -49,79 +37,46 @@
   margin-right: calc(50% - 50vw);
 }
 
-/* ── DISABLED — old separate `::before` strip that painted the wavy edge
-   from /footer-top-v2.svg above a solid #000 footer. The Figma PNG above
-   has the wave + slab in one asset, so this pseudo is no longer needed.
-.footer-bg::before {
-  content: '';
-  position: absolute;
-  top: 0;
-  left: -2%;
-  width: 104%;
-  height: 200px;
-  background: url(/footer-top-v2.svg) no-repeat center bottom;
-  transform: translateY(-88%);
-  background-size: 100% 100%;
-}
-*/
-
 .footer-right {
   margin: -6px 0 0;
 }
+
 .footer-content-max-width {
   max-width: 100%;
 }
-/* [Claude] these changes have been recommended by claude — `min(1140px, 80vw)` is now the SINGLE default footer column width for every page that renders the Footer.
-   Previously this was scoped via `body:has(.cl-songs-page) / .cld-page / .cl-home-page-root` in CLSongs.css, which left out search, poems, films, people, reflections, about, ajab-news, glossary — all of which rendered the older 1270px default and orphaned the tree silhouette from the right nav column.
-   Setting the narrower width as the unconditional default means every existing AND future page renders the footer consistently — no per-page wrapper class needed. The `clamp(16px, 2vw, 32px)` horizontal padding matches the original scoped rule so visual output on the already-narrow pages is unchanged. */
+
 .footer-border {
-  max-width: min(1140px, 80vw);
+  max-width: var(--footer-inner-max);
   margin: 1.5rem auto 0;
-  padding-left: clamp(16px, 2vw, 32px);
-  padding-right: clamp(16px, 2vw, 32px);
+  padding-left: var(--footer-side-pad);
+  padding-right: var(--footer-side-pad);
   box-sizing: border-box;
   background: transparent;
-  border-top: 1px solid var(--ajab-ink-300);
 }
-.footer-content {
-  width: 100%;
-  margin: 0 auto;
-}
-.footer-content:last-child {
-  width: auto;
-}
+
 .footer-text {
   font-size: var(--ajab-fs-body);
   color: #e6e6e6;
   font-weight: 300;
 }
+
 .footer-text span {
   color: #b3b3b3;
 }
+
 .footer-border-top {
   border-top: 1px solid var(--ajab-ink-300);
   width: 90%;
   margin: 0 auto;
 }
+
 .footer-border-top img {
   margin: 2rem 0;
-}
-.footer-content {
-  width: 100%;
-  margin: 0 auto;
 }
 
 .footer-tree img {
   position: absolute;
   right: 0;
-}
-.footer-text {
-  font-size: var(--ajab-fs-body);
-  color: #b3b3b3;
-  margin: 24px 0 0;
-}
-.footer-text span {
-  color: #fff;
 }
 
 button.pink {
@@ -129,33 +84,26 @@ button.pink {
   font-size: 1.14rem;
   font-weight: 400;
 }
-.email-subscribe {
-  position: relative;
+
+.footer-email-send {
   flex-shrink: 0;
-  width: auto;
-  min-width: 70px;
-  height: 34px;
-  color: var(--ajab-pink-primary) !important;
-  background: transparent;
-  border: 0;
-  font-size: var(--ajab-fs-body-sm);
-  font-family: var(--ajab-font-sans);
-  font-weight: 400;
-  padding: 0 12px 0 14px !important;
   display: inline-flex;
   align-items: center;
   justify-content: center;
+  width: 34px;
+  height: 34px;
+  margin-right: 3px;
+  padding: 0;
+  color: var(--ajab-pink-primary) !important;
+  background: transparent;
+  border: 0;
+  cursor: pointer;
 }
-.email-subscribe::before {
-  content: '';
-  position: absolute;
-  left: 0;
-  top: 50%;
-  transform: translateY(-50%);
-  width: 1px;
-  height: 16px;
-  background: var(--ajab-pink-primary);
+
+.footer-email-send svg {
+  display: block;
 }
+
 .footer-content a,
 .footer-content button.pink {
   width: fit-content;
@@ -171,90 +119,128 @@ a.pink,
 .footer-content .pink {
   color: var(--ajab-pink-primary) !important;
 }
+
 .footer-content .footer-email-link {
   font-size: var(--ajab-fs-body-sm);
 }
+
 .footer-write-text {
   font-size: var(--ajab-fs-body-sm) !important;
 }
+
 .footer-social-text {
   font-size: var(--ajab-fs-body-sm) !important;
 }
+
 .footer-content .footer-social-link {
   font-size: var(--ajab-fs-body-sm) !important;
 }
-.footer-heading-text {
+
+footer.footer-bg .footer-heading-text {
   color: var(--ajab-pink-primary);
-  width: 78.16px;
-  height: 36px;
-  font-size: var(--ajab-fs-h3);
-  line-height: 36px;
+  width: auto;
+  height: auto;
+  font-family: var(--footer-heading-font);
+  font-size: var(--footer-heading-size);
+  font-weight: var(--footer-heading-weight);
+  font-style: normal;
+  line-height: var(--footer-heading-lh);
+  letter-spacing: var(--footer-heading-tracking);
   margin: 0 0 4px;
-  font-family: var(--ajab-font-serif);
-  font-weight: 400;
-}
-.footer-support-seaction {
-  margin: 18px 0 0;
-}
-.footer-heading-text a {
-  font-family: var(--ajab-font-serif);
-  font-weight: 400;
-  line-height: normal;
-  font-size: var(--ajab-fs-body-lg);
-  line-height: 24px;
+  text-transform: uppercase;
+  -webkit-font-smoothing: antialiased;
 }
 
-.footer-inner {
-  /* [Claude] these changes have been recommended by claude — same min(1140px, 80vw) default as .footer-border above; see comment there for full rationale */
-  max-width: min(1140px, 80vw);
-  display: flex;
-  margin: 44px auto 0;
-  padding: 0 clamp(16px, 2vw, 32px);
-  gap: 6rem;
+.footer-heading-text a {
+  font-family: var(--ajab-font-sans);
+  font-weight: 400;
+  line-height: 24px;
+  font-size: var(--ajab-fs-body-lg);
 }
+
+/* Four-column grid: ABOUT | SUPPORT | CONNECT | nav (under tree). */
+.footer-inner {
+  max-width: var(--footer-inner-max);
+  display: grid;
+  grid-template-columns: minmax(0, var(--footer-col-about)) minmax(0, var(--footer-col-support)) minmax(0, var(--footer-col-connect)) auto;
+  align-items: start;
+  justify-content: space-between;
+  column-gap: clamp(1.25rem, 2.5vw, 2.75rem);
+  margin: 44px auto 0;
+  padding: 0 var(--footer-side-pad);
+  box-sizing: border-box;
+}
+
+.footer-content {
+  width: auto;
+  min-width: 0;
+  margin: 0;
+}
+
+.footer-content--nav {
+  width: auto;
+  justify-self: end;
+}
+
 .text-gray-footer {
-  color: #E6E6E6;
+  color: #e6e6e6;
   font-size: var(--ajab-fs-tag);
   line-height: 23px;
   letter-spacing: 0.4px;
 }
-.text-gray-footer--about {
-  width: 468.98px;
-  height: 69px;
-  font-size: var(--ajab-fs-body-sm);
+
+.footer-content--about {
+  max-width: var(--footer-col-about);
 }
+
+.footer-content--support {
+  max-width: var(--footer-col-support);
+}
+
+.footer-content--connect {
+  max-width: var(--footer-col-connect);
+}
+
+.text-gray-footer--about {
+  font-size: var(--ajab-fs-body-sm);
+  line-height: var(--footer-body-lh);
+  max-width: var(--footer-col-about);
+}
+
 .text-gray-footer--support {
   font-size: var(--ajab-fs-body-sm);
+  line-height: var(--footer-body-lh);
+  max-width: var(--footer-col-support);
 }
-.footer-heading-text--stay {
-  width: 135.28px;
-  height: 36px;
-  white-space: nowrap;
-}
-.text-gray-footer--stay {
-  width: 299.62px;
-  height: 46px;
+
+.text-gray-footer--connect {
   font-size: var(--ajab-fs-body-sm);
+  margin: 0 0 10px;
 }
-form.flex.footer-form {
+
+form.footer-form {
   position: relative;
-  max-width: 360px;
+  display: flex;
+  max-width: 100%;
   width: 100%;
   align-items: center;
-  background: #2b2b2b;
-  border-radius: 5px;
-  padding: 0;
+  background: transparent;
+  border: 1px solid #e6e6e6;
+  border-radius: 999px;
+  padding: 0 4px 0 0;
   gap: 0;
 }
-#email-subscrib {
+
+.footer-email-input {
   flex: 1;
   width: auto;
+  min-width: 0;
   height: 34px;
   background: transparent;
   color: #ffffff;
   border: 0;
-  border-radius: 5px 0 0 5px;
-  padding: 0 12px;
+  border-radius: 999px;
+  padding: 0 12px 0 16px;
   font-family: var(--ajab-font-sans);
   font-weight: 300;
   font-style: normal;
@@ -263,11 +249,13 @@ form.flex.footer-form {
   letter-spacing: 0;
   outline: none;
 }
-#email-subscrib:focus {
+
+.footer-email-input:focus {
   outline: none;
 }
-#email-subscrib::placeholder {
-  color: #e6e6e6 !important;
+
+.footer-email-input::placeholder {
+  color: #b3b3b3 !important;
   opacity: 1 !important;
   font-family: var(--ajab-font-sans);
   font-weight: 300;
@@ -276,73 +264,101 @@ form.flex.footer-form {
   line-height: 100%;
   letter-spacing: 0;
 }
-@media screen and (max-width: 1600px) and (min-width: 1025px) {
-  .footer-inner {
-    gap: 5rem;
-  }
+
+.footer-connect-links {
+  margin-top: 1.25rem;
 }
 
-@media screen and (max-width: 1440px) and (min-width: 1025px) {
+.footer-connect-links .footer-write-text {
+  margin-top: 0.25rem;
+}
+
+.footer-credits {
+  max-width: var(--footer-inner-max);
+  margin: 1.75rem auto 0;
+  padding: 0 var(--footer-side-pad) 2.5rem;
+  box-sizing: border-box;
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  gap: 0;
+}
+
+.footer-credits__text {
+  margin: 0;
+  padding-bottom: 0.35rem;
+  font-family: var(--ajab-font-sans);
+  font-weight: 300;
+  font-size: 14px;
+  line-height: 1.2;
+  letter-spacing: 0;
+  color: #b3b3b3;
+  white-space: nowrap;
+  position: relative;
+  z-index: 1;
+}
+
+.footer-credits__text--left {
+  margin-right: calc(-1 * var(--footer-credits-overlap-left));
+}
+
+.footer-credits__text--right {
+  margin-left: calc(-1 * var(--footer-credits-overlap-right));
+}
+
+.footer-credits__text strong {
+  color: #ffffff;
+  font-weight: 400;
+}
+
+.footer-credits__logo {
+  flex-shrink: 0;
+  line-height: 0;
+  position: relative;
+  z-index: 0;
+}
+
+@media screen and (max-width: 1600px) and (min-width: 1025px) {
   .footer-inner {
-    gap: 3.5rem;
-    max-width: calc(100% - 60px);
-    padding: 0 30px;
-  }
-  /* let long fixed-width elements shrink inside narrower columns */
-  .text-gray-footer--about,
-  .text-gray-footer--stay {
-    width: 100%;
-  }
-  .footer-heading-text {
-    width: auto;
-  }
-  .footer-heading-text--stay {
-    width: auto;
+    column-gap: clamp(1rem, 2vw, 2.25rem);
   }
 }
 
 @media screen and (max-width: 1024px) {
   .footer-inner {
-    gap: 4rem;
+    grid-template-columns: 1fr;
+    row-gap: 2.5rem;
+  }
+
+  .footer-content--nav {
+    justify-self: start;
+  }
+
+  .footer-credits {
     flex-direction: column;
+    gap: 1.25rem;
+    margin-top: 2.5rem;
   }
-  .footer-content:last-child {
-    margin: 0;
+
+  .footer-credits__text--left,
+  .footer-credits__text--right {
+    margin-left: 0;
+    margin-right: 0;
   }
-  .tree-icon {
-    top: 2.85rem;
+
+  .footer-credits__text {
+    white-space: normal;
+    text-align: center;
   }
 }
 
 @media screen and (max-width: 767px) {
-  .footer-content:last-child,
-  .footer-content {
-    width: 100%;
-    margin: 2rem 0;
+  .footer-inner {
+    row-gap: 2rem;
   }
-  .footer-border-top {
-    width: 100%;
-  }
-  .footer-border-top img {
-    margin: 1rem 0;
-    width: 6rem;
-  }
+
   .footer-text {
     font-size: 0.7rem;
     line-height: 1.25rem;
-  }
-  .bg-black {
-    background: black;
-  }
-  .footer-inner {
-    gap: 0rem;
-    flex-direction: column;
-  }
-  .tree-icon {
-    top: 1rem;
-  }
-
-  form input {
-    max-width: 160px;
   }
 }

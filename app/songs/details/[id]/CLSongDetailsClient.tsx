@@ -2,7 +2,6 @@
 
 import CLSongDetails from '@/components/Songs/CLSongDetailsPage';
 import Header from '@/components/Header';
-import Footer from '@/components/Footer';
 import Loader from '@/components/Loader';
 import '@/components/Songs/CLSongs.css';
 import '@/styles/CustomStyle.css';
@@ -181,7 +180,6 @@ export default function CLSongDetailsClient({ id: idProp }: { id: string }) {
               </a>
             </div>
           </main>
-          <Footer />
         </div>
       </div>
     );

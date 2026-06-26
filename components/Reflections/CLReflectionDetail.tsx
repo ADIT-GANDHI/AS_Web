@@ -8,7 +8,6 @@ import { usePathname } from 'next/navigation';
 import LiteYouTubeEmbed from 'react-lite-youtube-embed';
 import 'react-lite-youtube-embed/dist/LiteYouTubeEmbed.css';
 import Link from 'next/link';
-import Footer from '@/components/Footer';
 import Header from '@/components/Header';
 import Loader from '@/components/Loader';
 import { CLGlossaryPopup } from '@/components/Poems/CLPoemPopups';
@@ -263,7 +262,6 @@ export default function CLReflectionDetail({ id: idProp }: { id?: string }) {
               </Link>
             </div>
           </main>
-          <Footer />
         </div>
       </div>
     );
@@ -400,7 +398,6 @@ export default function CLReflectionDetail({ id: idProp }: { id?: string }) {
             </div>
           </div>
         </main>
-        <Footer />
         <CLGlossaryPopup isOpen={showGlossary} onClose={() => setShowGlossary(false)} />
       </div>
     </div>

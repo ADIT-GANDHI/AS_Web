@@ -1,6 +1,5 @@
 'use client';
 
-import Footer from '@/components/Footer';
 import Header from '@/components/Header';
 import Link from 'next/link';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
@@ -793,7 +792,6 @@ export default function CLSongDetailsPage({
             </div>
           </div>
         </main>
-        <Footer />
       </div>
 
       {/* Glossary and Notes are now inline fixed overlays — no portal needed */}

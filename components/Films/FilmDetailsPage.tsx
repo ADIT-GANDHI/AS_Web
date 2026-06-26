@@ -1,6 +1,5 @@
 'use client';
 
-import Footer from '@/components/Footer';
 import Header from '@/components/Header';
 import Loader from '@/components/Loader';
 import FullBackground from '@/components/fullBackground';
@@ -191,7 +190,6 @@ export default function FilmDetailsPage({
           </main>
         </div>
 
-        <Footer />
       </div>
     </FullBackground>
   );

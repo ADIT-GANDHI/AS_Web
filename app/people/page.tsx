@@ -6,6 +6,6 @@
 import CLPeople from '@/components/People/CLPeople';
 
 export default function PeoplePage() {
-  // CLPeople includes Header + Footer; FloatingActions is mounted globally in app/layout.tsx
+  // CLPeople includes Header; Footer is mounted globally in app/layout.tsx
   return <CLPeople />;
 }

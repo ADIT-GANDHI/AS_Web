@@ -1,13 +1,13 @@
 /**
  * Cross-check client fixes on local dev and/or production frontend.
  * Usage: node scripts/cross-check-live.mjs [baseUrl]
- * Default bases: http://localhost:3000 and https://ajab.damnetworks.com/new
+ * Default bases: http://localhost:3000 and https://ajab.damnetworks.com
  */
 import { chromium } from 'playwright';
 
 const bases = process.argv[2]
   ? [process.argv[2].replace(/\/$/, '')]
-  : ['http://localhost:3000', 'https://ajab.damnetworks.com/new'];
+  : ['http://localhost:3000', 'https://ajab.damnetworks.com'];
 
 const checks = [];
 

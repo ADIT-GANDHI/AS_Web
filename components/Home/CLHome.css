@@ -22,12 +22,6 @@
   min-height: 100dvh;
 }
 
-.cl-home-layout > footer.footer-bg {
-  flex-shrink: 0;
-  /* Do not set margin-top: auto — it overrides Footer.css negative margin and kills the
-     PDF “wave tucks under last card” overlap (~35px in Figma). */
-}
-
 /* [Claude] these changes have been recommended by claude —
    Top padding reduced from 68px to 16px to match PDF: PDF first card starts ~78px from artboard
    top (header ~60px + ~18px gap). Previous 68px pushed first card to y=259px in browser. */
