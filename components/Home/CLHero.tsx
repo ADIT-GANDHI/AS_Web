@@ -1,6 +1,7 @@
 'use client';
 
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useState } from 'react';
+import Link from 'next/link';
 import Header from '@/components/Header';
 import Loader from '@/components/Loader';
 import ContentSliderModal, { NewsPopupSlide } from '@/components/CLContentSliderModal';
@@ -31,6 +32,8 @@ import {
 } from '@/lib/ajabNewsPopup';
 import HomeCardImage from './HomeCardImage';
 import HomeCardShell from './HomeCardShell';
+import HomeCardVideo from './HomeCardVideo';
+import { withAppBasePath } from '@/lib/resolveCmsAssetUrl';
 
 const NEWS_ASSET_BASE = `${AJAB_API_BASE}/`;
 
@@ -150,12 +153,19 @@ function PeopleCard({ data, imageFallback }: { data: HomePeopleCard; imageFallba
 }
 
 function FilmCard({ data, imageFallback }: { data: HomeFilmCard; imageFallback: string }) {
+  const detailHref = `/films/details/${data.id}`;
+  const hasVideo = Boolean(data.youtubeVideoId);
+
   return (
     <HomeCardShell
       className="clh-film-card"
-      href={`/films/details/${data.id}`}
+      href={hasVideo ? undefined : detailHref}
       media={
-        <HomeCardImage src={data.image} fallbackSrc={imageFallback} alt={data.title || 'Film'} />
+        hasVideo ? (
+          <HomeCardVideo videoId={data.youtubeVideoId} title={data.title || 'Film'} />
+        ) : (
+          <HomeCardImage src={data.image} fallbackSrc={imageFallback} alt={data.title || 'Film'} />
+        )
       }
     >
       <div className="clh-card-title">{data.title}</div>
@@ -169,7 +179,13 @@ function FilmCard({ data, imageFallback }: { data: HomeFilmCard; imageFallback: 
       <div className="clh-card-divider" />
       <p className="clh-card-desc">{data.description}</p>
       <div className="clh-card-footer">
-        <span className="clh-card-cta">EXPLORE FILM</span>
+        {hasVideo ? (
+          <Link href={withAppBasePath(detailHref)} className="clh-card-cta">
+            EXPLORE FILM
+          </Link>
+        ) : (
+          <span className="clh-card-cta">EXPLORE FILM</span>
+        )}
       </div>
     </HomeCardShell>
   );

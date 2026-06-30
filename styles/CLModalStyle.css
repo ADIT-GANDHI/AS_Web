@@ -90,13 +90,11 @@
   background: #000;
 }
 
-.npc-image-wrap--video .yt-lite {
+.npc-image-wrap--video iframe {
   width: 100%;
   height: 100%;
-}
-
-.npc-image-wrap--video .yt-lite__media {
-  object-fit: cover;
+  border: 0;
+  display: block;
 }
 
 /* ── Navigation arrows ───────────────────────────────────────────────────────── */

@@ -594,6 +594,11 @@ body::-webkit-scrollbar {
   padding: 0 !important;
 }
 
+/* Scroll-to-top: circle; share stays square (rounded rect) above */
+.floating-actions .scroll-top-btn.visible {
+  border-radius: 50% !important;
+}
+
 .floating-actions .share-btn:hover {
   background: var(--ajab-pink-primary) !important;
   color: #ffffff !important;

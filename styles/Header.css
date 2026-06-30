@@ -8,22 +8,28 @@
   --ajab-header-pad-bottom: 104px;
   /* Desktop: lower SONGS…FILMS + ABOUT/search/radio toward logo centre (red-line markup). */
   --ajab-header-nav-drop: 26px;
+  /* PDF: ~15px margin each side of nav labels → ~30px between items */
+  --ajab-header-nav-gap: 34px;
 }
 
 header nav a {
   color: #1a1a1a;
   font-family: var(--ajab-font-sans);
-  font-weight: 300;
+  font-weight: 400;
   font-style: normal;
-  font-size: var(--ajab-fs-button);
-  line-height: 100%;
+  font-size: var(--ajab-fs-nav);
+  line-height: 1;
   letter-spacing: 0;
   text-transform: uppercase;
 }
 
 header nav a {
-  /* Base margin at ≥1600px desktop — increase here to widen gaps */
-  margin: 0 36px 0;
+  margin: 0;
+}
+
+header nav.header-main-nav,
+header nav.hidden.md\:flex {
+  gap: var(--ajab-header-nav-gap);
 }
 
 .radio-logo img {
@@ -97,24 +103,19 @@ header .footer-right .nav-link--radio {
    `header button.about-text` is higher specificity than the grouped rule at line 13,
    so these values always win even over Tailwind utilities. */
 header button.about-text {
-  /* Typography: identical to .nav-link (which uses var(--ajab-fs-button) = 21px,
-     NOT the 14px from `header nav a` — the class-level .nav-link rule wins
-     over the element-level rule, so nav links render at 21px, not 14px). */
   font-family: var(--ajab-font-sans);
-  font-size: var(--ajab-fs-button) !important; /* same as .nav-link */
+  font-size: var(--ajab-fs-nav) !important;
   font-weight: 300;
   font-style: normal;
-  line-height: 100%;
+  line-height: 1;
   letter-spacing: 0;
   text-transform: uppercase;
   color: #1a1a1a;
-  /* Layout: identical to .nav-link */
   height: 31px;
   display: inline-flex;
   align-items: baseline;
   justify-content: center;
   transform: translateY(2px);
-  /* Reset browser button defaults */
   background: none;
   border: none;
   padding: 0;
@@ -130,23 +131,19 @@ header button.about-text.active {
 .nav-link {
   height: 31px;
   display: inline-flex;
-  /* baseline keeps ALL nav items on the same text baseline, so the (234)
-     count badge added to SONGS never causes a vertical jump */
   align-items: baseline;
   justify-content: center;
   margin-top: 0;
   font-family: var(--ajab-font-sans);
   font-weight: 300;
   font-style: normal;
-  font-size: var(--ajab-fs-button);
-  line-height: 100%;
+  font-size: var(--ajab-fs-nav);
+  line-height: 1;
   letter-spacing: 0;
 }
 
 .nav-link--songs {
-  /* Reserve enough space so when (234) appears the link doesn't reflow
-     or shift neighbours — width accommodates the widest active state */
-  min-width: 84px;
+  min-width: 72px;
   width: auto;
 }
 
@@ -197,20 +194,12 @@ body:has(.clp-page) .nav-link--poems .nav-link-poems-count {
   opacity: 1;
 }
 
-.nav-link--poems {
-  width: 87px;
-}
-
-.nav-link--reflections {
-  width: 163px;
-}
-
-.nav-link--people {
-  width: 92px;
-}
-
+.nav-link--poems,
+.nav-link--reflections,
+.nav-link--people,
 .nav-link--films {
-  width: 72px;
+  width: auto;
+  min-width: 0;
 }
 
 /* ABOUT in footer-right — same typography as SONGS…FILMS (uses .nav-link, not .about-text). */
@@ -469,29 +458,18 @@ body.ajab-poems-filter-drawer-open .gradient-bg {
   font-size: var(--ajab-fs-body);
 }
 
-/* Make nav-link widths flexible at all sizes so they never overflow */
 @media screen and (min-width: 769px) {
 
-  .nav-link--songs,
-  .nav-link--poems,
-  .nav-link--reflections,
-  .nav-link--people,
-  .nav-link--films {
-    width: auto;
-  }
-
+  header nav.header-main-nav,
   header nav.hidden.md\:flex {
     column-gap: 0;
+    gap: var(--ajab-header-nav-gap);
   }
 }
 
 @media screen and (max-width: 1600px) and (min-width: 769px) {
-
-
-
-  header nav a {
-    /* At ≤1600px keep comfortable spacing — raised from 10px to 22px */
-    margin: 0 22px;
+  :root {
+    --ajab-header-nav-gap: 36px;
   }
 
   .logo {
@@ -505,11 +483,8 @@ body.ajab-poems-filter-drawer-open .gradient-bg {
 }
 
 @media screen and (max-width: 1366px) and (min-width: 769px) {
-
-
-
-  header nav a {
-    margin: 0 8px;
+  :root {
+    --ajab-header-nav-gap: 22px;
   }
 
   .logo {
@@ -527,11 +502,8 @@ body.ajab-poems-filter-drawer-open .gradient-bg {
 }
 
 @media screen and (max-width: 1200px) and (min-width: 769px) {
-
-
-
-  header nav a {
-    margin: 0 6px;
+  :root {
+    --ajab-header-nav-gap: 18px;
   }
 
   .logo {
@@ -551,11 +523,8 @@ body.ajab-poems-filter-drawer-open .gradient-bg {
 }
 
 @media screen and (max-width: 1024px) and (min-width: 769px) {
-
-
-
-  header nav a {
-    margin: 0 4px;
+  :root {
+    --ajab-header-nav-gap: 14px;
   }
 
   .logo {

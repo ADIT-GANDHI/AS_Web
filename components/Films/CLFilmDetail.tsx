@@ -1,8 +1,7 @@
 'use client';
 
 import { useEffect, useMemo, useRef, useState } from 'react';
-import LiteYouTubeEmbed from 'react-lite-youtube-embed';
-import 'react-lite-youtube-embed/dist/LiteYouTubeEmbed.css';
+import YouTubeEmbedFrame from '@/components/Reusable/YouTubeEmbedFrame';
 import { useRouter, usePathname } from 'next/navigation';
 import Header from '@/components/Header';
 import Loader from '@/components/Loader';
@@ -411,12 +410,10 @@ export default function CLFilmDetail({ id: idProp }: { id?: string }) {
                   <div className="clfd-media-stage">
             <div className="clfd-video-wrap">
               {videoId ? (
-                        <LiteYouTubeEmbed
+                        <YouTubeEmbedFrame
                           key={videoId}
-                          id={videoId}
+                          videoId={videoId}
                           title={data.title}
-                          poster="maxresdefault"
-                          noCookie
                         />
                       ) : data.thumbnailUrl ? (
                         <img src={data.thumbnailUrl} alt={data.title} />
@@ -457,8 +454,7 @@ export default function CLFilmDetail({ id: idProp }: { id?: string }) {
                             className="clfd-description-more"
                             onClick={() => setDescExpanded(true)}
                           >
-                            {' '}
-                            more
+                            {'...more'}
                           </button>
                         )}
                       </p>

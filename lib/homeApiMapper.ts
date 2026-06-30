@@ -6,6 +6,7 @@ import {
   MOCK_HOME_SONG,
 } from '@/components/Home/CLHomeMocks';
 import { formatFilmDirector, getFilmListingBlurb } from '@/components/Films/filmFieldUtils';
+import { extractYouTubeId } from '@/lib/youtube';
 
 export type HomeSongCard = typeof MOCK_HOME_SONG;
 export type HomePoemCard = typeof MOCK_HOME_POEM;
@@ -286,6 +287,14 @@ function mapFilm(raw: unknown, mock: HomeFilmCard, apiOnly: boolean): HomeFilmCa
     filmBy: filmBy.toUpperCase() || (!apiOnly ? mock.filmBy : ''),
     description: excerpt,
     image: pickImage(record.thumbnail_url ?? record.thumbnailUrl, apiOnly ? undefined : mock.image),
+    youtubeVideoId:
+      extractYouTubeId(
+        firstString(
+          record.youtube_video_id,
+          record.youtubeVideoId,
+          record.film_youtube_id
+        )
+      ) || (!apiOnly ? mock.youtubeVideoId : ''),
   };
 }
 

@@ -339,29 +339,23 @@ body:has(.clrd-page) .nav-link--songs .nav-link-songs-count {
 
 .clrd-description-body {
   margin: 0;
-  display: -webkit-box;
-  -webkit-box-orient: vertical;
-  -webkit-line-clamp: 3;
-  overflow: hidden;
 }
 
 .clrd-description-body.is-expanded {
   display: block;
-  -webkit-line-clamp: unset;
-  overflow: visible;
 }
 
 .clrd-description-more {
-  background: none;
-  border: none;
+  display: inline;
+  margin: 0;
   padding: 0;
-  margin: 6px 0 0;
-  font-family: inherit;
-  font-size: inherit;
-  font-weight: inherit;
-  color: var(--ajab-pink-primary);
+  border: none;
+  background: none;
   cursor: pointer;
-  display: inline-block;
+  font: inherit;
+  color: var(--ajab-pink-primary);
+  vertical-align: baseline;
+  white-space: nowrap;
 }
 
 /* ── Related + glossary — PDF typography (Figma reflection detail, shared with songs/poems) ── */

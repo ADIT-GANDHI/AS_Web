@@ -55,4 +55,5 @@ export const MOCK_HOME_FILM = {
     'Kabir was a 15th century mystic poet of north India who defied the boundaries between Hindu and Muslim. He had a Muslim name and upbringing, but his poetry repeatedly invokes the widely revered Hindu name for God — Ram. Who is Kabir\'s Ram?',
   filmBy: 'SHABNAM VIRMANI',
   image: MOCK_CARD_IMAGE,
+  youtubeVideoId: 'vQ0XwyqYQas',
 };

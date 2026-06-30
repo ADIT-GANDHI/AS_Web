@@ -36,8 +36,7 @@ import { AJAB_API_BASE } from '@/lib/ajabEnv';
 import { filterNewsForPublicSite, getPopupItemsForNewsRow } from '@/lib/cmsNews';
 import { withAppBasePath } from '@/lib/resolveCmsAssetUrl';
 import { extractYouTubeId } from '@/lib/youtube';
-import LiteYouTubeEmbed from 'react-lite-youtube-embed';
-import 'react-lite-youtube-embed/dist/LiteYouTubeEmbed.css';
+import YouTubeEmbedFrame from '@/components/Reusable/YouTubeEmbedFrame';
 
 type PopupCategory = 'single' | 'multiple' | 'video';
 
@@ -316,12 +315,7 @@ function VideoSection({ section }: { section: Section }) {
       {section.videoId && (
         <div className="news-card-slider-row">
           <div className="news-banner-shadow news-image-wrap news-video-wrap">
-            <LiteYouTubeEmbed
-              id={section.videoId}
-              title={section.title}
-              poster="maxresdefault"
-              noCookie
-            />
+            <YouTubeEmbedFrame videoId={section.videoId} title={section.title} />
           </div>
         </div>
       )}

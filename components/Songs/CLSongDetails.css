@@ -393,7 +393,8 @@
 }
 
 .cld-video-wrap iframe,
-.cld-video-wrap>div {
+.cld-video-wrap > div {
+  display: block;
   width: 100% !important;
   height: 100% !important;
   border: 0;
@@ -414,7 +415,7 @@
 .cld-description {
   font-family: var(--ajab-font-sans);
   font-weight: 300;
-  font-size: 14px;
+  font-size: 15px;
   line-height: 1.45;
   color: var(--ajab-ink-700);
   text-align: left;
@@ -425,6 +426,10 @@
 }
 
 /* REVERT (mid-body pass): margin was 0 0 64px */
+
+.cld-description-body {
+  margin: 0;
+}
 
 .cld-description-body p {
   margin: 0 0 1em;
@@ -448,25 +453,17 @@
   color: var(--ajab-pink-primary);
 }
 
-/* PDF: first ~3 lines visible; full text on "...more" — no nested scrollbar. */
-.cld-description-body--clamped {
-  display: -webkit-box;
-  -webkit-box-orient: vertical;
-  -webkit-line-clamp: 3;
-  overflow: hidden;
-}
-
 .cld-description-more {
-  margin-top: 4px;
+  display: inline;
+  margin: 0;
   padding: 0;
   border: 0;
   background: none;
   cursor: pointer;
-  font-family: var(--ajab-font-sans);
-  font-weight: 300;
-  font-size: 14px;
-  line-height: 1;
+  font: inherit;
   color: var(--ajab-pink-primary);
+  vertical-align: baseline;
+  white-space: nowrap;
 }
 
 /* ── Language toggle — Figma 361:1480
@@ -685,19 +682,26 @@
   line-height: 1.55;
   color: #6d6f71;
   scrollbar-width: thin;
-  scrollbar-color: #c9c9c9 transparent;
+  scrollbar-color: #b8b8b8 #e8e8e8;
   direction: ltr;
 }
 
 .cld-lyrics-stage .cld-notes-panel .wp-popup-body::-webkit-scrollbar,
 .cld-lyrics-stage .cld-glossary-panel .wp-popup-body::-webkit-scrollbar {
-  width: 6px;
+  width: 8px;
+}
+
+.cld-lyrics-stage .cld-notes-panel .wp-popup-body::-webkit-scrollbar-track,
+.cld-lyrics-stage .cld-glossary-panel .wp-popup-body::-webkit-scrollbar-track {
+  background: #e8e8e8;
+  border-radius: 4px;
 }
 
 .cld-lyrics-stage .cld-notes-panel .wp-popup-body::-webkit-scrollbar-thumb,
 .cld-lyrics-stage .cld-glossary-panel .wp-popup-body::-webkit-scrollbar-thumb {
-  background: #c9c9c9;
-  border-radius: 3px;
+  background: #b8b8b8;
+  border-radius: 4px;
+  min-height: 40px;
 }
 
 .cld-lyrics {
@@ -1011,22 +1015,21 @@
 }
 
 .cld-related-readmore {
-  display: inline-block;
-  margin-top: 6px;
+  display: inline;
+  margin: 0;
   padding: 0;
   border: none;
   background: none;
   cursor: pointer;
-  font-family: var(--ajab-font-sans);
-  font-weight: 300;
-  font-size: var(--ajab-fs-caption);
+  font: inherit;
   color: var(--ajab-pink-primary);
-  text-decoration: underline;
-  text-underline-offset: 2px;
+  vertical-align: baseline;
+  white-space: nowrap;
 }
 
 .cld-related-readmore:hover {
-  opacity: 0.85;
+  text-decoration: underline;
+  text-underline-offset: 2px;
 }
 
 /* Figma 361:1510: Merriweather Sans Light 20 var(--ajab-pink-related), no uppercase, no LS */

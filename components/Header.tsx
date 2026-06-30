@@ -169,7 +169,7 @@ export default function Header() {
         <div className="mx-auto header-inner-container" style={{ position: 'relative', zIndex: 2 }}>
           <div className="flex justify-between items-center flex-nowrap">
             {/* Logo Section */}
-            <div className="flex items-center gap-10 flex-nowrap">
+            <div className="flex items-center gap-12 flex-nowrap">
               <Link href="/" className="flex items-center">
                 <Image
                   className="logo"
@@ -181,7 +181,7 @@ export default function Header() {
               </Link>
 
               {/* Desktop Navigation */}
-              <nav className="hidden md:flex items-center space-x-12">
+              <nav className="hidden md:flex items-center header-main-nav">
                 {navigationItems.map((item) => {
                   const isSongs = item.name === 'SONGS';
                   const isPoems = item.name === 'POEMS';
@@ -219,7 +219,7 @@ export default function Header() {
             </div>
 
             {/* Right Side Icons */}
-            <div className="flex items-center space-x-6 footer-right">
+            <div className="flex items-center gap-9 footer-right">
               <Suspense
                 fallback={
                   <Link href="/about?tab=ajab" className="nav-link nav-link--about hidden md:inline">

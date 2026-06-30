@@ -15,6 +15,13 @@ body:has(.loader-overlay:not(.loader-overlay--panel)) {
   overflow: hidden;
 }
 
+/* Fullscreen load: spinner only — hide global scroll/share chrome */
+body:has(.loader-overlay:not(.loader-overlay--panel)) .floating-actions {
+  visibility: hidden;
+  pointer-events: none;
+  opacity: 0;
+}
+
 .cl-songs-page-root:has(.loader-overlay:not(.loader-overlay--panel)) .cl-songs-bg-layers,
 .cl-songs-page-root:has(.loader-overlay:not(.loader-overlay--panel)) .repeating-page-bg {
   visibility: hidden;

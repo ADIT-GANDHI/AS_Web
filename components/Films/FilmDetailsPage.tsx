@@ -5,8 +5,7 @@ import Loader from '@/components/Loader';
 import FullBackground from '@/components/fullBackground';
 import RelatedSection from '@/components/RelatedSection/RelatedSection';
 import Link from 'next/link';
-import LiteYouTubeEmbed from 'react-lite-youtube-embed';
-import 'react-lite-youtube-embed/dist/LiteYouTubeEmbed.css';
+import YouTubeEmbedFrame from '@/components/Reusable/YouTubeEmbedFrame';
 import '@/components/Songs/Songs.css';
 import './FilmLanguageToggle.css';
 import { useEffect, useMemo, useState } from 'react';
@@ -144,7 +143,7 @@ export default function FilmDetailsPage({
                       <div className="w-full my-6 border-top-pink">
                         {videoId ? (
                           <div className="aspect-video w-full" key={videoId}>
-                            <LiteYouTubeEmbed id={videoId} title={title} poster="maxresdefault" noCookie />
+                            <YouTubeEmbedFrame videoId={videoId} title={title} />
                           </div>
                         ) : (
                           <img src={image} alt={title} className="rounded-lg shadow-lg w-full" />

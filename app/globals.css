@@ -153,7 +153,8 @@ p {
   --ajab-fs-h4:        26px;   /* Related item title                            */
   --ajab-fs-h5:        24px;   /* Card title (Songs/Reflections)                */
   --ajab-fs-h6:        22px;   /* Filter "All", related subtitle, tab labels    */
-  --ajab-fs-button:    21px;   /* "Filters | All", about-toggle, page-menu      */
+  --ajab-fs-button:    21px;   /* "Filters | All", load-more, filter triggers      */
+  --ajab-fs-nav:       19px;   /* Header nav — PDF ~14–16px, Merriweather Sans Light */
   --ajab-fs-body-lg:   20px;   /* Subtitle italic, intro italic                 */
   --ajab-fs-body:      18px;   /* Body, related-item desc, section labels      */
   --ajab-fs-body-sm:   16px;   /* Card meta, glossary, CTAs                     */

@@ -159,10 +159,10 @@ html body:has(.glossary-page-root) .floating-actions button.floating-action-btn.
   width: 42px !important;
   min-width: 42px !important;
   max-width: 42px !important;
-  height: 43px !important;
-  min-height: 43px !important;
-  max-height: 43px !important;
-  border-radius: 8px !important;
+  height: 42px !important;
+  min-height: 42px !important;
+  max-height: 42px !important;
+  border-radius: 50% !important;
 }
 
 html body:has(.cl-songs-page) .floating-actions .share-btn,

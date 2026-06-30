@@ -4,8 +4,7 @@ import Header from '@/components/Header';
 import Link from 'next/link';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
 import { useEffect, useMemo, useRef, useState } from 'react';
-import LiteYouTubeEmbed from 'react-lite-youtube-embed';
-import 'react-lite-youtube-embed/dist/LiteYouTubeEmbed.css';
+import YouTubeEmbedFrame from '@/components/Reusable/YouTubeEmbedFrame';
 import { GLOSSARY_TERMS_LINE_1, GLOSSARY_TERMS_LINE_2 } from './CLdetailMocks';
 import { CLGlossaryPopup } from '../Poems/CLPoemPopups';
 import GlossaryStrip from '@/components/shared/GlossaryStrip';
@@ -17,6 +16,7 @@ import './CLSongDetails.css';
 import SongDetailBackground from '@/components/Songs/SongDetailBackground';
 import { keywordsFromRelatedBucket, glossaryTermsFromKeywords } from '@/lib/parseKeywords';
 import { getRelatedDetailHref } from '@/lib/relatedDetailHref';
+import { truncateAtWord } from '@/lib/truncateAtWord';
 import { resolveCmsAssetUrl, withAppBasePath } from '@/lib/resolveCmsAssetUrl';
 
 type Script = 'devanagari' | 'transliteration' | 'english';
@@ -86,19 +86,31 @@ function getAboutHtml(data: any): string {
   return getText(data?.about) || getText(data?.meta_description) || '';
 }
 
-/** PDF/Figma: ~3 lines of about text, then pink "...more" to expand — no inner scroll box. */
+/** PDF/Figma: ~3 lines of about text, then inline pink "...more" — no separate row. */
+const ABOUT_TRUNCATE_CHARS = 240;
+
 function SongAboutClamp({ html }: { html: string }) {
   const [expanded, setExpanded] = useState(false);
+  const plain = htmlToPlainText(html);
 
   if (!html.trim()) return null;
 
+  const isLong = plain.length > ABOUT_TRUNCATE_CHARS + 10;
+
+  if (expanded || !isLong) {
+    return (
+      <div className="cld-description">
+        <div className="cld-description-body" dangerouslySetInnerHTML={{ __html: html }} />
+      </div>
+    );
+  }
+
+  const truncated = truncateAtWord(plain, ABOUT_TRUNCATE_CHARS);
+
   return (
     <div className="cld-description">
-      <div
-        className={`cld-description-body${expanded ? '' : ' cld-description-body--clamped'}`}
-        dangerouslySetInnerHTML={{ __html: html }}
-      />
-      {!expanded && (
+      <p className="cld-description-body">
+        {truncated}
         <button
           type="button"
           className="cld-description-more"
@@ -106,7 +118,7 @@ function SongAboutClamp({ html }: { html: string }) {
         >
           ...more
         </button>
-      )}
+      </p>
     </div>
   );
 }
@@ -539,7 +551,7 @@ export default function CLSongDetailsPage({
             {/* ===== Video ===== */}
             <div className="cld-video-wrap">
               {videoId ? (
-                <LiteYouTubeEmbed id={videoId} title={title} poster="maxresdefault" noCookie />
+                <YouTubeEmbedFrame videoId={videoId} title={title} />
               ) : (
                 <div className="cld-video-placeholder">Video unavailable (API offline)</div>
               )}
@@ -717,24 +729,24 @@ export default function CLSongDetailsPage({
                                 <span className="cld-related-itemsubtitle">{itemSubtitle}</span>
                               )}
                             </div>
-                            <div
-                              className={`cld-related-itemdesc${needsClamp && !expanded ? ' cld-related-itemdesc--clamped' : ''}`}
-                            >
-                              {descPlain}
-                            </div>
-                            {needsClamp && (
-                              <button
-                                type="button"
-                                className="cld-related-readmore"
-                                onClick={(e) => {
-                                  e.preventDefault();
-                                  e.stopPropagation();
-                                  setRelatedExpanded((prev) => ({ ...prev, [relKey]: !prev[relKey] }));
-                                }}
-                              >
-                                {expanded ? 'read less' : 'read more'}
-                              </button>
-                            )}
+                            <p className="cld-related-itemdesc">
+                              {needsClamp && !expanded
+                                ? truncateAtWord(descPlain, 140)
+                                : descPlain}
+                              {needsClamp && (
+                                <button
+                                  type="button"
+                                  className="cld-related-readmore"
+                                  onClick={(e) => {
+                                    e.preventDefault();
+                                    e.stopPropagation();
+                                    setRelatedExpanded((prev) => ({ ...prev, [relKey]: !prev[relKey] }));
+                                  }}
+                                >
+                                  {expanded ? ' read less' : '...more'}
+                                </button>
+                              )}
+                            </p>
                           </div>
                         </>
                       );

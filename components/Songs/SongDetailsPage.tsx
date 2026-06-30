@@ -10,8 +10,7 @@ import RelatedSection from '@/components/RelatedSection/RelatedSection';
 import { ChevronLeft, ChevronRight, Languages } from 'lucide-react';
 import { useMemo, useRef, useState } from 'react';
 import { withAppBasePath } from '@/lib/resolveCmsAssetUrl';
-import LiteYouTubeEmbed from 'react-lite-youtube-embed';
-import 'react-lite-youtube-embed/dist/LiteYouTubeEmbed.css';
+import YouTubeEmbedFrame from '@/components/Reusable/YouTubeEmbedFrame';
 
 import './Songs.css';
 import { AJAB_API_BASE } from '@/lib/ajabEnv';
@@ -296,12 +295,7 @@ const SongDetails = ({
                       {videoId && (
                         <div className="song-main-media">
                           <div className="song-main-video">
-                            <LiteYouTubeEmbed
-                              id={videoId}
-                              title={title}
-                              poster="maxresdefault"
-                              noCookie
-                            />
+                            <YouTubeEmbedFrame videoId={videoId} title={title} />
                           </div>
                         </div>
                       )}

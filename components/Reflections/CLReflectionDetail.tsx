@@ -5,8 +5,7 @@
 
 import { useEffect, useMemo, useRef, useState, useContext } from 'react';
 import { usePathname } from 'next/navigation';
-import LiteYouTubeEmbed from 'react-lite-youtube-embed';
-import 'react-lite-youtube-embed/dist/LiteYouTubeEmbed.css';
+import YouTubeEmbedFrame from '@/components/Reusable/YouTubeEmbedFrame';
 import Link from 'next/link';
 import Header from '@/components/Header';
 import Loader from '@/components/Loader';
@@ -21,6 +20,7 @@ import {
   REFLECTIONS_RELATED,
 } from './CLReflectionMocks';
 import { AJAB_API_BASE } from '@/lib/ajabEnv';
+import { truncateAtWord } from '@/lib/truncateAtWord';
 import { getSpeakerNameMap } from '@/lib/speakerNames';
 import { parseCatalogTotal } from '@/lib/parseCatalogTotal';
 import { ReflectionsNavCountContext } from '@/components/Reflections/ReflectionsNavCountContext';
@@ -118,13 +118,13 @@ function ReflectionDescription({ text }: { text: string }) {
   return (
     <div className="clrd-description">
       <p className={`clrd-description-body${expanded ? ' is-expanded' : ''}`}>
-        {expanded || !isLong ? text : `${text.slice(0, DESCRIPTION_TRUNCATE).trim()}…`}
+        {expanded || !isLong ? text : truncateAtWord(text, DESCRIPTION_TRUNCATE)}
+        {isLong && !expanded && (
+          <button type="button" className="clrd-description-more" onClick={() => setExpanded(true)}>
+            ...more
+          </button>
+        )}
       </p>
-      {isLong && !expanded && (
-        <button type="button" className="clrd-description-more" onClick={() => setExpanded(true)}>
-          more
-        </button>
-      )}
     </div>
   );
 }
@@ -305,7 +305,7 @@ export default function CLReflectionDetail({ id: idProp }: { id?: string }) {
             {/* Video */}
             <div className="clrd-video-wrap">
               {data.videoId ? (
-                <LiteYouTubeEmbed id={data.videoId} title={data.title} poster="maxresdefault" noCookie />
+                <YouTubeEmbedFrame videoId={data.videoId} title={data.title} />
               ) : (
                 <div className="clrd-video-placeholder">Video not available</div>
               )}
@@ -354,22 +354,22 @@ export default function CLReflectionDetail({ id: idProp }: { id?: string }) {
                             )}
                           </div>
                           {descPlain && (
-                            <div
-                              className={`cld-related-itemdesc${needsClamp && !expanded ? ' cld-related-itemdesc--clamped' : ''}`}
-                            >
-                              {descPlain}
-                            </div>
-                          )}
-                          {needsClamp && (
-                            <button
-                              type="button"
-                              className="cld-related-readmore"
-                              onClick={() =>
-                                setRelatedExpanded((prev) => ({ ...prev, [relKey]: !expanded }))
-                              }
-                            >
-                              {expanded ? 'read less' : 'read more'}
-                            </button>
+                            <p className="cld-related-itemdesc">
+                              {needsClamp && !expanded
+                                ? truncateAtWord(descPlain, 140)
+                                : descPlain}
+                              {needsClamp && (
+                                <button
+                                  type="button"
+                                  className="cld-related-readmore"
+                                  onClick={() =>
+                                    setRelatedExpanded((prev) => ({ ...prev, [relKey]: !expanded }))
+                                  }
+                                >
+                                  {expanded ? ' read less' : '...more'}
+                                </button>
+                              )}
+                            </p>
                           )}
                         </div>
                       </div>

@@ -3,8 +3,7 @@
 import { useState, useEffect } from 'react';
 import Image from 'next/image';
 import { useRouter } from 'next/navigation';
-import LiteYouTubeEmbed from 'react-lite-youtube-embed';
-import 'react-lite-youtube-embed/dist/LiteYouTubeEmbed.css';
+import YouTubeEmbedFrame from '@/components/Reusable/YouTubeEmbedFrame';
 
 import PrevIcon from '../public/left-arrow.svg';
 import NextIcon from '../public/right-arrow.svg';
@@ -83,12 +82,7 @@ export default function CLContentSliderModal({
         {/* Image or embedded video (PDF home popup — category video) */}
         <div className={`npc-image-wrap${item.category === 'video' ? ' npc-image-wrap--video' : ''}`}>
           {item.category === 'video' && item.videoId ? (
-            <LiteYouTubeEmbed
-              id={item.videoId}
-              title={item.title}
-              poster="maxresdefault"
-              noCookie
-            />
+            <YouTubeEmbedFrame videoId={item.videoId} title={item.title} />
           ) : (
             /* [Claude] these changes have been recommended by claude —
                broken CMS image URLs showed the browser's broken-image icon in the

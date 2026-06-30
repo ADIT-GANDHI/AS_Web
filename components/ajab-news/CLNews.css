@@ -156,15 +156,14 @@
 
 .news-video-wrap {
   background: #111;
+  aspect-ratio: 16 / 9;
 }
 
-.news-video-wrap .yt-lite {
+.news-video-wrap iframe {
   width: 100%;
   height: 100%;
-}
-
-.news-video-wrap .yt-lite__media {
-  object-fit: cover;
+  border: 0;
+  display: block;
 }
 
 .news-banner-shadow {

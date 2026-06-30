@@ -185,7 +185,8 @@
   border: 0;
 }
 
-.clh-media-slot iframe {
+.clh-media-slot iframe,
+.clh-media-slot .clh-media-iframe {
   display: block;
   width: 100%;
   height: 100%;

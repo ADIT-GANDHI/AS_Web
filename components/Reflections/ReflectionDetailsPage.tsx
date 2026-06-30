@@ -6,8 +6,7 @@ import FullBackground from '@/components/fullBackground';
 import RelatedSection from '@/components/RelatedSection/RelatedSection';
 import { useMemo, useState } from 'react';
 import { AJAB_API_BASE } from '@/lib/ajabEnv';
-import LiteYouTubeEmbed from 'react-lite-youtube-embed';
-import 'react-lite-youtube-embed/dist/LiteYouTubeEmbed.css';
+import YouTubeEmbedFrame from '@/components/Reusable/YouTubeEmbedFrame';
 import '@/components/Songs/Songs.css';
 
 // RelatedTab type removed — now handled by RelatedSection component
@@ -214,7 +213,7 @@ export default function ReflectionDetailsPage({
 
                       {videoId ? (
                         <div className="aspect-video w-full reflection-video">
-                          <LiteYouTubeEmbed id={videoId} title={title} poster="maxresdefault" noCookie />
+                          <YouTubeEmbedFrame videoId={videoId} title={title} />
                         </div>
                       ) : thumbnail ? (
                         <img src={thumbnail} alt={title} className="reflection-video rounded-lg shadow-lg w-full" />
