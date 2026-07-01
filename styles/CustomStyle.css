@@ -565,11 +565,13 @@ body::-webkit-scrollbar {
   }
 }
 
-/* Floating Action Buttons (Scroll-to-top + Share) */
+/* Floating Action Buttons (Scroll-to-top + Share) — global Figma parity on every page */
 .floating-actions {
   position: fixed !important;
   right: 20px !important;
-  bottom: 80px !important;
+  top: 50% !important;
+  bottom: auto !important;
+  transform: translateY(-50%) !important;
   display: flex !important;
   flex-direction: column !important;
   gap: 12px !important;
@@ -578,38 +580,7 @@ body::-webkit-scrollbar {
   pointer-events: auto !important;
 }
 
-.floating-actions .share-btn {
-  width: 48.68px !important;
-  height: 48.68px !important;
-  border-radius: 8px !important;
-  background: #ffffff !important;
-  color: var(--ajab-pink-primary) !important;
-  border: 1px solid #e5e5e5 !important;
-  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.12) !important;
-  display: inline-flex !important;
-  align-items: center !important;
-  justify-content: center !important;
-  visibility: visible !important;
-  opacity: 1 !important;
-  padding: 0 !important;
-}
-
-/* Scroll-to-top: circle; share stays square (rounded rect) above */
-.floating-actions .scroll-top-btn.visible {
-  border-radius: 50% !important;
-}
-
-.floating-actions .share-btn:hover {
-  background: var(--ajab-pink-primary) !important;
-  color: #ffffff !important;
-  border-color: var(--ajab-pink-primary) !important;
-  transform: translateY(-2px);
-}
-
 .floating-action-btn {
-  width: 42.4px;
-  height: 42.55px;
-  border-radius: 50%;
   background: #ffffff;
   border: 1px solid #e5e5e5;
   box-shadow: 0 2px 10px rgba(0, 0, 0, 0.12);
@@ -619,7 +590,48 @@ body::-webkit-scrollbar {
   color: var(--ajab-pink-primary);
   cursor: pointer;
   opacity: 0.8;
-  transition: all 0.2s ease;
+  transition: background 0.2s ease, color 0.2s ease, border-color 0.2s ease, opacity 0.2s ease, transform 0.2s ease;
+  padding: 0;
+}
+
+/* Scroll-to-top: 42px circle */
+.floating-actions .floating-action-btn.scroll-top-btn,
+.floating-actions button.floating-action-btn.scroll-top-btn {
+  width: 42px !important;
+  min-width: 42px !important;
+  max-width: 42px !important;
+  height: 42px !important;
+  min-height: 42px !important;
+  max-height: 42px !important;
+  border-radius: 50% !important;
+}
+
+/* Share: 49px rounded square — must beat .floating-action-btn defaults */
+.floating-actions .floating-action-btn.share-btn,
+.floating-actions button.floating-action-btn.share-btn,
+.floating-actions .share-btn {
+  width: 49px !important;
+  min-width: 49px !important;
+  max-width: 49px !important;
+  height: 49px !important;
+  min-height: 49px !important;
+  max-height: 49px !important;
+  border-radius: 8px !important;
+  background: #ffffff !important;
+  color: var(--ajab-pink-primary) !important;
+  border: 1px solid #e5e5e5 !important;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.12) !important;
+  visibility: visible !important;
+  opacity: 0.8 !important;
+}
+
+.floating-actions .share-btn:hover,
+.floating-actions button.floating-action-btn.share-btn:hover {
+  background: var(--ajab-pink-primary) !important;
+  color: #ffffff !important;
+  border-color: var(--ajab-pink-primary) !important;
+  opacity: 1 !important;
+  transform: translateY(-2px);
 }
 
 .floating-action-btn:hover {
@@ -690,8 +702,34 @@ body::-webkit-scrollbar {
 }
 
 @media (max-width: 640px) {
-  .floating-actions { right: 12px; bottom: 70px; }
-  .floating-action-btn { width: 38px; height: 38px; }
+  .floating-actions {
+    right: 12px !important;
+    top: 50% !important;
+    bottom: auto !important;
+    transform: translateY(-50%) !important;
+  }
+
+  .floating-actions .floating-action-btn.scroll-top-btn,
+  .floating-actions button.floating-action-btn.scroll-top-btn {
+    width: 38px !important;
+    min-width: 38px !important;
+    max-width: 38px !important;
+    height: 38px !important;
+    min-height: 38px !important;
+    max-height: 38px !important;
+  }
+
+  .floating-actions .floating-action-btn.share-btn,
+  .floating-actions button.floating-action-btn.share-btn,
+  .floating-actions .share-btn {
+    width: 44px !important;
+    min-width: 44px !important;
+    max-width: 44px !important;
+    height: 44px !important;
+    min-height: 44px !important;
+    max-height: 44px !important;
+  }
+
   .share-menu { right: 46px; padding: 4px 8px; }
   .share-menu button { width: 28px; height: 28px; }
 }

@@ -60,26 +60,16 @@ body:has(.clp-page-root-wrap) {
 }
 
 body:has(.clp-page) footer.footer-bg {
-  margin-top: 0;
   position: relative;
   z-index: 10;
 }
 
-/* Floating actions — vertically centered (CustomStyle uses bottom: 80px). */
-html body:has(.clp-page-root-wrap) .floating-actions {
-  top: 50% !important;
-  bottom: auto !important;
-  transform: translateY(-50%) !important;
+body:has(.clp-page) footer.footer-bg .footer-inner {
+  margin-top: 0 !important;
+  padding-top: 28px;
 }
 
-@media (max-width: 640px) {
-  html body:has(.clp-page-root-wrap) .floating-actions {
-    top: 50% !important;
-    bottom: auto !important;
-    transform: translateY(-50%) !important;
-    right: 12px !important;
-  }
-}
+/* Floating actions — global styles in styles/CustomStyle.css */
 
 /* Listing + detail share one Couplet_JungEgg plate via .clp-page-root-wrap */
 
@@ -211,11 +201,14 @@ html body:has(.clp-page-root-wrap) .floating-actions {
   width: 100%;
   max-width: none;
   margin: 0 auto;
-  /* Bottom spacing lives on .gs-strip — avoid stacking 4% artboard pad + 80px strip margin. */
   padding: var(--clp-pad-page-top) 0 0;
   font-weight: 300;
   min-height: 0;
   box-sizing: border-box;
+}
+
+.clp-page:not(.clp-page--detail) {
+  padding-bottom: clamp(100px, 8vw, 150px);
 }
 
 /* ── Intro paragraph ── */

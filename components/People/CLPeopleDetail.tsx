@@ -3,7 +3,7 @@
 // [Claude] People detail page — fetches live data from Api/explore_person
 // and renders the bio with gallery wrap, caption row and related section.
 
-import { useEffect, useMemo, useRef, useState } from 'react';
+import { useContext, useEffect, useMemo, useRef, useState } from 'react';
 import { usePathname } from 'next/navigation';
 import Link from 'next/link';
 import { ChevronLeft } from 'lucide-react';
@@ -21,10 +21,14 @@ import KeywordCloud from '@/components/shared/KeywordCloud';
 import RepeatingPageBackground from '@/components/shared/RepeatingPageBackground';
 import { keywordsFromRelatedBucket } from '@/lib/parseKeywords';
 import { PEOPLE_DETAIL_BG } from '@/lib/pageBackgroundTiles';
+import { getRelatedDetailHref } from '@/lib/relatedDetailHref';
+import { truncateAtWord } from '@/lib/truncateAtWord';
+import { resolveCmsAssetUrl, withAppBasePath } from '@/lib/resolveCmsAssetUrl';
 import '@/styles/CustomStyle.css';
 import '@/components/Songs/CLSongs.css';
 import '@/components/Songs/CLSongDetails.css';
 import './CLPeople.css';
+import { PeopleNavCountContext } from '@/components/People/PeopleNavCountContext';
 
 // [Claude] Same HTML stripper used across all detail pages
 function htmlToPlainText(raw: string): string {
@@ -40,6 +44,36 @@ function htmlToPlainText(raw: string): string {
     .replace(/&quot;/g, '"')
     .replace(/\n{3,}/g, '\n\n')
     .trim();
+}
+
+const RELATED_INITIAL_COUNT = 3;
+
+function getRelatedItemTitle(item: any): string {
+  const t =
+    item?.title ||
+    item?.Songtitle_transliteration ||
+    item?.english_transliteration ||
+    item?.original_title ||
+    '';
+  return typeof t === 'string' ? t.trim() : '';
+}
+
+function getRelatedItemSubtitle(item: any): string {
+  const sub = item?.subtitle || item?.songtitletraan || item?.english_translation || '';
+  return typeof sub === 'string' ? sub.trim() : '';
+}
+
+function getRelatedItemDescription(item: any): string {
+  return htmlToPlainText(
+    String(item?.about || item?.description || item?.meta_description || item?.thumbnail_excerpt || '')
+  );
+}
+
+type RelatedListEntry = { bucket: string; item: any };
+
+function relatedEntryKey(bucket: string, item: any, index: number): string {
+  const itemId = item?.id != null && item?.id !== '' ? String(item.id) : 'noid';
+  return `${bucket}-${itemId}-${index}`;
 }
 
 interface PersonDetail {
@@ -76,17 +110,25 @@ export default function CLPeopleDetail({ id: idProp }: { id?: string }) {
   const [person, setPerson] = useState<PersonDetail | null>(null);
   const [loading, setLoading] = useState(true);
   const [related, setRelated] = useState<RelatedContent>(EMPTY_RELATED);
-  const [activeTab, setActiveTab] = useState<'all' | 'songs' | 'poems' | 'films'>('songs');
-  const [navCount, setNavCount] = useState(0);
+  const [activeTab, setActiveTab] = useState<'all' | 'songs' | 'poems' | 'films'>('all');
+  const [relatedExpanded, setRelatedExpanded] = useState<Record<string, boolean>>({});
+  const [relatedListExpanded, setRelatedListExpanded] = useState(false);
+  const { setPeopleNavTotal } = useContext(PeopleNavCountContext);
+
+  useEffect(() => {
+    setRelatedListExpanded(false);
+  }, [activeTab]);
 
   useEffect(() => {
     fetch(`${AJAB_API_BASE}/Api/person_list?page=1&limit=1`, { cache: 'no-store' })
       .then((res) => (res.ok ? res.json() : null))
       .then((json) => {
-        if (typeof json?.total === 'number' && json.total > 0) setNavCount(json.total);
+        if (typeof json?.total === 'number' && json.total > 0) {
+          setPeopleNavTotal(json.total);
+        }
       })
       .catch(() => {});
-  }, []);
+  }, [setPeopleNavTotal]);
 
   useEffect(() => {
     if (!id) {
@@ -133,20 +175,44 @@ export default function CLPeopleDetail({ id: idProp }: { id?: string }) {
   }, [id]);
 
   const counts = related.counts;
+  const tabCounts = useMemo(() => {
+    const d = related.data as Record<string, any[]>;
+    const songsLen = (d.songs || []).length;
+    const poemsLen = (d.poems || []).length;
+    const filmsLen = (d.films || []).length;
+    return {
+      all: songsLen + poemsLen + filmsLen,
+      songs: counts.songs ?? songsLen,
+      poems: counts.poems ?? poemsLen,
+      films: counts.films ?? filmsLen,
+    };
+  }, [related.data, counts]);
+
   const tabs = [
-    { key: 'all' as const, label: 'ALL', count: counts.all },
-    { key: 'songs' as const, label: 'SONGS', count: counts.songs },
-    { key: 'poems' as const, label: 'POEMS', count: counts.poems },
-    { key: 'films' as const, label: 'FILMS', count: counts.films },
+    { key: 'all' as const, label: 'ALL', count: tabCounts.all },
+    { key: 'songs' as const, label: 'SONGS', count: tabCounts.songs },
+    { key: 'poems' as const, label: 'POEMS', count: tabCounts.poems },
+    { key: 'films' as const, label: 'FILMS', count: tabCounts.films },
   ];
 
-  const visibleItems = useMemo(() => {
-    const d = related.data as any;
+  const visibleRelatedEntries = useMemo((): RelatedListEntry[] => {
+    const d = related.data as Record<string, any[]>;
     if (activeTab === 'all') {
-      return [...(d.songs || []), ...(d.poems || []), ...(d.films || [])];
+      return (['songs', 'poems', 'films'] as const).flatMap((bucket) =>
+        (d[bucket] || []).map((item) => ({ bucket, item }))
+      );
     }
-    return d[activeTab] || [];
+    return (d[activeTab] || []).map((item) => ({ bucket: activeTab, item }));
   }, [activeTab, related]);
+
+  const displayedRelatedEntries = useMemo(() => {
+    if (relatedListExpanded || visibleRelatedEntries.length <= RELATED_INITIAL_COUNT) {
+      return visibleRelatedEntries;
+    }
+    return visibleRelatedEntries.slice(0, RELATED_INITIAL_COUNT);
+  }, [visibleRelatedEntries, relatedListExpanded]);
+
+  const hasMoreRelated = visibleRelatedEntries.length > RELATED_INITIAL_COUNT;
 
   const keywordTerms = useMemo(
     () => keywordsFromRelatedBucket((related.data.keywords || []) as unknown[]),
@@ -185,7 +251,6 @@ export default function CLPeopleDetail({ id: idProp }: { id?: string }) {
         <main className="relative z-10">
           <div
             className="clped-page"
-            style={{ '--clpe-nav-count': String(navCount) } as React.CSSProperties}
           >
             <div className="clped-content">
             <Link href="/people" className="clped-back">
@@ -245,26 +310,84 @@ export default function CLPeopleDetail({ id: idProp }: { id?: string }) {
                 ))}
               </div>
               <div className="cld-related-list">
-                {visibleItems.length ? (
-                  visibleItems.map((item: any) => (
-                    <div key={item.id || item.title} className="cld-related-item">
-                      <div className="cld-related-thumb">
-                        {item.thumbnailUrl && <img src={item.thumbnailUrl} alt={item.title} />}
-                      </div>
-                      <div className="cld-related-body">
-                        <div className="cld-related-titlerow">
-                          <span className="cld-related-itemtitle">{item.title}</span>
-                          {item.subtitle && <span className="cld-related-itemsubtitle">{item.subtitle}</span>}
+                {displayedRelatedEntries.length ? (
+                  displayedRelatedEntries.map((entry, idx) => {
+                    const { bucket, item } = entry;
+                    const relKey = relatedEntryKey(bucket, item, idx);
+                    const itemTitle = getRelatedItemTitle(item) || 'Untitled';
+                    const itemSubtitle = getRelatedItemSubtitle(item);
+                    const descPlain = getRelatedItemDescription(item);
+                    const expanded = !!relatedExpanded[relKey];
+                    const newlineCount = (descPlain.match(/\n/g) || []).length;
+                    const needsClamp = descPlain.length > 140 || newlineCount >= 2;
+                    const detailHref = getRelatedDetailHref(bucket, item);
+                    const itemInner = (
+                      <>
+                        <div className="cld-related-thumb">
+                          {item.thumbnailUrl && (
+                            <img
+                              src={resolveCmsAssetUrl(item.thumbnailUrl)}
+                              alt={itemTitle}
+                            />
+                          )}
                         </div>
-                        <div className="cld-related-itemdesc">{item.about}</div>
+                        <div className="cld-related-body">
+                          <div className="cld-related-titlerow">
+                            <span className="cld-related-itemtitle">{itemTitle}</span>
+                            {itemSubtitle && (
+                              <span className="cld-related-itemsubtitle">{itemSubtitle}</span>
+                            )}
+                          </div>
+                          {descPlain && (
+                            <p className="cld-related-itemdesc">
+                              {needsClamp && !expanded
+                                ? truncateAtWord(descPlain, 140)
+                                : descPlain}
+                              {needsClamp && (
+                                <button
+                                  type="button"
+                                  className="cld-related-readmore"
+                                  onClick={(e) => {
+                                    e.preventDefault();
+                                    e.stopPropagation();
+                                    setRelatedExpanded((prev) => ({ ...prev, [relKey]: !expanded }));
+                                  }}
+                                >
+                                  {expanded ? ' read less' : '...more'}
+                                </button>
+                              )}
+                            </p>
+                          )}
+                        </div>
+                      </>
+                    );
+                    return detailHref ? (
+                      <Link
+                        key={relKey}
+                        href={withAppBasePath(detailHref)}
+                        className="cld-related-item cld-related-item--link"
+                      >
+                        {itemInner}
+                      </Link>
+                    ) : (
+                      <div key={relKey} className="cld-related-item">
+                        {itemInner}
                       </div>
-                    </div>
-                  ))
+                    );
+                  })
                 ) : (
                   <div style={{ padding: 16, color: '#828282' }}>No related items.</div>
                 )}
               </div>
-              <a className="cld-related-seemore">SEE MORE</a>
+              {hasMoreRelated && (
+                <button
+                  type="button"
+                  className="cld-related-seemore"
+                  onClick={() => setRelatedListExpanded((v) => !v)}
+                >
+                  {relatedListExpanded ? 'SEE LESS' : 'SEE MORE'}
+                </button>
+              )}
             </section>
             </div>
           </div>

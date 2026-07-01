@@ -146,41 +146,7 @@ body:has(.cl-home-page-root) footer.footer-bg {
    replace the tree position, swap the Footer.png asset — don't add it back
    here as an overlay. */
 
-/* ── Floating buttons — exact Figma sizes (up: 42×43, share: 49×49).
-   Scoped to Songs listing + detail pages only. */
-html body:has(.cl-songs-page) .floating-actions .floating-action-btn.scroll-top-btn,
-html body:has(.cl-songs-page) .floating-actions button.floating-action-btn.scroll-top-btn,
-html body:has(.cld-page) .floating-actions .floating-action-btn.scroll-top-btn,
-html body:has(.cld-page) .floating-actions button.floating-action-btn.scroll-top-btn,
-html body:has(.cl-home-page-root) .floating-actions .floating-action-btn.scroll-top-btn,
-html body:has(.cl-home-page-root) .floating-actions button.floating-action-btn.scroll-top-btn,
-html body:has(.glossary-page-root) .floating-actions .floating-action-btn.scroll-top-btn,
-html body:has(.glossary-page-root) .floating-actions button.floating-action-btn.scroll-top-btn {
-  width: 42px !important;
-  min-width: 42px !important;
-  max-width: 42px !important;
-  height: 42px !important;
-  min-height: 42px !important;
-  max-height: 42px !important;
-  border-radius: 50% !important;
-}
-
-html body:has(.cl-songs-page) .floating-actions .share-btn,
-html body:has(.cl-songs-page) .floating-actions button.share-btn,
-html body:has(.cld-page) .floating-actions .share-btn,
-html body:has(.cld-page) .floating-actions button.share-btn,
-html body:has(.cl-home-page-root) .floating-actions .share-btn,
-html body:has(.cl-home-page-root) .floating-actions button.share-btn,
-html body:has(.glossary-page-root) .floating-actions .share-btn,
-html body:has(.glossary-page-root) .floating-actions button.share-btn {
-  width: 49px !important;
-  min-width: 49px !important;
-  max-width: 49px !important;
-  height: 49px !important;
-  min-height: 49px !important;
-  max-height: 49px !important;
-  border-radius: 8px !important;
-}
+/* ── Floating buttons: global styles in styles/CustomStyle.css */
 
 /* ── Footer inner content: Footer.css padding-top (180px) already clears
    the wave. Remove any extra top margin so content sits immediately below
@@ -692,28 +658,7 @@ body:has(.cld-page) .nav-link--songs .nav-link-songs-count {
   font-size: 0.55em;
 }
 
-/* ── Floating actions — vertically centered on Songs listing AND detail (matches Figma).
-   `html body` beats CustomStyle.css `.floating-actions { bottom: 80px !important }`. */
-html body:has(.cl-songs-page) .floating-actions,
-html body:has(.cl-songs-listing-page) .floating-actions,
-html body:has(.cld-page) .floating-actions,
-html body:has(.cl-home-page-root) .floating-actions {
-  top: 50% !important;
-  bottom: auto !important;
-  transform: translateY(-50%) !important;
-}
-
-@media (max-width: 640px) {
-  html body:has(.cl-songs-page) .floating-actions,
-  html body:has(.cl-songs-listing-page) .floating-actions,
-  html body:has(.cld-page) .floating-actions,
-  html body:has(.cl-home-page-root) .floating-actions {
-    top: 50% !important;
-    bottom: auto !important;
-    transform: translateY(-50%) !important;
-    right: 12px !important;
-  }
-}
+/* ── Floating actions: global styles in styles/CustomStyle.css */
 
 /* ── Responsive — 2 columns at 1024px ── */
 @media screen and (max-width: 1024px) {

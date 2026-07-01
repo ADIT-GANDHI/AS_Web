@@ -1,6 +1,6 @@
 'use client';
 
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { useCallback, useContext, useEffect, useMemo, useRef, useState } from 'react';
 import Link from 'next/link';
 import LoadMoreButton from '@/components/shared/LoadMoreButton';
 import Header from '@/components/Header';
@@ -10,8 +10,6 @@ import RepeatingPageBackground from '@/components/shared/RepeatingPageBackground
 import { PEOPLE_LISTING_BG } from '@/lib/pageBackgroundTiles';
 import {
   PEOPLE_INTRO,
-  MOCK_PEOPLE,
-  TOTAL_PEOPLE,
   PersonCard,
 } from './CLPeopleMocks';
 import '@/styles/CustomStyle.css';
@@ -20,6 +18,7 @@ import './CLPeople.css';
 import { AJAB_API_BASE } from '@/lib/ajabEnv';
 import { catalogHasMore, mergeCatalogById } from '@/lib/catalogPagination';
 import { parseCatalogTotal } from '@/lib/parseCatalogTotal';
+import { PeopleNavCountContext } from '@/components/People/PeopleNavCountContext';
 
 const PEOPLE_PER_PAGE = 50;
 const PEOPLE_VISIBLE_STEP = 20;
@@ -47,6 +46,7 @@ const PEOPLE_CATEGORIES = [
 
 export default function CLPeople() {
   const shellRef = useRef<HTMLDivElement>(null);
+  const { setPeopleNavTotal } = useContext(PeopleNavCountContext);
   const [people, setPeople] = useState<PersonCard[]>([]);
   const [totalPeople, setTotalPeople] = useState(0);
   const [loading, setLoading] = useState(true);
@@ -117,8 +117,8 @@ export default function CLPeople() {
     } catch {
       clearTimeout(timeoutId);
       if (reset) {
-        setPeople(MOCK_PEOPLE);
-        setTotalPeople(TOTAL_PEOPLE);
+        setPeople([]);
+        setTotalPeople(0);
       }
     } finally {
       setLoading(false);
@@ -130,11 +130,10 @@ export default function CLPeople() {
     void fetchPeoplePage(1, true);
   }, [fetchPeoplePage]);
 
-  // [Claude] these changes have been recommended by claude — hoist count to :root so Header can see it
   useEffect(() => {
-    if (totalPeople > 0) document.documentElement.style.setProperty('--clpe-nav-count', String(totalPeople));
-    return () => { document.documentElement.style.removeProperty('--clpe-nav-count'); };
-  }, [totalPeople]);
+    if (totalPeople > 0) setPeopleNavTotal(totalPeople);
+    else setPeopleNavTotal(null);
+  }, [totalPeople, setPeopleNavTotal]);
 
   const filtered = useMemo(() => {
     return people.filter((p) => {
@@ -169,6 +168,12 @@ export default function CLPeople() {
     filtersActive: peopleFiltersActive,
   });
 
+  const headingCount = peopleFiltersActive
+    ? filtered.length
+    : totalPeople > 0
+      ? totalPeople
+      : filtered.length;
+
   const handleLoadMore = () => {
     if (loadingMore) return;
 
@@ -198,14 +203,11 @@ export default function CLPeople() {
         <RepeatingPageBackground containerRef={shellRef} tile={PEOPLE_LISTING_BG} />
         <Header />
         <main className="relative z-10">
-          <div
-            className="clpe-page cl-songs-page"
-            style={{ '--clpe-nav-count': String(totalPeople) } as React.CSSProperties}
-          >
+          <div className="clpe-page cl-songs-page">
             <p className="clpe-intro">{PEOPLE_INTRO}</p>
 
             <div className="cl-songs-count-row">
-              <h1 className="cl-songs-count">{filtered.length} People</h1>
+              <h1 className="cl-songs-count">{headingCount} People</h1>
             </div>
 
             <ListingFilterBar

@@ -66,7 +66,7 @@
   /* Equal inset from thumbnail left/right edges to text (both sides use the same value). */
   --clh-side-pad: clamp(14px, calc(18 / 1568 * var(--clh-marble-w)), 20px);
   --clh-fs-poem: clamp(17px, calc(4px + 16 / 1568 * var(--clh-marble-w)), 18px);
-  --clh-lh-poem: clamp(21px, calc(4px + 20 / 1568 * var(--clh-marble-w)), 22px);
+  --clh-lh-poem: clamp(24px, calc(4px + 20 / 1568 * var(--clh-marble-w)), 26px);
   width: var(--clh-marble-w);
   margin: 0 auto;
 }
@@ -387,13 +387,18 @@ a.clh-card {
 }
 
 /* Poem tile — Figma 581:319; full top scallop visible */
+.clh-poem-card {
+  /* Extra inset for verse block only (on top of body --clh-side-pad). */
+/* Moderate — ~+8px extra per side @ 1440 */
+--clh-poem-verse-inset: clamp(20px, calc(30 / 1568 * var(--clh-marble-w)), 36px);
+}
+
 .clh-poem-card .clh-card-sheet {
   --clh-sheet-pad-top: clamp(18px, calc(24 / 1568 * var(--clh-marble-w)), 28px);
   --clh-sheet-pad-bottom: clamp(14px, calc(18 / 1568 * var(--clh-marble-w)), 20px);
 }
 
 .clh-poem-card .clh-card-body {
-  text-align: center;
   box-sizing: border-box;
   width: auto;
   margin-left: calc(100% * var(--clh-sheet-body-inset-l) / var(--clh-sheet-native-w));
@@ -405,6 +410,13 @@ a.clh-card {
   padding-bottom: var(--clh-sheet-pad-bottom);
   padding-left: var(--clh-side-pad);
   padding-right: var(--clh-side-pad);
+}
+
+/* Verse + divider + poet — wider inset; CTA stays on body --clh-side-pad only. */
+.clh-poem-content {
+  text-align: center;
+  padding-left: var(--clh-poem-verse-inset);
+  padding-right: var(--clh-poem-verse-inset);
 }
 
 /* PDF home poem: 4 transliteration lines, gap, then 2 translation lines */
@@ -449,10 +461,18 @@ a.clh-card {
 }
 
 .clh-poem-divider {
-  height: 1px;
-  background: var(--ajab-pink-primary);
+  border: 0;
+  border-top: 1px solid var(--clh-pink-line);
+  height: 0;
   width: 100%;
-  margin: 0 0 10px;
+  margin: 12px 0 10px;
+  background: transparent;
+}
+
+@supports (border-width: 0.5px) {
+  .clh-poem-divider {
+    border-top-width: 0.5px;
+  }
 }
 
 .clh-poem-poet {
@@ -477,8 +497,12 @@ a.clh-card {
   text-transform: uppercase;
 }
 
+.clh-poem-card .clh-card-footer {
+  padding-top: var(--clh-cta-gap);
+}
+
 .clh-poem-card .clh-card-cta {
-  margin-top: var(--clh-cta-gap);
+  margin-top: 0;
   margin-bottom: 0;
 }
 
@@ -504,6 +528,10 @@ a.clh-card {
     --clh-side-pad: 16px;
     --clh-fs-poem: 16px;
     --clh-lh-poem: 20px;
+  }
+
+  .clh-poem-card {
+    --clh-poem-verse-inset: 12px;
   }
 
   .clh-song-card,

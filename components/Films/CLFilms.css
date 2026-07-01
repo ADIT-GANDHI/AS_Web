@@ -38,10 +38,8 @@
   --clf-fs-meta: clamp(15px, calc(100vw * 17 / var(--clf-artboard-w)), 17px);
   --clf-fs-links: clamp(15px, calc(100vw * 17 / var(--clf-artboard-w)), 17px);
   --clf-pad-page-top: calc(100vw * 71 / var(--clf-artboard-w));
-  /* Figma 366:7922 bottom (2622) → footer wave 366:8096 (2656) ≈ 34px, plus footer overlap */
-  --clf-pad-page-bottom: calc(
-    clamp(80px, 8.333vw, 160px) + clamp(24px, calc(100vw * 34 / var(--clf-artboard-w)), 34px)
-  );
+  /* Footer wave overlap — same rhythm as Songs listing (.cl-songs-page bottom pad) */
+  --clf-pad-page-bottom: clamp(100px, 8vw, 150px);
   position: relative;
   overflow-x: hidden;
   background-color: #ffffff;
@@ -52,6 +50,12 @@ body:has(.clf-page) footer.footer-bg,
 body:has(.clfd-page) footer.footer-bg {
   position: relative;
   z-index: 10;
+}
+
+body:has(.clf-page) footer.footer-bg .footer-inner,
+body:has(.clfd-page) footer.footer-bg .footer-inner {
+  margin-top: 0 !important;
+  padding-top: 28px;
 }
 
 /* Listing */
@@ -273,13 +277,52 @@ body:has(.clfd-page) .nav-link--films {
   align-items: baseline;
 }
 
-body:has(.clf-page) .nav-link--films::after,
-body:has(.clfd-page) .nav-link--films::after {
-  content: '(' var(--clf-nav-count, '24') ')';
+body:has(.clf-page) .nav-link--films .nav-link-films-count,
+body:has(.clfd-page) .nav-link--films .nav-link-films-count {
+  margin-left: 1px;
+  color: var(--ajab-pink-primary);
   font: inherit;
   font-size: 0.55em;
-  margin-left: 1px;
-  color: #1a1a1a;
+}
+
+/* Load more — matches Songs listing */
+.clf-page .cl-load-more-wrap {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-top: 0;
+  margin-bottom: 24px;
+  position: relative;
+  z-index: 100;
+}
+
+.clf-page .cl-load-more-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-family: var(--ajab-font-sans);
+  font-size: var(--ajab-fs-button);
+  font-weight: 300;
+  letter-spacing: 0;
+  color: var(--ajab-pink-primary);
+  background: transparent;
+  border: none;
+  border-radius: 0;
+  padding: 0;
+  cursor: pointer;
+  text-transform: none;
+  transition: opacity 0.2s ease;
+}
+
+.clf-page .cl-load-more-btn:hover:not(:disabled) {
+  background: transparent;
+  color: var(--ajab-pink-primary);
+  opacity: 0.8;
+}
+
+.clf-page .cl-load-more-btn:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
 }
 
 /* ── Detail page ── */

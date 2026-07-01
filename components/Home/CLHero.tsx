@@ -78,15 +78,19 @@ function SongCard({ data, imageFallback }: { data: HomeSongCard; imageFallback: 
 function PoemCard({ data }: { data: HomePoemCard }) {
   return (
     <HomeCardShell className="clh-poem-card" href={`/poems/details/${data.id}`}>
-      {data.transliteration && <div className="clh-poem-text">{data.transliteration}</div>}
-      {data.translation && <div className="clh-poem-translation">{data.translation}</div>}
-      <div className="clh-poem-spacer" />
-      <div className="clh-poem-divider" />
-      <div className="clh-poem-poet">
-        <span className="clh-poem-poet-label">poet </span>
-        <span className="clh-poem-poet-name">{data.poet}</span>
+      <div className="clh-poem-content">
+        {data.transliteration && <div className="clh-poem-text">{data.transliteration}</div>}
+        {data.translation && <div className="clh-poem-translation">{data.translation}</div>}
+        <div className="clh-poem-spacer" />
+        <div className="clh-poem-divider" />
+        <div className="clh-poem-poet">
+          <span className="clh-poem-poet-label">poet </span>
+          <span className="clh-poem-poet-name">{data.poet}</span>
+        </div>
       </div>
-      <span className="clh-card-cta">EXPLORE POEM</span>
+      <div className="clh-card-footer">
+        <span className="clh-card-cta">EXPLORE POEM</span>
+      </div>
     </HomeCardShell>
   );
 }

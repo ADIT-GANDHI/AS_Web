@@ -21,15 +21,21 @@
 
 body:has(.clpe-page) footer.footer-bg,
 body:has(.clped-page) footer.footer-bg {
-  margin-top: 0;
   position: relative;
   z-index: 10;
+}
+
+body:has(.clpe-page) footer.footer-bg .footer-inner,
+body:has(.clped-page) footer.footer-bg .footer-inner {
+  margin-top: 0 !important;
+  padding-top: 28px;
 }
 
 .clpe-page.cl-songs-page {
   width: 100%;
   max-width: none;
-  padding: 0;
+  /* Match Songs listing — room for footer wave overlap, not a white gap */
+  padding: 0 0 clamp(100px, 8vw, 150px);
 }
 
 /* [Claude] these changes have been recommended by claude — intro narrowed + smaller */
@@ -53,7 +59,7 @@ body:has(.clped-page) footer.footer-bg {
    1000px max-width matches this proportion. Was wrongly using --ajab-grid-max-w (800px). */
 .clpe-list {
   max-width: 1000px;
-  margin: 30px auto 48px;
+  margin: 30px auto 0;
   padding: 0 clamp(24px, 2vw, 40px);
   box-sizing: border-box;
   display: flex;
@@ -168,13 +174,52 @@ body:has(.clped-page) .nav-link--people {
   align-items: baseline;
 }
 
-body:has(.clpe-page) .nav-link--people::after,
-body:has(.clped-page) .nav-link--people::after {
-  content: '(' var(--clpe-nav-count, '183') ')';
+body:has(.clpe-page) .nav-link--people .nav-link-people-count,
+body:has(.clped-page) .nav-link--people .nav-link-people-count {
+  margin-left: 1px;
+  color: var(--ajab-pink-primary);
   font: inherit;
   font-size: 0.55em;
-  margin-left: 1px;
-  color: #1a1a1a;
+}
+
+/* Load more — matches Songs listing (styles live here so People module stays self-contained). */
+.clpe-page .cl-load-more-wrap {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-top: 0;
+  margin-bottom: 24px;
+  position: relative;
+  z-index: 100;
+}
+
+.clpe-page .cl-load-more-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-family: var(--ajab-font-sans);
+  font-size: var(--ajab-fs-button);
+  font-weight: 300;
+  letter-spacing: 0;
+  color: var(--ajab-pink-primary);
+  background: transparent;
+  border: none;
+  border-radius: 0;
+  padding: 0;
+  cursor: pointer;
+  text-transform: none;
+  transition: opacity 0.2s ease;
+}
+
+.clpe-page .cl-load-more-btn:hover:not(:disabled) {
+  background: transparent;
+  color: var(--ajab-pink-primary);
+  opacity: 0.8;
+}
+
+.clpe-page .cl-load-more-btn:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
 }
 
 /* ── Detail page ── */

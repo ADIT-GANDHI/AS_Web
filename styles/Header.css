@@ -194,6 +194,34 @@ body:has(.clp-page) .nav-link--poems .nav-link-poems-count {
   opacity: 1;
 }
 
+/* PEOPLE count — hover only */
+.nav-link--people .nav-link-people-count {
+  opacity: 0;
+  transition: opacity 0.25s ease;
+  display: inline-block;
+  font-size: 0.55em;
+  margin-left: 1px;
+  color: var(--ajab-pink-primary);
+}
+
+.nav-link--people:hover .nav-link-people-count {
+  opacity: 1;
+}
+
+/* FILMS count — hover only */
+.nav-link--films .nav-link-films-count {
+  opacity: 0;
+  transition: opacity 0.25s ease;
+  display: inline-block;
+  font-size: 0.55em;
+  margin-left: 1px;
+  color: var(--ajab-pink-primary);
+}
+
+.nav-link--films:hover .nav-link-films-count {
+  opacity: 1;
+}
+
 .nav-link--poems,
 .nav-link--reflections,
 .nav-link--people,

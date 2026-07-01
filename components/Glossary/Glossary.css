@@ -29,6 +29,11 @@ body:has(.glossary-page-root) footer.footer-bg {
   z-index: 10;
 }
 
+body:has(.glossary-page-root) footer.footer-bg .footer-inner {
+  margin-top: 0 !important;
+  padding-top: 28px;
+}
+
 .glossary-page-root {
   position: relative;
   width: 100%;

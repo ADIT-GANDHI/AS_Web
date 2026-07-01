@@ -14,7 +14,6 @@
 
 body:has(.clr-page) footer.footer-bg,
 body:has(.clrd-page) footer.footer-bg {
-  margin-top: 0;
   position: relative;
   z-index: 10;
 }
@@ -25,19 +24,12 @@ body:has(.clrd-page) footer.footer-bg .footer-inner {
   padding-top: 28px;
 }
 
-body:has(.clr-page) .floating-actions,
-body:has(.clrd-page) .floating-actions {
-  top: 50% !important;
-  bottom: auto !important;
-  transform: translateY(-50%) !important;
-}
-
 /* Listing layout — PDF Reflections/1 artboard 1920×2342 */
 .clr-page.clr-listing-page {
   position: relative;
   width: 100%;
   max-width: none;
-  padding: 0 0 clamp(16px, 2vw, 28px);
+  padding: 0 0 clamp(100px, 8vw, 150px);
   font-weight: 300;
   /* Intro: centred block, widest line ~769pt (PyMuPDF page 1) */
   --clr-intro-w: min(770px, calc(100vw * 770 / var(--ajab-artboard-w)));
@@ -219,7 +211,7 @@ body:has(.clrd-page) .nav-link--songs .nav-link-songs-count {
   width: 100%;
   max-width: none;
   margin: 0 auto;
-  padding: clamp(32px, 3vw, 48px) clamp(24px, 5vw, 80px) 0;
+  padding: clamp(32px, 3vw, 48px) clamp(24px, 5vw, 80px) clamp(100px, 8vw, 150px);
   font-weight: 300;
   box-sizing: border-box;
 }
@@ -361,7 +353,7 @@ body:has(.clrd-page) .nav-link--songs .nav-link-songs-count {
 /* ── Related + glossary — PDF typography (Figma reflection detail, shared with songs/poems) ── */
 .clrd-page .cld-related {
   max-width: 100%;
-  margin: 0 0 0;
+  margin: 0 0 clamp(32px, 4vw, 48px);
   padding-left: 0;
 }
 
@@ -440,7 +432,7 @@ body:has(.clrd-page) .nav-link--songs .nav-link-songs-count {
 .clrd-page .clrd-glossary-strip.gs-strip {
   max-width: min(1015px, calc(100vw * 1015 / var(--clrd-artboard-w)));
   margin-top: min(24px, calc(100vw * 32 / var(--clrd-artboard-w)));
-  margin-bottom: min(8px, calc(100vw * 12 / var(--clrd-artboard-w)));
+  margin-bottom: min(32px, calc(100vw * 40 / var(--clrd-artboard-w)));
   padding: min(28px, calc(100vw * 36 / var(--clrd-artboard-w)))
     min(32px, calc(100vw * 40 / var(--clrd-artboard-w)));
 }

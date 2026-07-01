@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useMemo, useRef, useState } from 'react';
+import { useContext, useEffect, useMemo, useRef, useState } from 'react';
 import YouTubeEmbedFrame from '@/components/Reusable/YouTubeEmbedFrame';
 import { useRouter, usePathname } from 'next/navigation';
 import Header from '@/components/Header';
@@ -33,6 +33,7 @@ import './FilmLanguageToggle.css';
 import RepeatingPageBackground from '@/components/shared/RepeatingPageBackground';
 import GlossaryStrip from '@/components/shared/GlossaryStrip';
 import { FILMS_DETAIL_BG } from '@/lib/pageBackgroundTiles';
+import { FilmsNavCountContext } from '@/components/Films/FilmsNavCountContext';
 
 function thumbUrl(raw: string | null | undefined): string {
   if (!raw) return '';
@@ -172,16 +173,16 @@ export default function CLFilmDetail({ id: idProp }: { id?: string }) {
     useState<'all' | 'songs' | 'poems' | 'reflections' | 'other'>('songs');
   const [activeFilmTab, setActiveFilmTab] = useState<'film' | 'episodes'>('film');
   const [descExpanded, setDescExpanded] = useState(false);
-  const [navCount, setNavCount] = useState(0);
+  const { setFilmsNavTotal } = useContext(FilmsNavCountContext);
 
   useEffect(() => {
     fetch(`${AJAB_API_BASE}/Api/film_list`, { cache: 'no-store' })
       .then((res) => (res.ok ? res.json() : null))
       .then((json) => {
-        if (typeof json?.total === 'number' && json.total > 0) setNavCount(json.total);
+        if (typeof json?.total === 'number' && json.total > 0) setFilmsNavTotal(json.total);
       })
       .catch(() => {});
-  }, []);
+  }, [setFilmsNavTotal]);
 
   useEffect(() => {
     setDescExpanded(false);
@@ -360,7 +361,6 @@ export default function CLFilmDetail({ id: idProp }: { id?: string }) {
         <main className="relative z-10">
           <div
             className={`clfd-page${activeFilmTab === 'episodes' ? ' clfd-page--episodes' : ''}`}
-            style={{ '--clf-nav-count': String(navCount) } as React.CSSProperties}
           >
             <div className="clfd-content">
               {episodes.length > 0 && (

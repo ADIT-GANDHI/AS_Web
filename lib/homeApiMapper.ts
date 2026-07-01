@@ -5,7 +5,7 @@ import {
   MOCK_HOME_REFLECTION,
   MOCK_HOME_SONG,
 } from '@/components/Home/CLHomeMocks';
-import { formatFilmDirector, getFilmListingBlurb } from '@/components/Films/filmFieldUtils';
+import { formatFilmDirector } from '@/components/Films/filmFieldUtils';
 import { extractYouTubeId } from '@/lib/youtube';
 
 export type HomeSongCard = typeof MOCK_HOME_SONG;
@@ -224,15 +224,26 @@ function mapReflection(
   };
 }
 
+function mapPeopleHomeDescription(
+  record: Record<string, unknown>,
+  mockDescription: string,
+  apiOnly: boolean
+): string {
+  const aboutRaw = firstString(record.about, record.about_text);
+  if (!aboutRaw) return apiOnly ? '' : mockDescription;
+
+  const plain = htmlToPlainText(aboutRaw).replace(/\s+/g, ' ').trim();
+  if (!plain) return apiOnly ? '' : mockDescription;
+
+  return truncate(plain, 280);
+}
+
 function mapPeople(raw: unknown, mock: HomePeopleCard, apiOnly: boolean): HomePeopleCard | null {
   if (!raw || typeof raw !== 'object') return apiOnly ? null : mock;
   const record = raw as Record<string, unknown>;
   if (apiOnly && !hasRecordId(record)) return null;
 
-  const aboutRaw = firstString(record.about);
-  const aboutPlain = aboutRaw ? htmlToPlainText(aboutRaw) : '';
-  const description =
-    aboutPlain.length > 10 ? truncate(aboutPlain, 280) : !apiOnly ? mock.description : '';
+  const description = mapPeopleHomeDescription(record, mock.description, apiOnly);
 
   const title =
     firstString(
@@ -245,7 +256,13 @@ function mapPeople(raw: unknown, mock: HomePeopleCard, apiOnly: boolean): HomePe
   return {
     id: (record.id ?? mock.id) as HomePeopleCard['id'],
     title,
-    subtitle: firstString(record.second_title) || (!apiOnly ? mock.subtitle : ''),
+    subtitle:
+      firstString(
+        record.occupation_text,
+        record.occupation,
+        record.occupation_names,
+        record.second_title
+      ) || (!apiOnly ? mock.subtitle : ''),
     introBy:
       firstString(
         record.intro_by,
@@ -262,12 +279,26 @@ function mapPeople(raw: unknown, mock: HomePeopleCard, apiOnly: boolean): HomePe
   };
 }
 
+function mapFilmHomeDescription(
+  record: Record<string, unknown>,
+  mockDescription: string,
+  apiOnly: boolean
+): string {
+  const aboutRaw = firstString(record.about, record.about_text);
+  if (!aboutRaw) return apiOnly ? '' : mockDescription;
+
+  const plain = htmlToPlainText(aboutRaw).replace(/\s+/g, ' ').trim();
+  if (!plain) return apiOnly ? '' : mockDescription;
+
+  return truncate(plain, 280);
+}
+
 function mapFilm(raw: unknown, mock: HomeFilmCard, apiOnly: boolean): HomeFilmCard | null {
   if (!raw || typeof raw !== 'object') return apiOnly ? null : mock;
   const record = raw as Record<string, unknown>;
   if (apiOnly && !hasRecordId(record)) return null;
 
-  const excerpt = getFilmListingBlurb(record, 280) || (!apiOnly ? mock.description : '');
+  const description = mapFilmHomeDescription(record, mock.description, apiOnly);
   const filmBy = formatFilmDirector(
     (record.directors ?? record.director ?? record.film_by ?? record.filmBy) as
       | string
@@ -285,7 +316,7 @@ function mapFilm(raw: unknown, mock: HomeFilmCard, apiOnly: boolean): HomeFilmCa
       firstString(record.second_title, record.series_title, record.english_translation) ||
       (!apiOnly ? mock.subtitle : ''),
     filmBy: filmBy.toUpperCase() || (!apiOnly ? mock.filmBy : ''),
-    description: excerpt,
+    description,
     image: pickImage(record.thumbnail_url ?? record.thumbnailUrl, apiOnly ? undefined : mock.image),
     youtubeVideoId:
       extractYouTubeId(

@@ -447,10 +447,3 @@ p {
     flex: none;
   }
 }
-
-/* ── Floating action buttons — vertically centred (matches all other pages) ── */
-body:has(.cl-news-page) .floating-actions {
-  top: 50% !important;
-  bottom: auto !important;
-  transform: translateY(-50%) !important;
-}

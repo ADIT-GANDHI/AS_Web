@@ -17,6 +17,8 @@ import { SEARCH_ENDPOINT, emptySearchResponse, normalizeSearchPayload, type Sear
 import { SongsNavCountContext } from '@/components/Songs/SongsNavCountContext';
 import { ReflectionsNavCountContext } from '@/components/Reflections/ReflectionsNavCountContext';
 import { PoemsNavCountContext } from '@/components/Poems/PoemsNavCountContext';
+import { PeopleNavCountContext } from '@/components/People/PeopleNavCountContext';
+import { FilmsNavCountContext } from '@/components/Films/FilmsNavCountContext';
 
 type SearchCategory = 'songs' | 'poems' | 'reflections' | 'people' | 'films';
 
@@ -83,6 +85,8 @@ export default function Header() {
   const { total: songsNavTotal } = useContext(SongsNavCountContext);
   const { total: reflectionsNavTotal } = useContext(ReflectionsNavCountContext);
   const { total: poemsNavTotal } = useContext(PoemsNavCountContext);
+  const { total: peopleNavTotal } = useContext(PeopleNavCountContext);
+  const { total: filmsNavTotal } = useContext(FilmsNavCountContext);
 
   useEffect(() => {
     if (!isSearchOpen) {
@@ -186,6 +190,8 @@ export default function Header() {
                   const isSongs = item.name === 'SONGS';
                   const isPoems = item.name === 'POEMS';
                   const isReflections = item.name === 'REFLECTIONS';
+                  const isPeople = item.name === 'PEOPLE';
+                  const isFilms = item.name === 'FILMS';
                   /* [Claude] these changes have been recommended by claude —
                      startsWith covers listing + detail pages.
                      Poems count uses context (same pattern as Songs/Reflections). */
@@ -210,6 +216,16 @@ export default function Header() {
                       {isReflections && reflectionsNavTotal != null && (
                         <span className="nav-link-reflections-count" aria-hidden="true">
                           ({reflectionsNavTotal})
+                        </span>
+                      )}
+                      {isPeople && peopleNavTotal != null && peopleNavTotal > 0 && (
+                        <span className="nav-link-people-count" aria-hidden="true">
+                          ({peopleNavTotal})
+                        </span>
+                      )}
+                      {isFilms && filmsNavTotal != null && filmsNavTotal > 0 && (
+                        <span className="nav-link-films-count" aria-hidden="true">
+                          ({filmsNavTotal})
                         </span>
                       )}
                     </Link>
@@ -268,7 +284,10 @@ export default function Header() {
               <nav className="flex flex-col space-y-6 p-6">
                 {navigationItems.map((item) => {
                   const isSongs = item.name === 'SONGS';
+                  const isPoems = item.name === 'POEMS';
                   const isReflections = item.name === 'REFLECTIONS';
+                  const isPeople = item.name === 'PEOPLE';
+                  const isFilms = item.name === 'FILMS';
                   /* [Claude] these changes have been recommended by claude —
                      startsWith covers both listing (/songs) and detail (/songs/details/1)
                      pages so the correct nav item stays highlighted on detail views. */
@@ -286,9 +305,24 @@ export default function Header() {
                           ({songsNavTotal})
                         </span>
                       )}
+                      {isPoems && poemsNavTotal != null && poemsNavTotal > 0 && (
+                        <span className="nav-link-poems-count" aria-hidden="true">
+                          ({poemsNavTotal})
+                        </span>
+                      )}
                       {isReflections && reflectionsNavTotal != null && (
                         <span className="nav-link-reflections-count" aria-hidden="true">
                           ({reflectionsNavTotal})
+                        </span>
+                      )}
+                      {isPeople && peopleNavTotal != null && peopleNavTotal > 0 && (
+                        <span className="nav-link-people-count" aria-hidden="true">
+                          ({peopleNavTotal})
+                        </span>
+                      )}
+                      {isFilms && filmsNavTotal != null && filmsNavTotal > 0 && (
+                        <span className="nav-link-films-count" aria-hidden="true">
+                          ({filmsNavTotal})
                         </span>
                       )}
                     </Link>
