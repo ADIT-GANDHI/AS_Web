@@ -54,6 +54,7 @@ export const MOCK_PEOPLE: PersonCard[] = [
   },
 ];
 
+// ── Detail-page mocks (retired — CLPeopleDetail.tsx uses live API only) ──
 export const MOCK_PERSON_DETAIL = {
   id: 'p1',
   name: 'Abdul Hussain Abdullah Turk',
@@ -62,7 +63,6 @@ export const MOCK_PERSON_DETAIL = {
   gallery: [
     '/people/abdul-hussain-abdullah-turk.jpg',
     '/people/abdul-detail-2.jpg',
-    '/people/abdul-hussain-abdullah-turk.jpg',
   ],
   about:
     "Abdul Hussain Abdullah Turk (1950-2015), or 'Bawa Bha' as he was fondly called in Kutch, Gujarat, was a man whose heart was steeped in the poetry of the famous 17th century Sufi poet Shah Abdul Latif Bhitai and the sounds of the Kutchi Sindhi raag. He not only understood the nuances of poetry and music of the Sindh region intimately, but also shared both his audiences in a manner infused with the message of peace, oneness and humanity.\n\n'Bawa Bha' was born on 7th September, 1950, in a family of 10 siblings in a small village called Dhrolo near Mundra in Kutch, where he had Shah Abdul Latif Bhitai and the sounds of the Kutchi Sindhi raag. He recently celebrated the success of poetic and music of the Sindh region intimately, but also shared both his audiences in a manner infused with the message of peace, oneness and humanity.",

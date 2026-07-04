@@ -14,7 +14,9 @@
 .cl-songs-page-root {
   min-height: 100dvh;
   position: relative;
-  overflow-x: hidden;
+  /* Do not set overflow-x:hidden here — it forces overflow-y:auto (CSS overflow
+     pairing), and the absolute bg (footer-wave overlap) then creates a second
+     scrollport with a visible grey scrollbar that fights document scroll. */
   background-color: #ede8df;
 }
 
@@ -31,6 +33,7 @@
 
 .cl-songs-page-root--listing .cl-songs-page-shell {
   /* Content-sized only — flex: 1 was stretching the shell past the footer. */
+  position: relative;
   flex: 0 0 auto;
   width: 100%;
   display: flex;

@@ -13,6 +13,14 @@ export type PageBackgroundTile = {
   fallbackColor: string;
 };
 
+/** Mirrored 3900px module × 2 — built by `scripts/build-songs-listing-bg.mjs`. */
+export const SONGS_LISTING_BG: PageBackgroundTile = {
+  url: tileUrl('/songs-assets/songs-bg-composite-mirror.png'),
+  tileWidth: 1440,
+  tileHeight: 7800,
+  fallbackColor: '#ede8df',
+};
+
 export const PEOPLE_LISTING_BG: PageBackgroundTile = {
   url: tileUrl('/people_mainpage.png'),
   tileWidth: 1921,

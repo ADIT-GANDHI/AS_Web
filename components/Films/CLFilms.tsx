@@ -66,7 +66,7 @@ function buildSeries(rows: FilmRow[]): FilmSeries[] {
         films: [],
         intro:
           (String(raw.series_description || '').trim()) ||
-          'The Kabir Project consists of many journeys inspired by Bhakti, Sufi, and Baul poems and songs.',
+          'Here you will find the  films that have been the seed of this archive, inquiring into mystic poetry and music through the medium of documentary, travelogue and animation.',
       });
     }
     seriesMap.get(key)!.films.push(entry);

@@ -1,5 +1,7 @@
 'use client';
 
+import Link from 'next/link';
+import { keywordSearchHref } from '@/lib/parseKeywords';
 import './GlossaryStrip.css';
 
 // ──────────────────────────────────────────────────────────────────────
@@ -9,12 +11,15 @@ import './GlossaryStrip.css';
 // pre-split `rows` for explicit row control. The visual shell (wavy pill
 // background, typography, highlight colour) is owned here, so a tweak to
 // the strip lands in one place and propagates to every detail page.
+//
+// Each term links to site search (`/searche?search=…`), matching song
+// detail. Pass `href` only to override the default search URL.
 // ──────────────────────────────────────────────────────────────────────
 
 export interface GlossaryStripTerm {
   term: string;
   meaning: string;
-  /** Reserved for future glossary deep-links when CMS exposes term URLs. */
+  /** Override search URL; defaults to `/searche?search={term}`. */
   href?: string;
 }
 
@@ -47,26 +52,16 @@ export default function GlossaryStrip({
     <div className={`gs-strip ${className}`}>
       {finalRows.map((row, idx) => (
         <div key={idx} className="gs-row">
-          {row.map((g) => {
-            const inner = (
-              <>
-                <span className="gs-term-word">{g.term}</span>
-                <span className="gs-term-meaning">{g.meaning}</span>
-              </>
-            );
-            if (g.href) {
-              return (
-                <a key={g.term} href={g.href} className="gs-term">
-                  {inner}
-                </a>
-              );
-            }
-            return (
-              <button key={g.term} type="button" className="gs-term">
-                {inner}
-              </button>
-            );
-          })}
+          {row.map((g) => (
+            <Link
+              key={g.term}
+              href={g.href || keywordSearchHref(g.term)}
+              className="gs-term"
+            >
+              <span className="gs-term-word">{g.term}</span>
+              <span className="gs-term-meaning">{g.meaning}</span>
+            </Link>
+          ))}
         </div>
       ))}
     </div>

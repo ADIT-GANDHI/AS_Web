@@ -16,6 +16,30 @@ function SongsLoadingShell() {
   return <Loader />;
 }
 
+async function readJson(res: Response) {
+  if (!res.ok) return null;
+  try {
+    return await res.json();
+  } catch {
+    return null;
+  }
+}
+
+function parseSongVersionsPayload(payload: unknown): any[] {
+  if (!payload || typeof payload !== 'object') return [];
+  const json = payload as { status?: boolean; data?: unknown };
+  if (json.status === false) return [];
+  return Array.isArray(json.data) ? json.data : [];
+}
+
+/** Ensure the viewed song appears in the versions strip when CMS omits it. */
+function resolveSongVersions(songDetails: any, fromApi: any[]): any[] {
+  if (!fromApi.length) return [songDetails];
+  const hasCurrent = fromApi.some((item) => String(item?.id) === String(songDetails?.id));
+  if (hasCurrent) return fromApi;
+  return [songDetails, ...fromApi];
+}
+
 export default function CLSongDetailsClient({ id: idProp }: { id: string }) {
   const pathname = usePathname();
   // Read the real ID from the browser URL — useParams() returns the static '0' in a static export.
@@ -68,10 +92,16 @@ export default function CLSongDetailsClient({ id: idProp }: { id: string }) {
     void (async () => {
       try {
         const songUrl = `${AJAB_API_BASE}/Api/explore_songs?song_id=${encodeURIComponent(id)}&language=hindi`;
-        const res = await fetch(songUrl, { cache: 'no-store' });
+        const versionsUrl = `${AJAB_API_BASE}/Api/song_versions?song_id=${encodeURIComponent(id)}`;
+
+        const [songRes, versionsRes] = await Promise.all([
+          fetch(songUrl, { cache: 'no-store' }),
+          fetch(versionsUrl, { cache: 'no-store' }),
+        ]);
         if (cancelled) return;
 
-        const songData = res.ok ? await res.json() : null;
+        const songData = await readJson(songRes);
+        const versionsData = await readJson(versionsRes);
         const songDetails =
           songData?.status === false || !songData?.data ? null : songData.data;
 
@@ -85,8 +115,13 @@ export default function CLSongDetailsClient({ id: idProp }: { id: string }) {
           return;
         }
 
+        const versions = resolveSongVersions(
+          songDetails,
+          parseSongVersionsPayload(versionsData)
+        );
+
         setSong(songDetails);
-        setSongVersions([songDetails]);
+        setSongVersions(versions);
         setSongReady(true);
 
         // Merge English translation fields in the background — no loader / no page flash.

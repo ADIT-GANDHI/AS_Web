@@ -9,7 +9,6 @@
    `song_detail_3.png` — module + vertical flip stitched below for seamless repeat-y. */
 .cl-songs-page-root:has(.cld-page) {
   background: #ede8df;
-  overflow-x: hidden;
   position: relative;
 }
 
@@ -67,8 +66,8 @@
   /* Figma/PDF left edge of card + video column */
   --cld-pdf-col-right: 1484;
   /* 457 + 1027 — Figma 361:1465 outer video frame */
-  --cld-version-nav-w: 44px;
-  --cld-version-nav-gap: 16px;
+  --cld-version-nav-w: 56px;
+  --cld-version-nav-gap: 20px;
   --cld-rail-inset: calc(var(--cld-version-nav-w) + var(--cld-version-nav-gap));
   --cld-page-x: calc(50px + max(0px, (100vw - 1280px) / 2));
   --cld-col-center-nudge: max(0px, calc((min(100vw, 1280px) - 100px - 1100px) / 2));
@@ -83,7 +82,7 @@
   --cld-gap-about-lang: min(64px, calc(100vw * 86 / var(--cld-artboard-w)));
   --cld-gap-lang-title: min(44px, calc(100vw * 58 / var(--cld-artboard-w)));
   --cld-gap-title-lyrics: min(32px, calc(100vw * 42 / var(--cld-artboard-w)));
-  --cld-notes-h: min(432px, calc(100vw * 432 / var(--cld-artboard-w)));
+  --cld-notes-h: min(500px, calc(100vw * 500 / var(--cld-artboard-w)));
   --cld-gap-lyrics-notes: min(36px, calc(100vw * 48 / var(--cld-artboard-w)));
   --cld-gap-notes-related: min(32px, calc(100vw * 42 / var(--cld-artboard-w)));
   padding: 0 50px clamp(32px, 4vw, 48px);
@@ -167,7 +166,7 @@
   top: 50%;
   transform: translateY(-50%);
   width: var(--cld-version-nav-w);
-  height: 64px;
+  height: 80px;
   background: transparent;
   border: none;
   box-shadow: none;
@@ -196,8 +195,8 @@
 }
 
 .cld-slider-nav svg {
-  width: 28px;
-  height: 52px;
+  width: 36px;
+  height: 64px;
 }
 
 /* REVERT: svg 36px */
@@ -569,8 +568,8 @@
   --cld-lyrics-col-half: min(212px, calc(100vw * 211.5 / var(--cld-artboard-w)));
   --cld-panel-gap: min(66px, calc(100vw * 68 / var(--cld-artboard-w)));
   --cld-panel-inset: calc(var(--cld-lyrics-col-half) + var(--cld-panel-gap));
-  --cld-side-card-w: min(332px, calc(100vw * 332 / var(--cld-artboard-w)));
-  --cld-side-card-h: min(432px, calc(100vw * 432 / var(--cld-artboard-w)));
+  --cld-side-card-w: min(380px, calc(100vw * 380 / var(--cld-artboard-w)));
+  --cld-side-card-h: min(500px, calc(100vw * 500 / var(--cld-artboard-w)));
   --cld-panel-lift: min(16px, calc(100vw * 20 / var(--cld-artboard-w)));
   position: relative;
   min-width: 0;

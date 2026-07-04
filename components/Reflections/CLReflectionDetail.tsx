@@ -91,7 +91,8 @@ function getRelatedItemDescription(item: any): string {
   );
 }
 
-/** Related API `keywords` bucket → wavy pill terms (API only, no static fallback). */
+/** Related API `keywords` bucket → wavy pill terms (API only, no static fallback).
+ *  Search href is applied by GlossaryStrip (same as song detail). */
 function mapApiGlossaryTerms(keywords: any[]): GlossaryStripTerm[] {
   const terms = keywords
     .map((k) => {

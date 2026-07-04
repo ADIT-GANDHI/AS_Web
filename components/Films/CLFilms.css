@@ -41,7 +41,6 @@
   /* Footer wave overlap — same rhythm as Songs listing (.cl-songs-page bottom pad) */
   --clf-pad-page-bottom: clamp(100px, 8vw, 150px);
   position: relative;
-  overflow-x: hidden;
   background-color: #ffffff;
   background-image: none;
 }

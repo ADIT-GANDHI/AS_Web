@@ -7,7 +7,6 @@
 .cl-songs-page-root:has(.clr-page),
 .cl-songs-page-root:has(.clrd-page) {
   position: relative;
-  overflow-x: hidden;
   background-color: #dedede;
   background-image: none;
 }

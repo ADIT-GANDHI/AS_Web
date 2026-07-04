@@ -88,6 +88,8 @@ function getAboutHtml(data: any): string {
 
 /** PDF/Figma: ~3 lines of about text, then inline pink "...more" — no separate row. */
 const ABOUT_TRUNCATE_CHARS = 240;
+/** PDF: side chevrons only when the carousel can actually scroll (4+ cards). */
+const VERSIONS_NAV_MIN = 4;
 
 function SongAboutClamp({ html }: { html: string }) {
   const [expanded, setExpanded] = useState(false);
@@ -311,14 +313,7 @@ export default function CLSongDetailsPage({
       ? lyricsSource
       : '';
   const lyrics: string = lyricsHtml ? '' : htmlToPlainText(lyricsSource);
-  const notesText = exploreSongsPanelText(data, [
-    'notes',
-    'songnotes',
-    'song_notes',
-    'songNotes',
-    'songLyricsNotes',
-    'note_text',
-  ]);
+  const notesText = exploreSongsPanelText(data, ['notes']);
   const glossaryText = exploreSongsPanelText(data, [
     'glossary',
     'songglossary',
@@ -353,6 +348,8 @@ export default function CLSongDetailsPage({
     image: resolveCmsAssetUrl(item?.thumbnailUrl || item?.thumbnail_url),
     year: getText(item?.year) || getText(item?.Year) || getText(item?.song_year) || '',
   }));
+
+  const showVersionsNav = versionCards.length >= VERSIONS_NAV_MIN;
 
   // Figma 361:1456 vs 361:1437 / 361:1444 — the card representing the
   // CURRENT version (the song being viewed) renders the title in dark grey
@@ -463,15 +460,15 @@ export default function CLSongDetailsPage({
               </div>
               <div className="cld-versions-slider-wrap">
                 {/* Always render nav buttons so first card edge aligns with video below.
-                    Hide them visually when there is only one version. */}
+                    Hide them visually until 4+ versions (carousel actually scrolls). */}
                 <button
                   type="button"
                   className="cld-slider-nav"
                   onClick={() => scrollVersions('left')}
                   aria-label="Previous song version"
-                  style={{ visibility: versionCards.length > 1 ? 'visible' : 'hidden' }}
+                  style={{ visibility: showVersionsNav ? 'visible' : 'hidden' }}
                 >
-                  <ChevronLeft size={28} strokeWidth={2.8} />
+                  <ChevronLeft size={36} strokeWidth={2.8} />
                 </button>
                 <div className="cld-versions-slider" ref={sliderRef}>
                   {versionCards.map((card, idx) => (
@@ -508,9 +505,9 @@ export default function CLSongDetailsPage({
                   className="cld-slider-nav"
                   onClick={() => scrollVersions('right')}
                   aria-label="Next song version"
-                  style={{ visibility: versionCards.length > 1 ? 'visible' : 'hidden' }}
+                  style={{ visibility: showVersionsNav ? 'visible' : 'hidden' }}
                 >
-                  <ChevronRight size={28} strokeWidth={2.8} />
+                  <ChevronRight size={36} strokeWidth={2.8} />
                 </button>
               </div>
             </section>

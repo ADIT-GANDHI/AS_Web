@@ -6,15 +6,24 @@
 /* Listing — original plate (Images/people_mainpage.png → public/people_mainpage.png) */
 .cl-songs-page-root:has(.clpe-page) {
   position: relative;
-  overflow-x: hidden;
   background-color: #ffffff;
   background-image: none;
 }
 
 /* Detail — repeat-y layer via RepeatingPageBackground */
 .cl-songs-page-root:has(.clped-page) {
+  --clped-artboard-w: 1920;
+  /* Content column — widen vs PDF 1027px so bio/related use more horizontal space */
+  --clped-content-max: min(1180px, calc(100vw * 1180 / var(--clped-artboard-w)));
+  --clped-side-pad: clamp(50px, 2.5vw, 32px);
+  /* PDF bio photos — wider float (≈420px @ 1920 artboard) */
+  --clped-photo-w: min(520px, calc(100vw * 520 / var(--clped-artboard-w)));
+  /* Related row — larger thumbs than Songs detail default (PDF people page) */
+  --cld-artboard-w: 1920;
+  --cld-related-thumb-w: min(340px, calc(100vw * 340 / var(--cld-artboard-w)));
+  --cld-related-thumb-h: min(192px, calc(100vw * 192 / var(--cld-artboard-w)));
+  --cld-related-max-width: 100%;
   position: relative;
-  overflow-x: hidden;
   background-color: #ffffff;
   background-image: none;
 }
@@ -47,7 +56,7 @@ body:has(.clped-page) footer.footer-bg .footer-inner {
   font-size: var(--ajab-fs-body-sm);
   line-height: 1.4;
   text-align: center;
-  max-width: 700px;
+  max-width: 750px;
   width: 100%;
   margin: 0 auto 40px;
   padding: 0 clamp(24px, 5vw, 60px);
@@ -92,17 +101,18 @@ body:has(.clped-page) footer.footer-bg .footer-inner {
 .clpe-entry:first-child { padding-top: 0; }
 .clpe-entry:last-child  { border-bottom: none; }
 
-/* [Claude] these changes have been recommended by claude —
-   White outline around thumbnail — 2px white box-shadow matches the reflection cards. */
+/* 2px white mat around thumbnail — matches home Explore People card */
 .clpe-entry-thumb {
   width: clamp(220px, 28vw, 320px);
   aspect-ratio: 454 / 244;
   height: auto;
   flex-shrink: 0;
-  background: #f0f0f0;
+  box-sizing: border-box;
+  padding: 2px;
+  background: #ffffff;
   border-radius: 2px;
   overflow: hidden;
-  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.12), 0 0 0 2px #ffffff;
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.12);
 }
 
 .clpe-entry-thumb img {
@@ -127,37 +137,32 @@ body:has(.clped-page) footer.footer-bg .footer-inner {
   margin-right: 10px;
 }
 
-/* [Claude] these changes have been recommended by claude — pink uppercase small tag */
 .clpe-entry-role {
   font-family: var(--ajab-font-sans);
   font-weight: 300;
   font-size: var(--ajab-fs-tag);
-  color: var(--ajab-pink-primary);
+  color: var(--ajab-ink-300);
   letter-spacing: 0.04em;
   text-transform: uppercase;
   display: inline;
 }
 
-/* [Claude] these changes have been recommended by claude —
-   Clamp to 3 lines so all entries have consistent description height.
-   EXPLORE moved outside <p> in TSX so it always shows below the clamped text. */
+.clpe-entry-desc-host {
+  width: 100%;
+  margin-top: 10px;
+}
+
 .clpe-entry-desc {
   font-family: var(--ajab-font-sans);
   font-weight: 300;
   font-size: var(--ajab-fs-body-sm);
   line-height: 1.6;
   color: var(--ajab-ink-400);
-  margin-top: 10px;
-  margin-bottom: 8px;
-  display: -webkit-box;
-  -webkit-line-clamp: 3;
-  -webkit-box-orient: vertical;
-  overflow: hidden;
+  margin: 0;
 }
 
-/* [Claude] these changes have been recommended by claude — uppercase small pink CTA */
 .clpe-entry-explore {
-  display: inline-block;
+  display: inline;
   color: var(--ajab-pink-primary);
   font-family: var(--ajab-font-sans);
   font-weight: 400;
@@ -165,7 +170,7 @@ body:has(.clped-page) footer.footer-bg .footer-inner {
   letter-spacing: 0.06em;
   text-transform: uppercase;
   text-decoration: none;
-  margin-top: 4px;
+  white-space: nowrap;
 }
 
 body:has(.clpe-page) .nav-link--people,
@@ -228,32 +233,15 @@ body:has(.clped-page) .nav-link--people .nav-link-people-count {
   width: 100%;
   max-width: none;
   margin: 0 auto;
-  padding: clamp(32px, 3vw, 48px) 0 clamp(80px, 8vw, 120px);
+  padding: clamp(12px, 3vw, 16px) 0 clamp(80px, 8vw, 120px);
   font-weight: 300;
 }
 
-/* [Claude] these changes have been recommended by claude — widened to 1000px */
 .clped-content {
-  max-width: 1000px;
+  max-width: var(--clped-content-max);
   margin: 0 auto;
-  padding: 0 clamp(24px, 2.5vw, 48px);
+  padding: 0 var(--clped-side-pad);
   box-sizing: border-box;
-}
-
-.clped-back {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  margin-bottom: 20px;
-  color: var(--ajab-ink-400);
-  font-family: var(--ajab-font-sans);
-  font-weight: 300;
-  font-size: var(--ajab-fs-body);
-  text-decoration: none;
-}
-
-.clped-back:hover {
-  color: var(--ajab-pink-primary);
 }
 
 .clped-titlebar {
@@ -261,7 +249,7 @@ body:has(.clped-page) .nav-link--people .nav-link-people-count {
   align-items: baseline;
   flex-wrap: wrap;
   gap: 12px 16px;
-  margin: 0 0 28px;
+  margin: 0 0 24px;
 }
 
 .clped-titlebar-name {
@@ -272,12 +260,11 @@ body:has(.clped-page) .nav-link--people .nav-link-people-count {
   margin: 0;
 }
 
-/* [Claude] these changes have been recommended by claude — matches listing role style */
 .clped-titlebar-role {
   font-family: var(--ajab-font-sans);
-  font-weight: 300;
+  font-weight: 400;
   font-size: var(--ajab-fs-tag);
-  color: var(--ajab-pink-primary);
+  color: var(--ajab-ink-300);
   text-transform: uppercase;
   letter-spacing: 0.04em;
 }
@@ -290,18 +277,39 @@ body:has(.clped-page) .nav-link--people .nav-link-people-count {
   float: left;
   display: flex;
   flex-direction: column;
-  gap: 10px;
-  margin: 4px 20px 12px 0;
+  gap: 12px;
+  margin: 2px 24px 12px 0;
 }
 
 .clped-bio-photo {
-  width: clamp(160px, 22vw, 200px);
+  width: var(--clped-photo-w);
   aspect-ratio: 230 / 156;
   height: auto;
   object-fit: cover;
   border-radius: 2px;
   display: block;
-  background: #f0f0f0;
+  box-sizing: border-box;
+  padding: 2px;
+  background: #ffffff;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+.clped-bio-more {
+  display: inline;
+  margin: 0;
+  padding: 0;
+  border: none;
+  background: none;
+  cursor: pointer;
+  font: inherit;
+  color: var(--ajab-pink-primary);
+  vertical-align: baseline;
+  white-space: nowrap;
+}
+
+.clped-bio-more:hover {
+  text-decoration: underline;
+  text-underline-offset: 2px;
 }
 
 .clped-bio-paragraph {
@@ -313,6 +321,10 @@ body:has(.clped-page) .nav-link--people .nav-link-people-count {
   margin: 0 0 16px;
   text-align: justify;
 }
+.clped-page .clped-bio-paragraph {
+  font-size: 14px;        /* or 22px */
+  line-height: 1.65;
+}
 
 .clped-bio::after {
   content: '';
@@ -320,10 +332,71 @@ body:has(.clped-page) .nav-link--people .nav-link-people-count {
   clear: both;
 }
 
-.clped-page .cld-related {
+/* Keywords + Related — same left edge as title/bio (no Songs rail inset) */
+.clped-detail-rail {
+  width: 100%;
   max-width: 100%;
-  margin-left: 0;
+  margin: clamp(32px, 4vw, 48px) 0 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+.clped-page .clped-keyword-cloud.cld-keywords-wrap {
+  max-width: 100%;
+  margin: 0 0 clamp(28px, 3.5vw, 40px);
+  text-align: left;
+}
+
+/* Related — shared Songs detail styles (CLSongDetails.css); no version-carousel rail inset */
+.clped-page .clped-related-align.cld-detail-body-align {
+  max-width: 100%;
+  width: 100%;
+  margin: 0;
   padding-left: 0;
+  --cld-related-max-width: 100%;
+}
+
+.clped-page .clped-related-align .cld-related {
+  max-width: var(--cld-related-max-width);
+  margin-bottom: 32px;
+}
+
+.clped-page .clped-related-align .cld-related-seemore {
+  background: none;
+  cursor: pointer;
+  border: none;
+  text-align: left;
+}
+
+/* PDF: dotted rule under related text column (not through the thumb). */
+.clped-page .clped-related-align .cld-related-item:not(:last-child) .cld-related-body {
+  border-bottom-style: dotted;
+  border-bottom-color: var(--ajab-ink-200, #bdbdbd);
+}
+
+/* PDF: song title + meaning on one line; title black, pink on hover only. */
+.clped-page .clped-related-align .cld-related-titlerow {
+  display: block;
+  line-height: 1.35;
+  margin-bottom: 6px;
+}
+
+.clped-page .clped-related-align .cld-related-itemtitle {
+  display: inline;
+  color: var(--ajab-ink-900);
+}
+
+.clped-page .clped-related-align .cld-related-itemtitle--dark {
+  color: var(--ajab-ink-900);
+}
+
+.clped-page .clped-related-align .cld-related-item--link:hover .cld-related-itemtitle:not(.cld-related-itemtitle--dark) {
+  color: var(--ajab-pink-related);
+}
+
+.clped-page .clped-related-align .cld-related-itemsubtitle {
+  display: inline;
+  margin-left: 8px;
 }
 
 @media screen and (max-width: 767px) {
@@ -346,6 +419,6 @@ body:has(.clped-page) .nav-link--people .nav-link-people-count {
 
   .clped-bio-photo {
     width: calc(50% - 5px);
-    max-width: 200px;
+    max-width: 420px;
   }
 }

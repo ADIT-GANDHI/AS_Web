@@ -4,7 +4,8 @@ import Loader from '@/components/Loader';
 import Header from '@/components/Header';
 import { useCallback, useContext, useEffect, useMemo, useRef, useState } from 'react';
 import LoadMoreButton from '@/components/shared/LoadMoreButton';
-import SongsListingBackground from '@/components/Songs/SongsListingBackground';
+import RepeatingPageBackground from '@/components/shared/RepeatingPageBackground';
+import { SONGS_LISTING_BG } from '@/lib/pageBackgroundTiles';
 import { MOCK_SONGS, SONGS_FILTER, SONGS_INTRO } from './CLconstants';
 import ListingFilterBar from '@/components/shared/ListingFilterBar';
 import CLSongCard from './CLSongCard';
@@ -340,8 +341,12 @@ export default function CLSongsIndex() {
 
   return (
     <div className="cl-songs-page-root cl-songs-page-root--listing">
-      <SongsListingBackground containerRef={pageShellRef} />
       <div ref={pageShellRef} className="cl-songs-page-shell">
+        <RepeatingPageBackground
+          containerRef={pageShellRef}
+          tile={SONGS_LISTING_BG}
+          deferUntilLoad
+        />
         <Header />
         <main className="relative z-10">
           <div className="cl-songs-page cl-songs-listing-page">

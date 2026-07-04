@@ -12,7 +12,6 @@
     #ede8df;
   min-height: 100dvh;
   position: relative;
-  overflow-x: hidden;
 }
 
 /* Flex column keeps the footer at the bottom of the page stack (after cards). */

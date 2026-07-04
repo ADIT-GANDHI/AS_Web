@@ -2,60 +2,66 @@
 
 import { useCallback, useEffect, useState, type RefObject } from 'react';
 import type { PageBackgroundTile } from '@/lib/pageBackgroundTiles';
+import {
+  measurePageBackgroundHeight,
+  resolvePageFooter,
+} from '@/lib/measurePageBackgroundHeight';
 import './RepeatingPageBackground.css';
 
-const FOOTER_WAVE_MARBLE_PX = 165;
 const TILE_OVERLAP_PX = 4;
 const SHEET_SHIFT_PX = 6;
-
-function measureContentHeight(shell: HTMLElement): number {
-  const footer = shell.querySelector('footer.footer-bg');
-  let h = 0;
-  if (footer instanceof HTMLElement) {
-    h = footer.offsetTop + FOOTER_WAVE_MARBLE_PX;
-  }
-  const main = shell.querySelector('main');
-  if (main instanceof HTMLElement) {
-    h = Math.max(h, main.offsetTop + main.offsetHeight);
-  }
-  return Math.max(h, shell.scrollHeight, 600);
-}
 
 export type RepeatingPageBackgroundProps = {
   containerRef: RefObject<HTMLElement | null>;
   tile: PageBackgroundTile;
+  /** Defer heavy assets until window load (Songs composite ~7 MB). */
+  deferUntilLoad?: boolean;
 };
 
 /**
- * Full-height repeat-y background (People listing pattern).
- * Uses dual stacked sheets + slight tile overlap to hide browser repeat gaps.
+ * Full-height repeat-y background (People / Reflections / Films / Songs listing).
+ * Dual stacked sheets + slight tile overlap hide browser repeat gaps.
  */
 export default function RepeatingPageBackground({
   containerRef,
   tile,
+  deferUntilLoad = false,
 }: RepeatingPageBackgroundProps) {
   const [bgHeight, setBgHeight] = useState(0);
   const [tileH, setTileH] = useState(0);
+  const [showArt, setShowArt] = useState(!deferUntilLoad);
 
   const measure = useCallback(() => {
     const shell = containerRef.current;
     if (!shell) return;
-    setBgHeight(measureContentHeight(shell));
+    setBgHeight(measurePageBackgroundHeight(shell));
     const w = shell.clientWidth;
     const scaled = (Math.min(w, tile.tileWidth) * tile.tileHeight) / tile.tileWidth;
     setTileH(Math.max(1, Math.ceil(scaled) + TILE_OVERLAP_PX));
   }, [containerRef, tile.tileWidth, tile.tileHeight]);
 
   useEffect(() => {
+    if (!deferUntilLoad) return;
+    const reveal = () => setShowArt(true);
+    if (document.readyState === 'complete') reveal();
+    else window.addEventListener('load', reveal, { once: true });
+    return () => window.removeEventListener('load', reveal);
+  }, [deferUntilLoad]);
+
+  useEffect(() => {
     const shell = containerRef.current;
     if (!shell) return;
+
     measure();
+
     const ro = new ResizeObserver(() => measure());
     ro.observe(shell);
     const main = shell.querySelector('main');
-    const footer = shell.querySelector('footer.footer-bg');
     if (main instanceof HTMLElement) ro.observe(main);
-    if (footer instanceof HTMLElement) ro.observe(footer);
+
+    const footer = resolvePageFooter(shell);
+    if (footer) ro.observe(footer);
+
     window.addEventListener('resize', measure);
     return () => {
       ro.disconnect();
@@ -83,15 +89,19 @@ export default function RepeatingPageBackground({
       }
       aria-hidden
     >
-      <div className="repeating-page-bg__sheet repeating-page-bg__sheet--a" style={sheetStyle} />
-      <div
-        className="repeating-page-bg__sheet repeating-page-bg__sheet--b"
-        style={{
-          ...sheetStyle,
-          top: -SHEET_SHIFT_PX,
-          backgroundPosition: `left -${SHEET_SHIFT_PX}px`,
-        }}
-      />
+      {showArt ? (
+        <>
+          <div className="repeating-page-bg__sheet repeating-page-bg__sheet--a" style={sheetStyle} />
+          <div
+            className="repeating-page-bg__sheet repeating-page-bg__sheet--b"
+            style={{
+              ...sheetStyle,
+              top: -SHEET_SHIFT_PX,
+              backgroundPosition: `left -${SHEET_SHIFT_PX}px`,
+            }}
+          />
+        </>
+      ) : null}
     </div>
   );
 }

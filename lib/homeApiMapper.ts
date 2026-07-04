@@ -55,6 +55,30 @@ function firstString(...vals: unknown[]): string {
   return '';
 }
 
+/** Strip CMS underscores from role lines — each segment (e.g. "_Singers, _Writers"). */
+function stripLeadingRoleUnderscore(raw: string): string {
+  return raw
+    .split(',')
+    .map((part) => part.replace(/^_+/, '').trim())
+    .filter(Boolean)
+    .join(', ');
+}
+
+function mapHomePersonSubtitle(
+  record: Record<string, unknown>,
+  mockSubtitle: string,
+  apiOnly: boolean
+): string {
+  const raw = firstString(
+    record.occupation_text,
+    record.occupation,
+    record.occupation_names,
+    record.second_title
+  );
+  if (!raw) return apiOnly ? '' : mockSubtitle;
+  return stripLeadingRoleUnderscore(raw);
+}
+
 function hasRecordId(raw: Record<string, unknown>): boolean {
   const id = raw.id;
   return id != null && id !== '';
@@ -68,6 +92,26 @@ function pickImage(apiPath: unknown, mockPath?: string): string {
 function truncate(text: string, max = 320): string {
   if (text.length <= max) return text;
   return text.slice(0, max).replace(/\s+\S*$/, '') + '…';
+}
+
+/** Visible placeholder when CMS `about` is empty — keeps home card layout intact. */
+const HOME_BLANK_ABOUT_PLACEHOLDER =
+  'Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris.';
+
+function mapHomeAboutDescription(
+  record: Record<string, unknown>,
+  mockDescription: string,
+  apiOnly: boolean
+): string {
+  const aboutRaw = firstString(record.about, record.about_text);
+  const plain = aboutRaw ? htmlToPlainText(aboutRaw).replace(/\s+/g, ' ').trim() : '';
+
+  if (!plain) {
+    if (apiOnly || hasRecordId(record)) return HOME_BLANK_ABOUT_PLACEHOLDER;
+    return mockDescription;
+  }
+
+  return truncate(plain, 280);
 }
 
 const HTML_EXCERPT_KEYS = new Set([
@@ -224,26 +268,12 @@ function mapReflection(
   };
 }
 
-function mapPeopleHomeDescription(
-  record: Record<string, unknown>,
-  mockDescription: string,
-  apiOnly: boolean
-): string {
-  const aboutRaw = firstString(record.about, record.about_text);
-  if (!aboutRaw) return apiOnly ? '' : mockDescription;
-
-  const plain = htmlToPlainText(aboutRaw).replace(/\s+/g, ' ').trim();
-  if (!plain) return apiOnly ? '' : mockDescription;
-
-  return truncate(plain, 280);
-}
-
 function mapPeople(raw: unknown, mock: HomePeopleCard, apiOnly: boolean): HomePeopleCard | null {
   if (!raw || typeof raw !== 'object') return apiOnly ? null : mock;
   const record = raw as Record<string, unknown>;
   if (apiOnly && !hasRecordId(record)) return null;
 
-  const description = mapPeopleHomeDescription(record, mock.description, apiOnly);
+  const description = mapHomeAboutDescription(record, mock.description, apiOnly);
 
   const title =
     firstString(
@@ -256,13 +286,7 @@ function mapPeople(raw: unknown, mock: HomePeopleCard, apiOnly: boolean): HomePe
   return {
     id: (record.id ?? mock.id) as HomePeopleCard['id'],
     title,
-    subtitle:
-      firstString(
-        record.occupation_text,
-        record.occupation,
-        record.occupation_names,
-        record.second_title
-      ) || (!apiOnly ? mock.subtitle : ''),
+    subtitle: mapHomePersonSubtitle(record, mock.subtitle, apiOnly),
     introBy:
       firstString(
         record.intro_by,
@@ -279,26 +303,12 @@ function mapPeople(raw: unknown, mock: HomePeopleCard, apiOnly: boolean): HomePe
   };
 }
 
-function mapFilmHomeDescription(
-  record: Record<string, unknown>,
-  mockDescription: string,
-  apiOnly: boolean
-): string {
-  const aboutRaw = firstString(record.about, record.about_text);
-  if (!aboutRaw) return apiOnly ? '' : mockDescription;
-
-  const plain = htmlToPlainText(aboutRaw).replace(/\s+/g, ' ').trim();
-  if (!plain) return apiOnly ? '' : mockDescription;
-
-  return truncate(plain, 280);
-}
-
 function mapFilm(raw: unknown, mock: HomeFilmCard, apiOnly: boolean): HomeFilmCard | null {
   if (!raw || typeof raw !== 'object') return apiOnly ? null : mock;
   const record = raw as Record<string, unknown>;
   if (apiOnly && !hasRecordId(record)) return null;
 
-  const description = mapFilmHomeDescription(record, mock.description, apiOnly);
+  const description = mapHomeAboutDescription(record, mock.description, apiOnly);
   const filmBy = formatFilmDirector(
     (record.directors ?? record.director ?? record.film_by ?? record.filmBy) as
       | string
@@ -312,9 +322,7 @@ function mapFilm(raw: unknown, mock: HomeFilmCard, apiOnly: boolean): HomeFilmCa
     title:
       firstString(record.main_title, record.english_transliteration, record.original_title) ||
       (!apiOnly ? mock.title : ''),
-    subtitle:
-      firstString(record.second_title, record.series_title, record.english_translation) ||
-      (!apiOnly ? mock.subtitle : ''),
+    subtitle: firstString(record.second_title) || (!apiOnly ? mock.subtitle : ''),
     filmBy: filmBy.toUpperCase() || (!apiOnly ? mock.filmBy : ''),
     description,
     image: pickImage(record.thumbnail_url ?? record.thumbnailUrl, apiOnly ? undefined : mock.image),

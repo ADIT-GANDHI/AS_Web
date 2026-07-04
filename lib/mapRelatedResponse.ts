@@ -29,12 +29,69 @@ function mapRelatedItem(it: any) {
       it.person_name_english ||
       it.word_transliteration ||
       '',
-    subtitle: it.songtitletraan || it.subtitle || it.english_translation || it.word_translation || '',
-    about: it.about || it.description || it.thumbnail_excerpt || it.meta_description || '',
+    subtitle:
+      it.songtitletraan ||
+      it.subtitle ||
+      it.film_subtitle ||
+      it.english_translation ||
+      it.word_translation ||
+      '',
+    about: it.about || it.description || '',
+    meta_description: it.meta_description || '',
+    thumbnail_excerpt: it.thumbnail_excerpt || it.thumbnailexcerpt || '',
+    thumbnailexcerpt: it.thumbnailexcerpt || it.thumbnail_excerpt || '',
+    original_title: it.original_title || '',
+    description: it.description || '',
     thumbnailUrl: resolveThumb(it.thumbnail_url || it.thumbnailUrl),
     Songtitle_transliteration: it.Songtitle_transliteration,
     songtitletraan: it.songtitletraan,
   };
+}
+
+function poemNeedsEnrichment(item: any): boolean {
+  return !(
+    item?.meta_description ||
+    item?.thumbnail_excerpt ||
+    item?.thumbnailexcerpt
+  );
+}
+
+/** Related API omits poem excerpts — merge from the poems listing index. */
+export async function enrichRelatedPoems(content: RelatedContent): Promise<RelatedContent> {
+  const poems = content.data.poems || [];
+  if (!poems.length || !poems.some(poemNeedsEnrichment)) return content;
+
+  try {
+    const res = await fetch(`${AJAB_API_BASE}/Api/poems?page=1&limit=300`, {
+      cache: 'no-store',
+    });
+    if (!res.ok) return content;
+    const json = await res.json();
+    const byId = new Map<string, any>();
+    for (const row of json.data || []) {
+      if (row?.id != null) byId.set(String(row.id), row);
+    }
+
+    const enrichedPoems = poems.map((p) => {
+      if (!poemNeedsEnrichment(p)) return p;
+      const full = byId.get(String(p.id));
+      if (!full) return p;
+      return {
+        ...p,
+        original_title: p.original_title || full.original_title || '',
+        meta_description: full.meta_description || p.meta_description || '',
+        thumbnail_excerpt:
+          full.thumbnail_excerpt || full.thumbnailexcerpt || p.thumbnail_excerpt || '',
+        thumbnailexcerpt:
+          full.thumbnailexcerpt || full.thumbnail_excerpt || p.thumbnailexcerpt || '',
+        title: p.title || full.original_title || p.title,
+      };
+    });
+
+    return { ...content, data: { ...content.data, poems: enrichedPoems } };
+  } catch {
+    return content;
+  }
 }
 
 export function normalizeRelatedResponse(json: any): RelatedContent | null {
@@ -84,7 +141,9 @@ export async function fetchRelatedByParam(
     );
     if (!res.ok) return null;
     const json = await res.json();
-    return normalizeRelatedResponse(json);
+    const normalized = normalizeRelatedResponse(json);
+    if (!normalized) return null;
+    return enrichRelatedPoems(normalized);
   } catch {
     return null;
   }

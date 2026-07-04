@@ -30,7 +30,6 @@ body:has(.clp-page-root-wrap) {
   position: relative;
   width: 100%;
   max-width: none;
-  overflow-x: hidden;
   /* Content height only — artboard min-height was painting ~574px of plate below footer. */
   background-color: #f0f2ff !important;
   background-image: none;

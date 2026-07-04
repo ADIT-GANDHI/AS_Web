@@ -1,25 +1,11 @@
 'use client';
 
 import { useCallback, useEffect, useState, type CSSProperties, type RefObject } from 'react';
+import { measurePageBackgroundHeight, resolvePageFooter } from '@/lib/measurePageBackgroundHeight';
 import './SeamlessPageBackground.css';
-
-const FOOTER_WAVE_MARBLE_PX = 165;
 
 /** Vertical overlap between repeat cycles (px) — hides join lines from scale/compression. */
 const DEFAULT_OVERLAP_PX = 28;
-
-function measureContentHeight(shell: HTMLElement): number {
-  const footer = shell.querySelector('footer.footer-bg');
-  let h = 0;
-  if (footer instanceof HTMLElement) {
-    h = footer.offsetTop + FOOTER_WAVE_MARBLE_PX;
-  }
-  const main = shell.querySelector('main');
-  if (main instanceof HTMLElement) {
-    h = Math.max(h, main.offsetTop + main.offsetHeight);
-  }
-  return Math.max(h, shell.scrollHeight, 600);
-}
 
 function tileDisplaySize(
   containerWidth: number,
@@ -58,7 +44,7 @@ export default function SeamlessPageBackground({
   const measure = useCallback(() => {
     const shell = containerRef.current;
     if (!shell) return;
-    setBgHeight(measureContentHeight(shell));
+    setBgHeight(measurePageBackgroundHeight(shell));
     setTilePx(tileDisplaySize(shell.clientWidth, tileWidth, tileHeight));
   }, [containerRef, tileWidth, tileHeight]);
 
@@ -78,9 +64,9 @@ export default function SeamlessPageBackground({
     const ro = new ResizeObserver(() => measure());
     ro.observe(shell);
     const main = shell.querySelector('main');
-    const footer = shell.querySelector('footer.footer-bg');
     if (main instanceof HTMLElement) ro.observe(main);
-    if (footer instanceof HTMLElement) ro.observe(footer);
+    const footer = resolvePageFooter(shell);
+    if (footer) ro.observe(footer);
 
     window.addEventListener('resize', measure);
     return () => {

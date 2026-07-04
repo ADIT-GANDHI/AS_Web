@@ -1,6 +1,14 @@
 'use client';
 
-import { useCallback, useContext, useEffect, useMemo, useRef, useState } from 'react';
+import {
+  useCallback,
+  useContext,
+  useEffect,
+  useLayoutEffect,
+  useMemo,
+  useRef,
+  useState,
+} from 'react';
 import Link from 'next/link';
 import LoadMoreButton from '@/components/shared/LoadMoreButton';
 import Header from '@/components/Header';
@@ -17,6 +25,7 @@ import '@/components/Songs/CLSongs.css';
 import './CLPeople.css';
 import { AJAB_API_BASE } from '@/lib/ajabEnv';
 import { catalogHasMore, mergeCatalogById } from '@/lib/catalogPagination';
+import { mapPersonRole } from '@/lib/mapPersonDetail';
 import { parseCatalogTotal } from '@/lib/parseCatalogTotal';
 import { PeopleNavCountContext } from '@/components/People/PeopleNavCountContext';
 
@@ -43,6 +52,97 @@ const PEOPLE_CATEGORIES = [
   'Legendary Figures',
   'Other',
 ];
+
+const PEOPLE_DESC_MAX_LINES = 4;
+
+function PersonListingExcerpt({ description }: { description: string }) {
+  const hostRef = useRef<HTMLDivElement>(null);
+  const [visibleText, setVisibleText] = useState(description);
+  const [truncated, setTruncated] = useState(false);
+
+  const remeasure = useCallback(() => {
+    const host = hostRef.current;
+    if (!host) return;
+
+    const width = host.getBoundingClientRect().width;
+    if (width <= 0) return;
+
+    const plain = description.replace(/\s+/g, ' ').trim();
+    if (!plain) {
+      setVisibleText('');
+      setTruncated(false);
+      return;
+    }
+
+    const probe = document.createElement('p');
+    probe.className = 'clpe-entry-desc';
+    probe.style.cssText = `position:absolute;visibility:hidden;pointer-events:none;left:-9999px;top:0;width:${width}px;margin:0`;
+    document.body.appendChild(probe);
+
+    const lineHeight = parseFloat(getComputedStyle(probe).lineHeight) || 25.6;
+    const maxHeight = lineHeight * PEOPLE_DESC_MAX_LINES;
+
+    const fits = (text: string, withEllipsis: boolean) => {
+      probe.replaceChildren();
+      probe.append(document.createTextNode(text));
+      if (withEllipsis) probe.append(document.createTextNode('...'));
+      const explore = document.createElement('span');
+      explore.className = 'clpe-entry-explore';
+      explore.textContent = ' EXPLORE';
+      probe.append(explore);
+      return probe.scrollHeight <= maxHeight + 1;
+    };
+
+    if (fits(plain, false)) {
+      document.body.removeChild(probe);
+      setVisibleText(plain);
+      setTruncated(false);
+      return;
+    }
+
+    let lo = 0;
+    let hi = plain.length;
+    while (lo < hi) {
+      const mid = Math.ceil((lo + hi) / 2);
+      const candidate = plain.slice(0, mid).replace(/\s+\S*$/, '').trimEnd();
+      if (fits(candidate, true)) lo = mid;
+      else hi = mid - 1;
+    }
+
+    const finalText = plain.slice(0, lo).replace(/\s+\S*$/, '').trimEnd();
+    document.body.removeChild(probe);
+    setVisibleText(finalText);
+    setTruncated(true);
+  }, [description]);
+
+  useLayoutEffect(() => {
+    remeasure();
+  }, [remeasure]);
+
+  useEffect(() => {
+    const host = hostRef.current;
+    if (!host) return;
+    const observer = new ResizeObserver(() => remeasure());
+    observer.observe(host);
+    return () => observer.disconnect();
+  }, [remeasure]);
+
+  return (
+    <div ref={hostRef} className="clpe-entry-desc-host">
+      {visibleText ? (
+        <p className="clpe-entry-desc">
+          {visibleText}
+          {truncated && '...'}
+          <span className="clpe-entry-explore"> EXPLORE</span>
+        </p>
+      ) : (
+        <p className="clpe-entry-desc">
+          <span className="clpe-entry-explore">EXPLORE</span>
+        </p>
+      )}
+    </div>
+  );
+}
 
 export default function CLPeople() {
   const shellRef = useRef<HTMLDivElement>(null);
@@ -76,14 +176,13 @@ export default function CLPeople() {
   const mapPersonCard = (it: Record<string, unknown>): PersonCard => ({
     id: String(it.id || ''),
     name: String(it.person_name_english || it.person_name || ''),
-    role: String(it.occupation_text || it.occupation || '').toUpperCase(),
+    role: mapPersonRole(it),
     description:
       String(it.thumbnail_excerpt || '') ||
       String(it.about || '') ||
       (() => {
         const raw = String(it.profile || '');
-        const plain = raw.replace(/<[^>]+>/g, ' ').replace(/\s+/g, ' ').trim();
-        return plain.length > 220 ? plain.slice(0, 220).trimEnd() + '...' : plain;
+        return raw.replace(/<[^>]+>/g, ' ').replace(/\s+/g, ' ').trim();
       })(),
     thumbnailUrl: it.thumbnail_url
       ? `${AJAB_API_BASE}${it.thumbnail_url}`
@@ -262,13 +361,10 @@ export default function CLPeople() {
                     <div className="clpe-entry-thumb">
                       {p.thumbnailUrl && <img src={p.thumbnailUrl} alt={p.name} />}
                     </div>
-                    {/* [Claude] these changes have been recommended by claude —
-                        EXPLORE moved outside <p> so line-clamp on desc doesn't hide it */}
                     <div className="clpe-entry-body">
                       <span className="clpe-entry-name">{p.name}</span>
-                      <span className="clpe-entry-role">{p.role}</span>
-                      <p className="clpe-entry-desc">{p.description}</p>
-                      <span className="clpe-entry-explore">EXPLORE</span>
+                      {p.role ? <span className="clpe-entry-role">{p.role}</span> : null}
+                      <PersonListingExcerpt description={p.description} />
                     </div>
                   </Link>
                 ))

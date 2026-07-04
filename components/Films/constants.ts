@@ -2,5 +2,5 @@
 export const FILMS_CONSTANTS = {
   FILMS_INTRO: 'Journeys with Kabir',
   FILMS_DESCRIPTION:
-    'T​he Kabir Project consists of many journeys inspired by Bhakti, Sufi, and Baul poems and songs as they flow in the rural folk traditions. Spanning over two decades, our inspirations in the wisdom of these poems has taken the shape of',
+'Here you will find the  films that have been the seed of this archive, inquiring into mystic poetry and music through the medium of documentary, travelogue and animation. '
 };

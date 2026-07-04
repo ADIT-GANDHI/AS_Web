@@ -1,20 +1,10 @@
 'use client';
 
 import { useCallback, useEffect, useState, type RefObject } from 'react';
-
-const FOOTER_WAVE_MARBLE_PX = 165;
-
-function measureContentHeight(shell: HTMLElement): number {
-  const footer = shell.querySelector('footer.footer-bg');
-  if (footer instanceof HTMLElement) {
-    return Math.max(footer.offsetTop + FOOTER_WAVE_MARBLE_PX, 600);
-  }
-  const main = shell.querySelector('main');
-  if (main instanceof HTMLElement) {
-    return Math.max(main.offsetTop + main.offsetHeight, 600);
-  }
-  return Math.max(shell.offsetHeight, 600);
-}
+import {
+  measurePageBackgroundHeight,
+  resolvePageFooter,
+} from '@/lib/measurePageBackgroundHeight';
 
 type Props = {
   containerRef: RefObject<HTMLElement | null>;
@@ -30,7 +20,7 @@ export default function SongDetailBackground({ containerRef }: Props) {
   const measure = useCallback(() => {
     const shell = containerRef.current;
     if (!shell) return;
-    setBgHeight(measureContentHeight(shell));
+    setBgHeight(measurePageBackgroundHeight(shell));
   }, [containerRef]);
 
   useEffect(() => {
@@ -49,9 +39,10 @@ export default function SongDetailBackground({ containerRef }: Props) {
     const ro = new ResizeObserver(() => measure());
     ro.observe(shell);
     const main = shell.querySelector('main');
-    const footer = shell.querySelector('footer.footer-bg');
     if (main instanceof HTMLElement) ro.observe(main);
-    if (footer instanceof HTMLElement) ro.observe(footer);
+
+    const footer = resolvePageFooter(shell);
+    if (footer) ro.observe(footer);
 
     window.addEventListener('resize', measure);
     return () => {
