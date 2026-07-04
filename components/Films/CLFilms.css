@@ -324,38 +324,49 @@ body:has(.clfd-page) .nav-link--films .nav-link-films-count {
   cursor: not-allowed;
 }
 
-/* ── Detail page ── */
+/* ── Detail page — PDF 6.FilmMain+Detail page 3/4 (artboard 1920) ──
+   Content column: inset 448, width 1054.
+   Video: 1054×582. Related thumbs: 307×174. Glossary pill: 1008 wide. */
 .clfd-page {
+  --clfd-artboard-w: 1920;
+  --clfd-content-inset: calc(100vw * 448 / var(--clfd-artboard-w));
+  --clfd-content-width: min(
+    calc(100vw * 1054 / var(--clfd-artboard-w)),
+    calc(100vw - var(--clfd-content-inset) - 24px)
+  );
+  /* Related uses song-detail tokens — override to PDF film sizes */
+  --cld-related-max-width: 100%;
+  --cld-related-thumb-w: min(307px, calc(100vw * 307 / var(--clfd-artboard-w)));
+  --cld-related-thumb-h: min(174px, calc(100vw * 174 / var(--clfd-artboard-w)));
   position: relative;
   width: 100%;
   max-width: none;
   margin: 0;
-  padding: var(--clf-pad-page-top) 0 clamp(48px, 5vw, 80px);
+  padding: clamp(48px, calc(100vw * 78 / var(--clfd-artboard-w)), 78px) 0
+    clamp(48px, 5vw, 80px);
   font-weight: 300;
   box-sizing: border-box;
 }
 
 .clfd-content {
-  width: var(--clf-content-width);
-  margin: 0 0 0 var(--clf-content-inset);
+  width: var(--clfd-content-width);
+  margin: 0 0 0 var(--clfd-content-inset);
   padding: 0;
   box-sizing: border-box;
 }
 
-/* [Claude] these changes have been recommended by claude —
-   Centered (PDF: "Film | Episodes" is centered in the column).
-   Font reduced h1(32px)→h5(24px) to match design.
-   COLOUR LOGIC REVERSED vs original: inactive tab = pink (clickable CTA),
-   active tab = dark ink (you are here — no need to highlight). */
+/* PDF: "Film | Episodes" centred on artboard (x≈850–1070), Lora 32.
+   Active = #6e6e71, inactive/clickable = pink. */
 .clfd-mode-row {
   display: flex;
   gap: 12px;
   align-items: center;
   justify-content: center;
-  margin: 0 0 28px;
+  width: 100%;
+  margin: 0 0 clamp(80px, calc(100vw * 125 / var(--clfd-artboard-w)), 125px);
   font-family: var(--ajab-font-serif);
   font-weight: 400;
-  font-size: clamp(26px, calc(100vw * 32 / var(--clf-artboard-w)), 32px);
+  font-size: clamp(26px, calc(100vw * 32 / var(--clfd-artboard-w)), 32px);
   color: var(--ajab-pink-primary);
 }
 
@@ -368,18 +379,17 @@ body:has(.clfd-page) .nav-link--films .nav-link-films-count {
   color: inherit;
 }
 
-/* Active tab = dark ink (currently viewing) */
 .clfd-mode-tab.active {
-  color: var(--ajab-ink-700);
+  color: #6e6e71;
   cursor: default;
 }
 
 .clfd-mode-sep {
-  color: var(--ajab-ink-200);
+  color: #6e6e71;
 }
 
 .clfd-header {
-  margin-bottom: 24px;
+  margin-bottom: 12px;
 }
 
 .clfd-header-titlerow {
@@ -390,11 +400,12 @@ body:has(.clfd-page) .nav-link--films .nav-link-films-count {
   margin-bottom: 4px;
 }
 
+/* PDF: title Lora ~28–30 #4f4f4f, subtitle Lora Italic 18 #6e6e71 */
 .clfd-header-title {
   font-family: var(--ajab-font-serif);
   font-weight: 400;
-  font-size: var(--ajab-fs-h3);
-  color: var(--ajab-ink-700);
+  font-size: clamp(24px, calc(100vw * 30 / var(--clfd-artboard-w)), 30px);
+  color: #4f4f4f;
   margin: 0;
 }
 
@@ -402,20 +413,19 @@ body:has(.clfd-page) .nav-link--films .nav-link-films-count {
   font-family: var(--ajab-font-serif);
   font-style: italic;
   font-weight: 400;
-  font-size: var(--ajab-fs-body);
-  color: var(--ajab-ink-400);
+  font-size: clamp(16px, calc(100vw * 18 / var(--clfd-artboard-w)), 18px);
+  color: #6e6e71;
 }
 
 .clfd-header-byline {
   font-family: var(--ajab-font-sans);
   font-weight: 300;
-  font-size: var(--ajab-fs-body);
-  color: var(--ajab-ink-400);
+  font-size: clamp(16px, calc(100vw * 18 / var(--clfd-artboard-w)), 18px);
+  color: #6e6e71;
   margin-top: 2px;
-  margin-bottom: 8px;
+  margin-bottom: 0;
 }
 
-/* [Claude] these changes have been recommended by claude — uppercase to match PDF "SHABNAM VIRMANI" */
 .clfd-header-byline .caps {
   color: var(--ajab-pink-primary);
   font-weight: 300;
@@ -423,19 +433,9 @@ body:has(.clfd-page) .nav-link--films .nav-link-films-count {
   letter-spacing: 0.03em;
 }
 
-.clfd-header-meta {
-  font-family: var(--ajab-font-sans);
-  font-weight: 300;
-  font-size: var(--ajab-fs-body);
-  color: var(--ajab-ink-400);
-}
-
-/* [Claude] these changes have been recommended by claude —
-   Figma design shows: video full-width, language pills below, then description as a block.
-   The old "side popup" overlay is NOT in the Figma — description is below the video. */
 .clfd-media-stage {
   position: relative;
-  margin-bottom: 20px;
+  margin: 16px 0 4px;
 }
 
 .clfd-video-wrap {
@@ -443,9 +443,9 @@ body:has(.clfd-page) .nav-link--films .nav-link-films-count {
   z-index: 1;
   width: 100%;
   margin: 0;
-  aspect-ratio: 16 / 9;
+  aspect-ratio: 1054 / 582;
   background: #000;
-  border-radius: 4px;
+  border-radius: 2px;
   overflow: hidden;
 }
 
@@ -473,22 +473,22 @@ body:has(.clfd-page) .nav-link--films .nav-link-films-count {
   font-family: var(--ajab-font-sans);
 }
 
-/* Description is a block BELOW the video — not an absolute popup overlay */
+/* PDF: description Merriweather Sans Light 20 #4f4f4f, ...more pink */
 .clfd-about-popup {
   position: static;
   width: 100%;
   max-height: none;
   min-height: 0;
   transform: none;
-  margin-top: 20px;
+  margin-top: 24px;
 }
 
 .clfd-about-text {
   font-family: var(--ajab-font-sans);
   font-weight: 300;
-  font-size: var(--ajab-fs-body);
-  line-height: 1.6;
-  color: var(--ajab-ink-700);
+  font-size: clamp(17px, calc(100vw * 20 / var(--clfd-artboard-w)), 20px);
+  line-height: 1.4;
+  color: #4f4f4f;
   margin: 0;
   text-align: left;
 }
@@ -504,121 +504,211 @@ body:has(.clfd-page) .nav-link--films .nav-link-films-count {
   font-size: inherit;
 }
 
+/* PDF: HINDI | ENGLISH | KANNADA — left-aligned under video, all pink */
 .clfd-lang-toggle {
-  margin-bottom: 32px;
+  justify-content: flex-start;
+  margin-top: 8px;
+  margin-bottom: 0;
 }
 
-/* Episodes tab — same full bg; list aligned to content column */
-.clfd-page--episodes .clfd-mode-row {
-  margin-bottom: 32px;
+.clfd-lang-toggle .film-lang-btn {
+  font-size: clamp(15px, calc(100vw * 18 / var(--clfd-artboard-w)), 18px);
+  letter-spacing: 0.04em;
+  padding: 2px 0;
 }
 
+.clfd-lang-toggle .film-lang-sep {
+  color: #6e6e71;
+  font-size: clamp(15px, calc(100vw * 18 / var(--clfd-artboard-w)), 18px);
+  margin: 0 10px;
+}
+
+/* ── Episodes tab — PDF page 4: 3-card carousel + selected episode player ── */
 .clfd-episodes-panel {
-  margin-bottom: 40px;
+  margin-bottom: 0;
 }
 
-.clfd-page--episodes .clfd-episodes-panel {
-  padding-top: 8px;
+.clfd-episode-carousel {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  margin: 8px 0 28px;
 }
 
-.clfd-episodes-list {
+.clfd-episode-nav {
+  flex-shrink: 0;
+  align-self: center;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  margin-top: 40px;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: #b3b3b3;
+  cursor: pointer;
+  font-size: 42px;
+  line-height: 1;
+  font-weight: 300;
+}
+
+.clfd-episode-nav:disabled {
+  opacity: 0.25;
+  cursor: default;
+}
+
+.clfd-episode-nav:not(:disabled):hover {
+  color: #6e6e71;
+}
+
+.clfd-episode-cards {
+  flex: 1;
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: clamp(16px, calc(100vw * 36 / var(--clfd-artboard-w)), 36px);
+  min-width: 0;
+}
+
+.clfd-episode-card {
   display: flex;
   flex-direction: column;
-  gap: 28px;
-}
-
-.clfd-episode-entry {
-  display: flex;
-  gap: 24px;
   align-items: flex-start;
-  padding-bottom: 24px;
-  border-bottom: 1px solid #e0e0e0;
+  gap: 0;
+  margin: 0;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  text-align: left;
   cursor: pointer;
+  font: inherit;
+  color: inherit;
 }
 
-.clfd-episode-entry:last-child {
-  border-bottom: 0;
-  padding-bottom: 0;
-}
-
-.clfd-episode-thumb {
-  width: clamp(180px, 28vw, 240px);
-  aspect-ratio: 16 / 9;
-  flex-shrink: 0;
-  background: #000;
-  border-radius: 3px;
+.clfd-episode-card-thumb {
+  width: 100%;
+  aspect-ratio: 281 / 147;
+  background: #111;
   overflow: hidden;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  margin-bottom: 12px;
 }
 
-.clfd-episode-thumb img {
+.clfd-episode-card-thumb img {
   width: 100%;
   height: 100%;
   object-fit: cover;
   display: block;
 }
 
-.clfd-episode-title {
+.clfd-episode-card-title {
   font-family: var(--ajab-font-serif);
   font-weight: 400;
-  font-size: var(--ajab-fs-h4);
-  color: var(--ajab-ink-700);
-  margin-bottom: 4px;
-}
-
-.clfd-episode-subtitle {
-  font-family: var(--ajab-font-serif);
-  font-style: italic;
-  font-weight: 400;
-  font-size: var(--ajab-fs-body);
-  color: var(--ajab-ink-400);
+  font-size: clamp(18px, calc(100vw * 24 / var(--clfd-artboard-w)), 24px);
+  line-height: 1.2;
+  color: #6e6e71;
   margin-bottom: 6px;
 }
 
-.clfd-episode-meta {
-  font-family: var(--ajab-font-sans);
-  font-weight: 300;
-  font-size: var(--ajab-fs-body-sm);
-  color: var(--ajab-ink-400);
+.clfd-episode-card.is-selected .clfd-episode-card-title,
+.clfd-episode-card:hover .clfd-episode-card-title {
+  color: var(--ajab-pink-primary);
 }
 
-.clfd-episodes-empty {
-  font-family: var(--ajab-font-sans);
-  font-weight: 300;
-  font-size: var(--ajab-fs-body);
-  color: var(--ajab-ink-400);
-  text-align: center;
-  padding: 32px 0;
+.clfd-episode-card-label {
+  font-family: var(--ajab-font-serif);
+  font-style: italic;
+  font-weight: 400;
+  font-size: clamp(16px, calc(100vw * 20 / var(--clfd-artboard-w)), 20px);
+  color: #6e6e71;
+  margin-bottom: 8px;
 }
 
+.clfd-episode-card-blurb {
+  font-family: var(--ajab-font-sans);
+  font-weight: 300;
+  font-size: clamp(14px, calc(100vw * 16 / var(--clfd-artboard-w)), 16px);
+  line-height: 1.5;
+  color: #6e6e71;
+  margin: 0;
+  display: -webkit-box;
+  -webkit-line-clamp: 6;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.clfd-episode-selected {
+  margin: 8px 0 12px;
+}
+
+.clfd-episode-selected-label {
+  font-family: var(--ajab-font-sans);
+  font-weight: 300;
+  font-size: clamp(15px, calc(100vw * 18 / var(--clfd-artboard-w)), 18px);
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: #6e6e6d;
+  margin-bottom: 4px;
+}
+
+.clfd-episode-selected-title {
+  font-family: var(--ajab-font-serif);
+  font-weight: 400;
+  font-size: clamp(22px, calc(100vw * 28 / var(--clfd-artboard-w)), 28px);
+  color: #565655;
+  margin: 0;
+}
+
+/* Related sits inside .clfd-content — do NOT re-apply content inset */
 .clfd-page .cld-related {
-  width: var(--clf-content-width);
-  max-width: var(--clf-content-width);
-  margin-left: var(--clf-content-inset);
-  padding-left: 0;
-  padding-right: 0;
+  width: 100%;
+  max-width: 100%;
+  margin: clamp(64px, calc(100vw * 100 / var(--clfd-artboard-w)), 100px) 0 32px;
+  padding: 0;
+}
+
+.clfd-page .cld-related-title {
+  font-size: clamp(26px, calc(100vw * 30 / var(--clfd-artboard-w)), 30px);
+  color: #4d4d4d;
+}
+
+.clfd-related-tab-wrap {
+  display: inline-flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.clfd-related-empty {
+  padding: 16px 0;
+  color: #828282;
+  font-family: var(--ajab-font-sans);
+  font-weight: 300;
+}
+
+.clfd-page .cld-related-seemore {
+  display: inline-block;
+  margin-top: 12px;
+  background: none;
+  border: 0;
+  padding: 0;
+  cursor: pointer;
+  font-family: var(--ajab-font-sans);
+  font-weight: 400;
+  font-size: clamp(16px, calc(100vw * 20 / var(--clfd-artboard-w)), 20px);
+  color: var(--ajab-pink-primary);
 }
 
 .clfd-glossary-align {
-  width: var(--clf-content-width);
-  margin-left: var(--clf-content-inset);
-  padding-right: 0;
+  width: 100%;
+  margin: 0;
+  padding: 0;
 }
 
 .cl-songs-page-root:has(.clfd-page) .gs-strip {
-  max-width: min(1015px, calc(100vw * 1015 / var(--clf-artboard-w)));
-  margin-top: 24px;
-  margin-bottom: 24px;
+  max-width: 100%;
+  margin: 24px 0 24px;
   padding: 28px 32px;
 }
-
-@media screen and (max-width: 1024px) {
-  .clfd-glossary-align {
-    margin-left: 0;
-  }
-}
-
-/* clfd-about-popup is now always static/block — no responsive override needed */
 
 @media screen and (max-width: 1024px) {
   .clf-count-row {
@@ -633,7 +723,7 @@ body:has(.clfd-page) .nav-link--films .nav-link-films-count {
   .clf-series,
   .clfd-content {
     width: auto;
-    margin-left: max(24px, var(--clf-content-inset));
+    margin-left: max(24px, var(--clfd-content-inset, var(--clf-content-inset)));
     margin-right: 24px;
   }
 
@@ -641,25 +731,32 @@ body:has(.clfd-page) .nav-link--films .nav-link-films-count {
     margin-left: 0;
   }
 
-  .clfd-page .cld-related {
-    margin-left: 0;
+  .clfd-episode-cards {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 }
 
 @media screen and (max-width: 767px) {
-  .clf-entry,
-  .clfd-episode-entry {
+  .clf-entry {
     flex-direction: column;
     gap: 16px;
   }
 
-  .clf-entry-thumb,
-  .clfd-episode-thumb {
+  .clf-entry-thumb {
     width: 100%;
     max-width: 340px;
   }
 
   .clfd-mode-row {
     flex-wrap: wrap;
+    margin-bottom: 40px;
+  }
+
+  .clfd-episode-cards {
+    grid-template-columns: 1fr;
+  }
+
+  .clfd-episode-nav {
+    display: none;
   }
 }

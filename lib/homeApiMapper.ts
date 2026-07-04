@@ -94,68 +94,29 @@ function truncate(text: string, max = 320): string {
   return text.slice(0, max).replace(/\s+\S*$/, '') + '…';
 }
 
-/** Visible placeholder when CMS `about` is empty — keeps home card layout intact. */
-const HOME_BLANK_ABOUT_PLACEHOLDER =
+/** Visible placeholder when CMS `thumbnail_excerpt` is empty — keeps home card layout intact. */
+const HOME_THUMBNAIL_EXCERPT_PLACEHOLDER =
   'Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris.';
 
-function mapHomeAboutDescription(
-  record: Record<string, unknown>,
-  mockDescription: string,
-  apiOnly: boolean
-): string {
-  const aboutRaw = firstString(record.about, record.about_text);
-  const plain = aboutRaw ? htmlToPlainText(aboutRaw).replace(/\s+/g, ' ').trim() : '';
-
-  if (!plain) {
-    if (apiOnly || hasRecordId(record)) return HOME_BLANK_ABOUT_PLACEHOLDER;
-    return mockDescription;
-  }
-
-  return truncate(plain, 280);
+/** CMS `thumbnail_excerpt` only — skips junk placeholders (e.g. `"t"`, `"test"`). */
+function pickThumbnailExcerptField(record: Record<string, unknown>): string {
+  const raw = record.thumbnail_excerpt;
+  if (typeof raw !== 'string' || !raw.trim()) return '';
+  const text = raw.includes('<') ? htmlToPlainText(raw) : raw.trim();
+  if (text.length <= 10) return '';
+  return text;
 }
 
-const HTML_EXCERPT_KEYS = new Set([
-  'about',
-  'body',
-  'profile',
-  'profile_text',
-  'about_text',
-  'text_editor_content',
-]);
-
-/** CMS thumbnail / body copy — skips junk placeholders (e.g. `"t"`, `"test"`). */
-function pickHomeThumbnailExcerpt(
+function resolveHomeCardDescription(
   record: Record<string, unknown>,
-  options?: { maxLen?: number; profileFallback?: boolean }
+  mockDescription: string,
+  apiOnly: boolean,
+  maxLen = 280
 ): string {
-  const maxLen = options?.maxLen ?? 280;
-  // Never use meta_* keys — those are SEO metadata, not UI copy.
-  const keys = [
-    'thumbnail_excerpt',
-    'thumbnailExcerpt',
-    'reflection_excerpt',
-    'body',
-    'about',
-    'description',
-    'excerpt',
-    'about_text',
-    'profile_text',
-  ];
-
-  for (const key of keys) {
-    const raw = record[key];
-    if (typeof raw !== 'string' || !raw.trim()) continue;
-    const text = HTML_EXCERPT_KEYS.has(key) || raw.includes('<') ? htmlToPlainText(raw) : raw.trim();
-    if (text.length <= 10) continue;
-    return truncate(text, maxLen);
-  }
-
-  if (options?.profileFallback && typeof record.profile === 'string' && record.profile.trim()) {
-    const plain = htmlToPlainText(record.profile);
-    if (plain.length > 10) return truncate(plain, maxLen);
-  }
-
-  return '';
+  const excerpt = pickThumbnailExcerptField(record);
+  if (excerpt) return truncate(excerpt, maxLen);
+  if (apiOnly || hasRecordId(record)) return HOME_THUMBNAIL_EXCERPT_PLACEHOLDER;
+  return mockDescription;
 }
 
 function mapSong(raw: unknown, mock: HomeSongCard, apiOnly: boolean): HomeSongCard | null {
@@ -163,8 +124,7 @@ function mapSong(raw: unknown, mock: HomeSongCard, apiOnly: boolean): HomeSongCa
   const record = raw as Record<string, unknown>;
   if (apiOnly && !hasRecordId(record)) return null;
 
-  const excerpt =
-    pickHomeThumbnailExcerpt(record, { maxLen: 220 }) || (!apiOnly ? mock.description : '');
+  const description = resolveHomeCardDescription(record, mock.description, apiOnly, 220);
 
   return {
     id: (record.id ?? mock.id) as HomeSongCard['id'],
@@ -187,7 +147,7 @@ function mapSong(raw: unknown, mock: HomeSongCard, apiOnly: boolean): HomeSongCa
     poet:
       firstString(record.poet, record.poet_name, record.poet_display).toUpperCase() ||
       (!apiOnly ? mock.poet : ''),
-    description: excerpt,
+    description,
     image: pickImage(record.thumbnail_url ?? record.thumbnailUrl, apiOnly ? undefined : mock.image),
   };
 }
@@ -247,8 +207,7 @@ function mapReflection(
   const record = raw as Record<string, unknown>;
   if (apiOnly && !hasRecordId(record)) return null;
 
-  const excerpt =
-    pickHomeThumbnailExcerpt(record, { maxLen: 140 }) || (!apiOnly ? mock.description : '');
+  const description = resolveHomeCardDescription(record, mock.description, apiOnly, 140);
 
   return {
     id: (record.id ?? mock.id) as HomeReflectionCard['id'],
@@ -263,7 +222,7 @@ function mapReflection(
         record.author,
         record.author_name
       ).toUpperCase() || (!apiOnly ? mock.saysBy : ''),
-    description: excerpt,
+    description,
     image: pickImage(record.thumbnail_url ?? record.thumbnailUrl, apiOnly ? undefined : mock.image),
   };
 }
@@ -273,7 +232,7 @@ function mapPeople(raw: unknown, mock: HomePeopleCard, apiOnly: boolean): HomePe
   const record = raw as Record<string, unknown>;
   if (apiOnly && !hasRecordId(record)) return null;
 
-  const description = mapHomeAboutDescription(record, mock.description, apiOnly);
+  const description = resolveHomeCardDescription(record, mock.description, apiOnly, 220);
 
   const title =
     firstString(
@@ -308,7 +267,7 @@ function mapFilm(raw: unknown, mock: HomeFilmCard, apiOnly: boolean): HomeFilmCa
   const record = raw as Record<string, unknown>;
   if (apiOnly && !hasRecordId(record)) return null;
 
-  const description = mapHomeAboutDescription(record, mock.description, apiOnly);
+  const description = resolveHomeCardDescription(record, mock.description, apiOnly, 280);
   const filmBy = formatFilmDirector(
     (record.directors ?? record.director ?? record.film_by ?? record.filmBy) as
       | string

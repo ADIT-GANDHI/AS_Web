@@ -2,9 +2,10 @@
 
 import { useContext, useEffect, useMemo, useRef, useState } from 'react';
 import YouTubeEmbedFrame from '@/components/Reusable/YouTubeEmbedFrame';
-import { useRouter, usePathname } from 'next/navigation';
+import { usePathname } from 'next/navigation';
 import Header from '@/components/Header';
 import Loader from '@/components/Loader';
+import Link from 'next/link';
 import {
   MOCK_FILM_DETAIL,
   MOCK_FILM_SERIES,
@@ -54,10 +55,23 @@ function extractLanguageFromTitle(title?: string): string {
   return match ? match[1].trim() : '';
 }
 
+/** PDF header shows clean title — language lives in the HINDI | ENGLISH toggle. */
+function displayFilmTitle(title: string): string {
+  return title.replace(/\s*\([^)]+\)\s*$/i, '').replace(/^~\s*/, '').trim();
+}
+
+function resolveLanguageLabel(title: string, languageField?: string, fallback = 'English'): string {
+  return extractLanguageFromTitle(title) || String(languageField || '').trim() || fallback;
+}
+
 export interface LanguageVersion {
   id: string;
   language: string;
   videoId: string;
+  description: string;
+  title: string;
+  subtitle: string;
+  thumbnailUrl: string;
 }
 
 interface FilmDetail {
@@ -80,7 +94,11 @@ interface FilmEpisode {
   duration: string;
   thumbnailUrl: string;
   videoId: string;
+  description: string;
 }
+
+const EPISODE_CAROUSEL_VISIBLE = 3;
+const RELATED_INITIAL_COUNT = 3;
 
 function mapApiItem(it: any): FilmDetail {
   return {
@@ -125,6 +143,7 @@ function mapListItemToEpisode(it: any): FilmEpisode {
     duration: it.duration || '',
     thumbnailUrl: thumbUrl(it.thumbnail_url),
     videoId: extractYouTubeId(it.youtube_video_id),
+    description: getFilmDescription(it),
   };
 }
 
@@ -140,8 +159,22 @@ function buildMockDetailState(filmId: string) {
         id: `${mapped.id}-${index}`,
         language,
         videoId: mapped.videoId,
+        description: mapped.description,
+        title: mapped.title,
+        subtitle: mapped.subtitle,
+        thumbnailUrl: mapped.thumbnailUrl,
       }))
-    : [{ id: mapped.id, language: 'English', videoId: mapped.videoId }];
+    : [
+        {
+          id: mapped.id,
+          language: 'English',
+          videoId: mapped.videoId,
+          description: mapped.description,
+          title: mapped.title,
+          subtitle: mapped.subtitle,
+          thumbnailUrl: mapped.thumbnailUrl,
+        },
+      ];
 
   return {
     data: mapped,
@@ -161,7 +194,6 @@ export default function CLFilmDetail({ id: idProp }: { id?: string }) {
   const urlId = pathname?.split('/').filter(Boolean).pop();
   const id = (urlId && urlId !== '0') ? urlId : idProp;
   const shellRef = useRef<HTMLDivElement>(null);
-  const router = useRouter();
   const [data, setData] = useState<FilmDetail | null>(null);
   const [loading, setLoading] = useState(true);
   const [related, setRelated] = useState<RelatedContent>(EMPTY_RELATED);
@@ -173,6 +205,9 @@ export default function CLFilmDetail({ id: idProp }: { id?: string }) {
     useState<'all' | 'songs' | 'poems' | 'reflections' | 'other'>('songs');
   const [activeFilmTab, setActiveFilmTab] = useState<'film' | 'episodes'>('film');
   const [descExpanded, setDescExpanded] = useState(false);
+  const [selectedEpisodeIdx, setSelectedEpisodeIdx] = useState(0);
+  const [episodeCarouselStart, setEpisodeCarouselStart] = useState(0);
+  const [relatedExpanded, setRelatedExpanded] = useState(false);
   const { setFilmsNavTotal } = useContext(FilmsNavCountContext);
 
   useEffect(() => {
@@ -186,7 +221,21 @@ export default function CLFilmDetail({ id: idProp }: { id?: string }) {
 
   useEffect(() => {
     setDescExpanded(false);
+    setRelatedExpanded(false);
+    setActiveFilmTab('film');
+    setSelectedEpisodeIdx(0);
+    setEpisodeCarouselStart(0);
   }, [id]);
+
+  useEffect(() => {
+    if (!episodes.length || !data) return;
+    const idx = episodes.findIndex((ep) => ep.id === data.id);
+    const next = idx >= 0 ? idx : 0;
+    setSelectedEpisodeIdx(next);
+    setEpisodeCarouselStart(
+      Math.max(0, Math.min(next, Math.max(0, episodes.length - EPISODE_CAROUSEL_VISIBLE)))
+    );
+  }, [episodes, data?.id]);
 
   useEffect(() => {
     if (!id) {
@@ -222,44 +271,67 @@ export default function CLFilmDetail({ id: idProp }: { id?: string }) {
           const base = normalizeFilmBase(mapped.title);
           const seriesTitle = (item?.series_title || '').trim();
 
-          const siblingEpisodes = list
-            .filter((f: any) => {
-              const fid = String(f.id || '');
-              if (fid === mapped.id) return false;
-              if (seriesTitle && (f.series_title || '').trim() === seriesTitle) return true;
-              return normalizeFilmBase(f.english_transliteration || '') === base;
-            })
-            .map(mapListItemToEpisode);
-
-          setEpisodes(siblingEpisodes);
-
-          const currentLang =
-            extractLanguageFromTitle(mapped.title) || mapped.languages || 'Original';
-          const versions: LanguageVersion[] = mapped.videoId
-            ? [{ id: mapped.id, language: currentLang, videoId: mapped.videoId }]
+          /*
+           * PDF page 3: language versions = same work, different language
+           *   (title suffix like "(Hindi)" or CMS language field) → HINDI | ENGLISH under video.
+           * PDF page 4: episodes = films sharing a non-empty series_title (carousel).
+           * Do NOT treat language variants as episodes (film 36/32 case).
+           */
+          const sameBaseRows = base
+            ? list.filter((f: any) => {
+                const otherBase = normalizeFilmBase(f.english_transliteration || '');
+                return otherBase === base && extractYouTubeId(f.youtube_video_id);
+              })
             : [];
 
-          if (base) {
-            list.forEach((f: any) => {
-              const otherBase = normalizeFilmBase(f.english_transliteration || '');
-              const otherLang = extractLanguageFromTitle(f.english_transliteration || '');
-              const otherVid = extractYouTubeId(f.youtube_video_id);
-              if (
-                otherBase === base &&
-                otherLang &&
-                otherVid &&
-                !versions.some((v) => v.videoId === otherVid)
-              ) {
-                versions.push({
-                  id: String(f.id),
-                  language: otherLang,
-                  videoId: otherVid,
-                });
-              }
-            });
-          }
+          const currentLang = resolveLanguageLabel(
+            mapped.title,
+            mapped.languages || item?.language,
+            'Original'
+          );
 
-          setLanguageVersions(versions);
+          const versions: LanguageVersion[] = sameBaseRows.map((f: any) => {
+            const title = String(f.english_transliteration || f.original_title || '');
+            const isCurrent = String(f.id) === mapped.id;
+            return {
+              id: String(f.id || ''),
+              language: resolveLanguageLabel(
+                title,
+                f.language,
+                isCurrent ? currentLang : 'English'
+              ),
+              videoId: extractYouTubeId(f.youtube_video_id),
+              description: getFilmDescription(f),
+              title,
+              subtitle: String(f.english_translation || ''),
+              thumbnailUrl: thumbUrl(f.thumbnail_url),
+            };
+          });
+
+          /* Deduplicate by language label, prefer current film's row. */
+          const versionsByLang = new Map<string, LanguageVersion>();
+          for (const v of versions) {
+            const key = v.language.toLowerCase();
+            const existing = versionsByLang.get(key);
+            if (!existing || v.id === mapped.id) versionsByLang.set(key, v);
+          }
+          const languageVersionsList = [...versionsByLang.values()];
+          setLanguageVersions(languageVersionsList);
+
+          /* Episodes only from explicit series_title — not from same-title language variants. */
+          const seriesRows = seriesTitle
+            ? list.filter((f: any) => (f.series_title || '').trim() === seriesTitle)
+            : [];
+          const seriesEpisodes = seriesRows.map(mapListItemToEpisode);
+          const distinctEpisodeBases = new Set(
+            seriesEpisodes.map((ep) => normalizeFilmBase(ep.title))
+          );
+          setEpisodes(
+            seriesEpisodes.length > 1 && distinctEpisodeBases.size > 1
+              ? seriesEpisodes
+              : []
+          );
+
           if (mapped.videoId) {
             setActiveVideoId(mapped.videoId);
             setActiveLang(currentLang);
@@ -325,13 +397,61 @@ export default function CLFilmDetail({ id: idProp }: { id?: string }) {
     return d[activeTab] || [];
   }, [activeTab, related]);
 
-  const description = data?.description || '';
-  const isLong = description.length >= 320;
+  const selectedEpisode = episodes[selectedEpisodeIdx] || null;
+  const activeLanguageVersion =
+    languageVersions.find((v) => v.language === activeLang) ||
+    languageVersions.find((v) => v.id === data?.id) ||
+    null;
+  const activeDescription =
+    activeFilmTab === 'episodes' && selectedEpisode
+      ? selectedEpisode.description || data?.description || ''
+      : activeLanguageVersion?.description || data?.description || '';
+  const isLong = activeDescription.length >= 320;
   const visibleDescription =
-    descExpanded || !isLong ? description : description.slice(0, 320) + '...';
+    descExpanded || !isLong ? activeDescription : activeDescription.slice(0, 320) + '...';
 
-  const videoId = activeVideoId || data?.videoId || '';
+  const videoId =
+    activeFilmTab === 'episodes' && selectedEpisode?.videoId
+      ? selectedEpisode.videoId
+      : activeVideoId || activeLanguageVersion?.videoId || data?.videoId || '';
   const languagesFromVersions = languageVersions.map((v) => v.language);
+  const headerTitle = displayFilmTitle(
+    activeFilmTab === 'film' && activeLanguageVersion?.title
+      ? activeLanguageVersion.title
+      : data?.title || ''
+  );
+  const headerSubtitle =
+    activeFilmTab === 'film' && activeLanguageVersion?.subtitle
+      ? activeLanguageVersion.subtitle
+      : data?.subtitle || '';
+  const hasEpisodeSeries = episodes.length > 1;
+  const carouselEpisodes = episodes.slice(
+    episodeCarouselStart,
+    episodeCarouselStart + EPISODE_CAROUSEL_VISIBLE
+  );
+  const canCarouselPrev = episodeCarouselStart > 0;
+  const canCarouselNext =
+    episodeCarouselStart + EPISODE_CAROUSEL_VISIBLE < episodes.length;
+  const displayedRelated = relatedExpanded
+    ? visibleItems
+    : visibleItems.slice(0, RELATED_INITIAL_COUNT);
+  const hasMoreRelated = visibleItems.length > RELATED_INITIAL_COUNT;
+
+  const relatedHref = (item: any): string | null => {
+    const itemId = String(item.id || '').trim();
+    if (!itemId) return null;
+    const type = String(item.type || item.content_type || '').toLowerCase();
+    if (type.includes('song') || activeTab === 'songs') return `/songs/details/${itemId}`;
+    if (type.includes('poem') || activeTab === 'poems') return `/poems/${itemId}`;
+    if (type.includes('reflection') || activeTab === 'reflections')
+      return `/reflections/details/${itemId}`;
+    if (type.includes('film')) return `/films/details/${itemId}`;
+    if (type.includes('people') || type.includes('person')) return `/people/${itemId}`;
+    if (activeTab === 'all') {
+      if (item.song_title || item.Songtitle_transliteration) return `/songs/details/${itemId}`;
+    }
+    return null;
+  };
 
   if (loading) return <LoadingShell />;
 
@@ -353,6 +473,38 @@ export default function CLFilmDetail({ id: idProp }: { id?: string }) {
     );
   }
 
+  const renderVideo = (title: string, posterUrl?: string) => (
+    <div className="clfd-media-stage">
+      <div className="clfd-video-wrap">
+        {videoId ? (
+          <YouTubeEmbedFrame key={videoId} videoId={videoId} title={title} />
+        ) : posterUrl ? (
+          <img src={posterUrl} alt={title} />
+        ) : (
+          <div className="clfd-video-placeholder">Video not available</div>
+        )}
+      </div>
+    </div>
+  );
+
+  const renderDescription = () =>
+    activeDescription ? (
+      <div className="clfd-about-popup">
+        <p className="clfd-about-text">
+          {visibleDescription}
+          {!descExpanded && isLong && (
+            <button
+              type="button"
+              className="clfd-description-more"
+              onClick={() => setDescExpanded(true)}
+            >
+              {'...more'}
+            </button>
+          )}
+        </p>
+      </div>
+    ) : null;
+
   return (
     <div className="cl-songs-page-root cl-songs-page-root--listing">
       <div className="cl-songs-page-shell" ref={shellRef}>
@@ -362,66 +514,54 @@ export default function CLFilmDetail({ id: idProp }: { id?: string }) {
           <div
             className={`clfd-page${activeFilmTab === 'episodes' ? ' clfd-page--episodes' : ''}`}
           >
-            <div className="clfd-content">
-              {episodes.length > 0 && (
-                <div className="clfd-mode-row">
-                  <button
-                    type="button"
-                    className={`clfd-mode-tab${activeFilmTab === 'film' ? ' active' : ''}`}
-                    onClick={() => setActiveFilmTab('film')}
-                  >
-                    Film
-                  </button>
-                  <span className="clfd-mode-sep">|</span>
-                  <button
-                    type="button"
-                    className={`clfd-mode-tab${activeFilmTab === 'episodes' ? ' active' : ''}`}
-                    onClick={() => setActiveFilmTab('episodes')}
-                  >
-                    Episodes
-                  </button>
-                </div>
-              )}
+            {/* PDF: "Film | Episodes" is page-centred (artboard centre), not content-column centre */}
+            {hasEpisodeSeries && (
+              <div className="clfd-mode-row">
+                <button
+                  type="button"
+                  className={`clfd-mode-tab${activeFilmTab === 'film' ? ' active' : ''}`}
+                  onClick={() => {
+                    setActiveFilmTab('film');
+                    setDescExpanded(false);
+                  }}
+                >
+                  Film
+                </button>
+                <span className="clfd-mode-sep">|</span>
+                <button
+                  type="button"
+                  className={`clfd-mode-tab${activeFilmTab === 'episodes' ? ' active' : ''}`}
+                  onClick={() => {
+                    setActiveFilmTab('episodes');
+                    setDescExpanded(false);
+                  }}
+                >
+                  Episodes
+                </button>
+              </div>
+            )}
 
-            <div className="clfd-header">
-              <div className="clfd-header-titlerow">
-                <span className="clfd-header-title">{data.title}</span>
-                  {data.subtitle && (
-                <span className="clfd-header-subtitle">{data.subtitle}</span>
+            <div className="clfd-content">
+              <div className="clfd-header">
+                <div className="clfd-header-titlerow">
+                  <span className="clfd-header-title">{headerTitle}</span>
+                  {headerSubtitle && (
+                    <span className="clfd-header-subtitle">{headerSubtitle}</span>
                   )}
                 </div>
                 {data.director && (
                   <div className="clfd-header-byline">
                     Film by <span className="caps">{data.director}</span>
-              </div>
-                )}
-                {(data.duration || data.year) && (
-              <div className="clfd-header-meta">
-                    {[data.duration, data.year].filter(Boolean).join(', ')}
                   </div>
                 )}
-            </div>
+              </div>
 
-              {/* [Claude] these changes have been recommended by claude —
-                  Order fixed to match PDF: video → language pills → description.
-                  WavyPaperPopup removed — PDF shows plain text, not a card popup. */}
               {activeFilmTab === 'film' ? (
                 <>
-                  <div className="clfd-media-stage">
-            <div className="clfd-video-wrap">
-              {videoId ? (
-                        <YouTubeEmbedFrame
-                          key={videoId}
-                          videoId={videoId}
-                          title={data.title}
-                        />
-                      ) : data.thumbnailUrl ? (
-                        <img src={data.thumbnailUrl} alt={data.title} />
-                      ) : (
-                        <div className="clfd-video-placeholder">Video not available</div>
-                      )}
-                    </div>
-                  </div>
+                  {renderVideo(
+                    headerTitle,
+                    activeLanguageVersion?.thumbnailUrl || data.thumbnailUrl
+                  )}
 
                   {languagesFromVersions.length > 1 && (
                     <div className="film-lang-toggle clfd-lang-toggle">
@@ -434,6 +574,7 @@ export default function CLFilmDetail({ id: idProp }: { id?: string }) {
                             onClick={() => {
                               setActiveVideoId(version.videoId);
                               setActiveLang(version.language);
+                              setDescExpanded(false);
                             }}
                             disabled={activeLang === version.language}
                           >
@@ -444,52 +585,82 @@ export default function CLFilmDetail({ id: idProp }: { id?: string }) {
                     </div>
                   )}
 
-                  {description && (
-                    <div className="clfd-about-popup">
-                      <p className="clfd-about-text">
-                        {visibleDescription}
-                        {!descExpanded && isLong && (
-                          <button
-                            type="button"
-                            className="clfd-description-more"
-                            onClick={() => setDescExpanded(true)}
-                          >
-                            {'...more'}
-                          </button>
-                        )}
-                      </p>
-                    </div>
-                  )}
+                  {renderDescription()}
                 </>
               ) : (
                 <div className="clfd-episodes-panel">
-                  {episodes.length > 0 ? (
-                    <div className="clfd-episodes-list">
-                      {episodes.map((ep) => (
-                        <div
-                          key={ep.id}
-                          className="clfd-episode-entry"
-                          onClick={() => router.push(`/films/details/${ep.id}`)}
-                        >
-                          <div className="clfd-episode-thumb">
-                            {ep.thumbnailUrl ? (
-                              <img src={ep.thumbnailUrl} alt={ep.title} />
-                            ) : null}
-                          </div>
-                          <div className="clfd-episode-body">
-                            <div className="clfd-episode-title">{ep.title}</div>
-                            {ep.subtitle && (
-                              <div className="clfd-episode-subtitle">{ep.subtitle}</div>
+                  <div className="clfd-episode-carousel">
+                    <button
+                      type="button"
+                      className="clfd-episode-nav clfd-episode-nav--prev"
+                      aria-label="Previous episodes"
+                      disabled={!canCarouselPrev}
+                      onClick={() =>
+                        setEpisodeCarouselStart((s) => Math.max(0, s - 1))
+                      }
+                    >
+                      <span aria-hidden>‹</span>
+                    </button>
+
+                    <div className="clfd-episode-cards">
+                      {carouselEpisodes.map((ep, i) => {
+                        const absoluteIdx = episodeCarouselStart + i;
+                        const isSelected = absoluteIdx === selectedEpisodeIdx;
+                        return (
+                          <button
+                            key={ep.id}
+                            type="button"
+                            className={`clfd-episode-card${isSelected ? ' is-selected' : ''}`}
+                            onClick={() => {
+                              setSelectedEpisodeIdx(absoluteIdx);
+                              setDescExpanded(false);
+                            }}
+                          >
+                            <div className="clfd-episode-card-thumb">
+                              {ep.thumbnailUrl ? (
+                                <img src={ep.thumbnailUrl} alt={ep.title} />
+                              ) : null}
+                            </div>
+                            <div className="clfd-episode-card-title">{ep.title}</div>
+                            <div className="clfd-episode-card-label">
+                              Episode {absoluteIdx + 1}
+                            </div>
+                            {ep.description && (
+                              <p className="clfd-episode-card-blurb">{ep.description}</p>
                             )}
-                            {ep.duration && (
-                              <div className="clfd-episode-meta">{ep.duration}</div>
-                            )}
-                          </div>
-                        </div>
-                      ))}
+                          </button>
+                        );
+                      })}
                     </div>
-                  ) : (
-                    <p className="clfd-episodes-empty">No episodes available for this film.</p>
+
+                    <button
+                      type="button"
+                      className="clfd-episode-nav clfd-episode-nav--next"
+                      aria-label="Next episodes"
+                      disabled={!canCarouselNext}
+                      onClick={() =>
+                        setEpisodeCarouselStart((s) =>
+                          Math.min(s + 1, Math.max(0, episodes.length - EPISODE_CAROUSEL_VISIBLE))
+                        )
+                      }
+                    >
+                      <span aria-hidden>›</span>
+                    </button>
+                  </div>
+
+                  {selectedEpisode && (
+                    <>
+                      <div className="clfd-episode-selected">
+                        <div className="clfd-episode-selected-label">
+                          EPISODE {String(selectedEpisodeIdx + 1).padStart(2, '0')}
+                        </div>
+                        <h2 className="clfd-episode-selected-title">
+                          {selectedEpisode.title}
+                        </h2>
+                      </div>
+                      {renderVideo(selectedEpisode.title, selectedEpisode.thumbnailUrl)}
+                      {renderDescription()}
+                    </>
                   )}
                 </div>
               )}
@@ -500,12 +671,15 @@ export default function CLFilmDetail({ id: idProp }: { id?: string }) {
                   {tabs.map((t, i) => (
                     <span
                       key={t.key}
-                      style={{ display: 'inline-flex', alignItems: 'center', gap: 16 }}
+                      className="clfd-related-tab-wrap"
                     >
                       <button
                         type="button"
                         className={`cld-related-tab${activeTab === t.key ? ' active' : ''}`}
-                        onClick={() => setActiveTab(t.key)}
+                        onClick={() => {
+                          setActiveTab(t.key);
+                          setRelatedExpanded(false);
+                        }}
                       >
                         {t.label}
                         <span className="cld-related-tab-count">({t.count})</span>
@@ -517,38 +691,61 @@ export default function CLFilmDetail({ id: idProp }: { id?: string }) {
                   ))}
                 </div>
                 <div className="cld-related-list">
-                  {visibleItems.length ? (
-                    visibleItems.map((item: any) => (
-                      <div key={item.id || item.title} className="cld-related-item">
-                        <div className="cld-related-thumb">
-                          {item.thumbnailUrl && (
-                            <img src={item.thumbnailUrl} alt={item.title} />
-                          )}
-                        </div>
-                        <div className="cld-related-body">
-                          <div className="cld-related-titlerow">
-                            <span className="cld-related-itemtitle">{item.title}</span>
-                            {item.subtitle && (
-                              <span className="cld-related-itemsubtitle">
-                                {item.subtitle}
-                              </span>
+                  {displayedRelated.length ? (
+                    displayedRelated.map((item: any) => {
+                      const href = relatedHref(item);
+                      const body = (
+                        <>
+                          <div className="cld-related-thumb">
+                            {item.thumbnailUrl && (
+                              <img src={item.thumbnailUrl} alt={item.title} />
                             )}
                           </div>
-                          <div className="cld-related-itemdesc">{item.about}</div>
+                          <div className="cld-related-body">
+                            <div className="cld-related-titlerow">
+                              <span className="cld-related-itemtitle">{item.title}</span>
+                              {item.subtitle && (
+                                <span className="cld-related-itemsubtitle">
+                                  {item.subtitle}
+                                </span>
+                              )}
+                            </div>
+                            <div className="cld-related-itemdesc">{item.about}</div>
+                          </div>
+                        </>
+                      );
+                      return href ? (
+                        <Link
+                          key={item.id || item.title}
+                          href={href}
+                          className="cld-related-item cld-related-item--link"
+                        >
+                          {body}
+                        </Link>
+                      ) : (
+                        <div key={item.id || item.title} className="cld-related-item">
+                          {body}
                         </div>
-                      </div>
-                    ))
+                      );
+                    })
                   ) : (
-                    <div style={{ padding: 16, color: '#828282' }}>No related items.</div>
+                    <div className="clfd-related-empty">No related items.</div>
                   )}
                 </div>
-                <a className="cld-related-seemore">SEE MORE</a>
+                {hasMoreRelated && (
+                  <button
+                    type="button"
+                    className="cld-related-seemore"
+                    onClick={() => setRelatedExpanded((v) => !v)}
+                  >
+                    {relatedExpanded ? 'SEE LESS' : 'SEE MORE'}
+                  </button>
+                )}
               </section>
 
-              <div className="cld-glossary-align clfd-glossary-align">
+              <div className="clfd-glossary-align">
                 <GlossaryStrip terms={FILM_GLOSSARY} />
               </div>
-
             </div>
           </div>
         </main>

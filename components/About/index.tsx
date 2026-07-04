@@ -2,13 +2,13 @@
 
 import { useEffect } from 'react';
 import Image from 'next/image';
+import Link from 'next/link';
 import Loader from '@/components/Loader';
 import logoAjab from '../../public/logo.svg';
 import logoKabir from '../../public/k_logo.svg';
 import { formatAboutMenuLabel } from '@/lib/aboutMenus';
 import {
   useAbout,
-  isPlaceholderAboutHtml,
   shouldShowAboutTypeLabel,
   resolveAboutMenuImageUrl,
 } from '@/hooks/use-about';
@@ -48,33 +48,25 @@ export default function About({ forcedTab, forcedMenu }: AboutProps) {
 
   const logoSrc = activeTab === 'ajab' ? logoAjab : logoKabir;
   const logoAlt = activeTab === 'ajab' ? 'Ajab Shahar' : 'Kabir Project';
-
-  const displayEntries = activeEntries
-    .map((entry) => {
-      const menuImageUrl = resolveAboutMenuImageUrl(entry.menu_image);
-      const showMenuImage = !!menuImageUrl;
-      const showVisual =
-        !!entry.visual_content && !isPlaceholderAboutHtml(entry.visual_content);
-
-      if (!showMenuImage && !showVisual) return null;
-
-      return { entry, menuImageUrl, showMenuImage, showVisual };
-    })
-    .filter((row): row is NonNullable<typeof row> => row != null);
+  const otherBrandHref = activeTab === 'ajab' ? '/about?tab=kabir' : '/about?tab=ajab';
+  const otherBrandLabel =
+    activeTab === 'ajab' ? 'KABIR PROJECT' : 'AJAB SHAHAR';
 
   if (loading) {
     return <Loader />;
   }
 
   return (
-    <section className="about-container" data-brand={activeTab}>
-      {/* Logo */}
+    <section
+      className="about-container"
+      data-brand={activeTab}
+      data-menu={activeMenu || undefined}
+    >
       <div className="about-logo-wrap">
         <Image src={logoSrc} alt={logoAlt} className="about-logo" />
       </div>
 
-      {/* Section tabs */}
-      {!loading && !error && !!activeMenuKeys.length ? (
+      {!!activeMenuKeys.length ? (
         <div className="about-toggle-wrap">
           {activeMenuKeys.map((menu) => (
             <button
@@ -91,38 +83,54 @@ export default function About({ forcedTab, forcedMenu }: AboutProps) {
 
       {error ? <p className="about-state">Error: {error}</p> : null}
 
-      {!loading && !error && !displayEntries.length ? (
+      {!error && !activeEntries.length ? (
         <p className="about-state">No content available</p>
       ) : null}
 
-      {!loading && !error && !!displayEntries.length ? (
+      {!!activeEntries.length ? (
         <div className="about-content-list">
-          {displayEntries.map(({ entry, menuImageUrl, showMenuImage, showVisual }, index) => (
-            <article className="about-content-item" key={entry.id || `${activeTab}-${index}`}>
-              {shouldShowAboutTypeLabel(entry.type_label, activeMenu) ? (
-                <p className="about-section-label">{entry.type_label}</p>
-              ) : null}
-              {showMenuImage && menuImageUrl ? (
-                <figure className="about-menu-image-wrap">
-                  <img
-                    src={menuImageUrl}
-                    alt=""
-                    className="about-menu-image"
-                    loading="lazy"
-                    decoding="async"
+          {activeEntries.map((entry, index) => {
+            const menuImageUrl = resolveAboutMenuImageUrl(entry.menu_image);
+            const html = entry.visual_content || '';
+
+            return (
+              <article
+                className="about-content-item"
+                key={entry.id || `${activeTab}-${index}`}
+              >
+                {shouldShowAboutTypeLabel(entry.type_label, activeMenu) ? (
+                  <h2 className="about-section-label">{entry.type_label}</h2>
+                ) : null}
+                {menuImageUrl ? (
+                  <figure className="about-menu-image-wrap">
+                    <img
+                      src={menuImageUrl}
+                      alt=""
+                      className="about-menu-image"
+                      loading="lazy"
+                      decoding="async"
+                    />
+                  </figure>
+                ) : null}
+                {html ? (
+                  <div
+                    className="about-visual-content"
+                    dangerouslySetInnerHTML={{ __html: html }}
                   />
-                </figure>
-              ) : null}
-              {showVisual ? (
-                <div
-                  className="about-visual-content"
-                  dangerouslySetInnerHTML={{ __html: entry.visual_content || '' }}
-                />
-              ) : null}
-            </article>
-          ))}
+                ) : null}
+              </article>
+            );
+          })}
         </div>
       ) : null}
+
+      {/* PDF: bottom brand switch — ABOUT KABIR PROJECT / ABOUT AJAB SHAHAR */}
+      <div className="about-brand-switch-footer">
+        <Link href={otherBrandHref} className="about-brand-switch">
+          <span className="about-brand-switch-prefix">ABOUT </span>
+          <span className="about-brand-switch-name">{otherBrandLabel}</span>
+        </Link>
+      </div>
     </section>
   );
 }
