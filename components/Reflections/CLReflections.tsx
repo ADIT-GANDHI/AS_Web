@@ -42,9 +42,6 @@ import WavyCard from '@/components/shared/WavyCard';
 import {
   REFLECTIONS_INTRO,
   MOCK_REFLECTIONS,
-  REFLECTIONS_FORMAT_OPTIONS,
-  REFLECTIONS_FALLBACK_SPEAKERS,
-  REFLECTIONS_FALLBACK_THEMES,
   ReflectionCard as ReflectionCardData,
 } from './CLReflectionMocks';
 import '@/styles/CustomStyle.css';
@@ -58,6 +55,15 @@ import { parseCatalogTotal } from '@/lib/parseCatalogTotal';
 import { ReflectionsNavCountContext } from '@/components/Reflections/ReflectionsNavCountContext';
 
 const REFLECTIONS_PER_PAGE = 9;
+
+const REFLECTION_CARD_EXCERPT_PLACEHOLDER =
+  'Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris.';
+
+function pickReflectionThumbnailExcerpt(raw: unknown): string {
+  const text = typeof raw === 'string' ? raw.trim() : '';
+  if (text.length > 10) return text;
+  return REFLECTION_CARD_EXCERPT_PLACEHOLDER;
+}
 
 type FilterType = 'Singer' | 'Poet' | 'Theme';
 
@@ -80,17 +86,15 @@ function mapReflectionListItem(
   return {
     id: String(it.id || ''),
     title: String(it.title || ''),
+    verb: String(it.verb || '').trim(),
     saysBy: String(speakerNames[String(it.speaker_id || '').trim()] || '').toUpperCase(),
-    description: String(it.reflection_excerpt || it.thumbnail_excerpt || ''),
-    mediaType: String(it.format || 'INTERVIEW').toUpperCase() as ReflectionCardData['mediaType'],
+    description: pickReflectionThumbnailExcerpt(it.thumbnail_excerpt),
+    format: String(it.format || '').trim(),
     thumbnailUrl: it.thumbnail_url ? `${AJAB_API_BASE}${it.thumbnail_url}` : '',
     relatedKeywordIds: parseRelatedKeywordIds(it.related_keywords),
   };
 }
 
-// [Claude] these changes have been recommended by claude —
-// Card uses as="a" + href so the whole card is a real <a> link (right-click, middle-click,
-// keyboard nav all work). onClick/router.push removed — native anchor handles navigation.
 function ReflectionCard({ data }: { data: ReflectionCardData }) {
   return (
     <WavyCard
@@ -102,8 +106,6 @@ function ReflectionCard({ data }: { data: ReflectionCardData }) {
       thumb={
         data.thumbnailUrl ? (
           <>
-            {/* [Claude] these changes have been recommended by claude — onError replaces
-                broken URLs with a cream placeholder (matching WavyCard's imageSrc fallback) */}
             <img
               src={data.thumbnailUrl}
               alt={data.title}
@@ -115,7 +117,9 @@ function ReflectionCard({ data }: { data: ReflectionCardData }) {
                 t.src = "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='280' height='141' viewBox='0 0 280 141'%3E%3Crect width='280' height='141' fill='%23f0ece5'/%3E%3Ccircle cx='140' cy='65' r='22' fill='none' stroke='%23E31E79' stroke-width='1.5' opacity='0.5'/%3E%3Cpath d='M132 65 L132 56 L150 65 L132 74 Z' fill='%23E31E79' opacity='0.5'/%3E%3C/svg%3E";
               }}
             />
-            <span className="clr-card-thumb-play" aria-hidden style={{ display: 'none' }}>▶</span>
+            <span className="clr-card-thumb-play" aria-hidden style={{ display: 'none' }}>
+              ▶
+            </span>
           </>
         ) : undefined
       }
@@ -124,14 +128,14 @@ function ReflectionCard({ data }: { data: ReflectionCardData }) {
       thumbClassName="clr-card-thumb"
     >
       <div className="clr-card-title">{data.title}</div>
-      {data.saysBy && (
+      {(data.verb || data.saysBy) && (
         <div className="clr-card-says" title={data.saysBy}>
-          <span className="clr-card-says-label">says </span>
-          <span className="clr-card-says-name">{data.saysBy}</span>
+          {data.verb && <span className="clr-card-says-label">{data.verb} </span>}
+          {data.saysBy && <span className="clr-card-says-name">{data.saysBy}</span>}
         </div>
       )}
       <CardDesc text={data.description} />
-      <div className="clr-card-mediatype">{data.mediaType}</div>
+      {data.format && <div className="clr-card-mediatype">{data.format.toUpperCase()}</div>}
     </WavyCard>
   );
 }
@@ -147,6 +151,7 @@ export default function CLReflections() {
   const [visibleCount, setVisibleCount] = useState(REFLECTIONS_PER_PAGE);
   const [availableSpeakers, setAvailableSpeakers] = useState<string[]>([]);
   const [availableThemes, setAvailableThemes] = useState<string[]>([]);
+  const [availableFormats, setAvailableFormats] = useState<string[]>([]);
   const [selectedSpeakers, setSelectedSpeakers] = useState<string[]>([]);
   const [selectedThemes, setSelectedThemes] = useState<string[]>([]);
   const [selectedFormats, setSelectedFormats] = useState<string[]>([]);
@@ -155,11 +160,11 @@ export default function CLReflections() {
 
   const filterLists = useMemo(
     () => ({
-      speakers: availableSpeakers.length ? availableSpeakers : REFLECTIONS_FALLBACK_SPEAKERS,
-      themes: availableThemes.length ? availableThemes : REFLECTIONS_FALLBACK_THEMES,
-      formats: [...REFLECTIONS_FORMAT_OPTIONS],
+      speakers: availableSpeakers,
+      themes: availableThemes,
+      formats: availableFormats,
     }),
-    [availableSpeakers, availableThemes]
+    [availableSpeakers, availableThemes, availableFormats]
   );
 
   const hasActiveFilters =
@@ -205,7 +210,7 @@ export default function CLReflections() {
       }
       if (
         selectedFormats.length &&
-        !selectedFormats.some((f) => (r.mediaType || '').toUpperCase() === f.toUpperCase())
+        !selectedFormats.some((f) => (r.format || '').toUpperCase() === f.toUpperCase())
       ) {
         return false;
       }
@@ -318,17 +323,22 @@ export default function CLReflections() {
         );
         const themeRows = (data.theme || []) as Array<{ id?: string; word_transliteration?: string }>;
         const themes = dedupeOrderedStrings(themeRows.map((t) => t.word_transliteration || ''));
+        const formatRows = (data.format || []) as Array<{ id?: string; name?: string }>;
+        const formats = dedupeOrderedStrings(
+          formatRows.map((f) => String(f.name || f.id || '').trim())
+        );
         const idMap: Record<string, string> = {};
         themeRows.forEach((t) => {
           const label = (t.word_transliteration || '').trim();
-          const id = String(t.id || '').trim();
-          if (label && id) idMap[label] = id;
+          const themeId = String(t.id || '').trim();
+          if (label && themeId) idMap[label] = themeId;
         });
-        if (speakers.length) setAvailableSpeakers(speakers);
-        if (themes.length) setAvailableThemes(themes);
-        if (Object.keys(idMap).length) setThemeIdByLabel(idMap);
+        setAvailableSpeakers(speakers);
+        setAvailableThemes(themes);
+        setAvailableFormats(formats);
+        setThemeIdByLabel(idMap);
       } catch {
-        // FORMAT_OPTIONS used as Poet slot list
+        /* API-only filter lists — leave empty when reflection_filter fails */
       }
     };
     fetchFilters();

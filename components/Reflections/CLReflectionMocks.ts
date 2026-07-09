@@ -8,9 +8,10 @@ export type MediaType = 'INTERVIEW' | 'VISUAL STORY' | 'ESSAY' | 'AUDIO STORY';
 export interface ReflectionCard {
   id: string;
   title: string;
+  verb: string;
   saysBy: string;
   description: string;
-  mediaType: MediaType;
+  format: string;
   thumbnailUrl?: string;
   /** Glossary word ids from CMS `related_keywords` (comma-separated). */
   relatedKeywordIds?: string[];
@@ -20,10 +21,11 @@ export const MOCK_REFLECTIONS: ReflectionCard[] = [
   {
     id: 'r1',
     title: "'Shoonya' is not 'nothingness'",
+    verb: 'says',
     saysBy: 'KRISHNA NATH',
     description:
       "'Nothing has its own intrinsic character. Everything exists in relation to something else. The name of this realization is'shoonya'.'' - Krishna Nath",
-    mediaType: 'INTERVIEW',
+    format: 'INTERVIEW',
     thumbnailUrl: '/TN-About-Basavalingaiah-Hiremath.jpg',
   },
   {
@@ -32,7 +34,8 @@ export const MOCK_REFLECTIONS: ReflectionCard[] = [
     saysBy: 'PARVATHY BAUL',
     description:
       "'What my gurus have taught me is that don't get stuck with one idea. Search. So I feel the need of bringing these Baul poems of Buddhist monks of that time back to our repertoire.'",
-    mediaType: 'VISUAL STORY',
+    verb: 'says',
+    format: 'VISUAL STORY',
     thumbnailUrl: '/TN-About-Basavalingaiah-Hiremath.jpg',
   },
   {
@@ -41,7 +44,8 @@ export const MOCK_REFLECTIONS: ReflectionCard[] = [
     saysBy: 'KAPILTIWARI',
     description:
       "'Those who use Kabir for the sake of social movements, it is surprising that Kabir's spirituality and mystical experience finds no favour with them.'",
-    mediaType: 'ESSAY',
+    verb: 'by',
+    format: 'ESSAY',
     thumbnailUrl: '/TN-About-Basavalingaiah-Hiremath.jpg',
   },
   {
@@ -50,7 +54,8 @@ export const MOCK_REFLECTIONS: ReflectionCard[] = [
     saysBy: 'PARVATHY BAUL',
     description:
       "'What my gurus have taught me is that don't get stuck with one idea. Search. So I feel the need of bringing these Baul poems of Buddhist monks of that time back to our repertoire.'",
-    mediaType: 'INTERVIEW',
+    verb: 'says',
+    format: 'INTERVIEW',
     thumbnailUrl: '/TN-About-Basavalingaiah-Hiremath.jpg',
   },
   {
@@ -59,7 +64,8 @@ export const MOCK_REFLECTIONS: ReflectionCard[] = [
     saysBy: 'KRISHNA NATH',
     description:
       "'Nothing has its own intrinsic character. Everything exists in relation to something else. The name of this realization is'shoonya'' - Krishna Nath",
-    mediaType: 'AUDIO STORY',
+    verb: 'says',
+    format: 'AUDIO STORY',
     thumbnailUrl: '/TN-About-Basavalingaiah-Hiremath.jpg',
   },
   {
@@ -68,7 +74,8 @@ export const MOCK_REFLECTIONS: ReflectionCard[] = [
     saysBy: 'KAPILTIWARI',
     description:
       "'Those who use Kabir for the sake of social movements, it is surprising that Kabir's spirituality and mystical experience finds no favour with them.'",
-    mediaType: 'INTERVIEW',
+    verb: 'says',
+    format: 'INTERVIEW',
     thumbnailUrl: '/TN-About-Basavalingaiah-Hiremath.jpg',
   },
 ];

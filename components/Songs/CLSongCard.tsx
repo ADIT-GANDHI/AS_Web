@@ -13,8 +13,8 @@ import './CLSongs.css';
 export default function CLSongCard(item: any) {
   const thumbnail = resolveCmsAssetUrl(item.thumbnailUrl || item.thumbnail_url);
 
-  // Standard fallback chain for singer data from different CMS structures
-  const rawSinger = item.singer_display || item.singer || (Array.isArray(item.singer_names) ? item.singer_names[0] : item.singer_names) || '';
+  const rawSinger =
+    item.singer_display || item.singer || (Array.isArray(item.singer_names) ? item.singer_names[0] : item.singer_names) || '';
   const singerDisplay = rawSinger ? String(rawSinger).toUpperCase() : '';
   const poetDisplay = item.poet ? toEnglishPoet(item.poet).toUpperCase() : '';
 

@@ -3,20 +3,20 @@
 import Header from '@/components/Header';
 import Link from 'next/link';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
-import { useEffect, useMemo, useRef, useState } from 'react';
+import { useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
 import YouTubeEmbedFrame from '@/components/Reusable/YouTubeEmbedFrame';
 import { GLOSSARY_TERMS_LINE_1, GLOSSARY_TERMS_LINE_2 } from './CLdetailMocks';
 import { CLGlossaryPopup } from '../Poems/CLPoemPopups';
 import GlossaryStrip from '@/components/shared/GlossaryStrip';
 import WavyCard from '@/components/shared/WavyCard';
-import KeywordCloud from '@/components/shared/KeywordCloud';
 import WavyPaperPopup from '@/components/shared/WavyPaperPopup';
 import './CLSongs.css'; // for the root marble bg + floating button overrides
 import './CLSongDetails.css';
 import SongDetailBackground from '@/components/Songs/SongDetailBackground';
-import { keywordsFromRelatedBucket, glossaryTermsFromKeywords } from '@/lib/parseKeywords';
+import { glossaryTermsFromKeywords } from '@/lib/parseKeywords';
 import { getRelatedDetailHref } from '@/lib/relatedDetailHref';
-import { truncateAtWord } from '@/lib/truncateAtWord';
+import { sortRelatedByAdminFirst } from '@/lib/mapRelatedResponse';
+import { truncateAtWord, truncateToFitLines } from '@/lib/truncateAtWord';
 import { resolveCmsAssetUrl, withAppBasePath } from '@/lib/resolveCmsAssetUrl';
 
 type Script = 'devanagari' | 'transliteration' | 'english';
@@ -86,20 +86,40 @@ function getAboutHtml(data: any): string {
   return getText(data?.about) || getText(data?.meta_description) || '';
 }
 
-/** PDF/Figma: ~3 lines of about text, then inline pink "...more" — no separate row. */
-const ABOUT_TRUNCATE_CHARS = 240;
+/** PDF/Figma: 3 lines when collapsed; "...more" inline right after the last word. */
+const ABOUT_MIN_LINES_CHARS = 220;
+const ABOUT_CLAMP_LINES = 3;
 /** PDF: side chevrons only when the carousel can actually scroll (4+ cards). */
 const VERSIONS_NAV_MIN = 4;
 
 function SongAboutClamp({ html }: { html: string }) {
   const [expanded, setExpanded] = useState(false);
-  const plain = htmlToPlainText(html);
+  const plain = useMemo(() => htmlToPlainText(html).replace(/\s+/g, ' ').trim(), [html]);
+  const clampRef = useRef<HTMLParagraphElement>(null);
+  const [clipped, setClipped] = useState(() => truncateAtWord(plain, ABOUT_MIN_LINES_CHARS));
+
+  const isLong = plain.length > ABOUT_MIN_LINES_CHARS;
+
+  useLayoutEffect(() => {
+    if (expanded || !isLong) return;
+
+    const measure = () => {
+      const node = clampRef.current;
+      if (!node) return;
+      setClipped(truncateToFitLines(node, plain, ABOUT_CLAMP_LINES, '...more'));
+    };
+
+    measure();
+    const node = clampRef.current;
+    if (!node) return;
+    const observer = new ResizeObserver(measure);
+    observer.observe(node);
+    return () => observer.disconnect();
+  }, [plain, expanded, isLong]);
 
   if (!html.trim()) return null;
 
-  const isLong = plain.length > ABOUT_TRUNCATE_CHARS + 10;
-
-  if (expanded || !isLong) {
+  if (expanded) {
     return (
       <div className="cld-description">
         <div className="cld-description-body" dangerouslySetInnerHTML={{ __html: html }} />
@@ -107,12 +127,19 @@ function SongAboutClamp({ html }: { html: string }) {
     );
   }
 
-  const truncated = truncateAtWord(plain, ABOUT_TRUNCATE_CHARS);
+  if (!isLong) {
+    return (
+      <div className="cld-description">
+        <p className="cld-description-body">{plain}</p>
+      </div>
+    );
+  }
 
   return (
     <div className="cld-description">
-      <p className="cld-description-body">
-        {truncated}
+      <p ref={clampRef} className="cld-description-body cld-description-body--clamped">
+        {clipped}
+        {' '}
         <button
           type="button"
           className="cld-description-more"
@@ -183,14 +210,6 @@ function getRelatedItemDescription(item: any): string {
   );
 }
 
-function sortRelatedByTitle(items: any[]): any[] {
-  return [...items].sort((a, b) =>
-    getRelatedItemTitle(a).localeCompare(getRelatedItemTitle(b), undefined, {
-      sensitivity: 'base',
-    })
-  );
-}
-
 type RelatedListEntry = { bucket: string; item: any };
 
 /** Stable React key — CMS ids overlap across buckets (e.g. song id 5 vs poem id 5). */
@@ -206,7 +225,7 @@ function buildAllRelatedEntries(buckets: {
   other: any[];
 }): RelatedListEntry[] {
   const { songs, poems, reflections, other } = buckets;
-  // Keywords are shown in the KeywordCloud strip — exclude them from the list.
+  // Keywords are shown in the GlossaryStrip — exclude them from the related list.
   const blocks: Array<[string, any[]]> = [
     ['songs', songs],
     ['poems', poems],
@@ -369,12 +388,12 @@ export default function CLSongDetailsPage({
   const relatedCounts = related?.counts || {};
 
   const relatedBuckets = useMemo(() => {
-    const keywords = sortRelatedByTitle(relatedBucket(relatedData, 'keywords'));
-    const songs = sortRelatedByTitle(relatedBucket(relatedData, 'songs'));
-    const poems = sortRelatedByTitle(relatedBucket(relatedData, 'poems'));
-    const reflections = sortRelatedByTitle(relatedBucket(relatedData, 'reflections'));
+    const keywords = sortRelatedByAdminFirst(relatedBucket(relatedData, 'keywords'));
+    const songs = sortRelatedByAdminFirst(relatedBucket(relatedData, 'songs'));
+    const poems = sortRelatedByAdminFirst(relatedBucket(relatedData, 'poems'));
+    const reflections = sortRelatedByAdminFirst(relatedBucket(relatedData, 'reflections'));
     // Merge people + films + any legacy "other" key into the OTHER tab
-    const other = sortRelatedByTitle([
+    const other = sortRelatedByAdminFirst([
       ...relatedBucket(relatedData, 'people'),
       ...relatedBucket(relatedData, 'films'),
       ...relatedBucket(relatedData, 'other'),
@@ -382,18 +401,10 @@ export default function CLSongDetailsPage({
     return { keywords, songs, poems, reflections, other };
   }, [relatedData]);
 
-  const keywords = useMemo(
-    () => keywordsFromRelatedBucket(relatedBuckets.keywords as unknown[]),
-    [relatedBuckets.keywords]
-  );
-
   // GlossaryStrip terms — live API keywords with { term, meaning } pairs.
   // Falls back to the hardcoded mock when the API returns no usable keywords.
   const glossaryTerms = useMemo(
-    () => glossaryTermsFromKeywords(relatedBuckets.keywords as unknown[]).map((t) => ({
-      ...t,
-      href: `/searche?search=${encodeURIComponent(t.term)}`,
-    })),
+    () => glossaryTermsFromKeywords(relatedBuckets.keywords as unknown[]),
     [relatedBuckets.keywords]
   );
 
@@ -779,23 +790,13 @@ export default function CLSongDetailsPage({
             </section>
             </div>
 
-            {/* ===== Keyword Cloud Section ===== */}
-            <KeywordCloud
-              terms={keywords}
-              className="cld-detail-body-align"
-              style={{ marginTop: 24 }}
-            />
-
             {/* ===== Glossary strip — aligned to video/related column (Figma 361:1569) ===== */}
             <div className="cld-detail-body-align cld-glossary-align">
               <GlossaryStrip
                 terms={
                   glossaryTerms.length > 0
                     ? glossaryTerms
-                    : [...GLOSSARY_TERMS_LINE_1, ...GLOSSARY_TERMS_LINE_2].map((t) => ({
-                        ...t,
-                        href: `/searche?search=${encodeURIComponent(t.term)}`,
-                      }))
+                    : [...GLOSSARY_TERMS_LINE_1, ...GLOSSARY_TERMS_LINE_2]
                 }
               />
             </div>

@@ -149,6 +149,17 @@ function mapSong(raw: unknown, mock: HomeSongCard, apiOnly: boolean): HomeSongCa
       (!apiOnly ? mock.poet : ''),
     description,
     image: pickImage(record.thumbnail_url ?? record.thumbnailUrl, apiOnly ? undefined : mock.image),
+    youtubeVideoId:
+      extractYouTubeId(firstString(record.youtube_video_id, record.youtubeVideoId)) ||
+      (!apiOnly ? mock.youtubeVideoId : ''),
+    soundCloudUrl:
+      firstString(
+        record.soundCloudTrackUrl,
+        record.soundcloud_track_id,
+        record.soundCloud_track_url
+      ) || (!apiOnly ? mock.soundCloudUrl : ''),
+    downloadUrl:
+      firstString(record.download_url, record.downloadUrl) || (!apiOnly ? mock.downloadUrl : ''),
   };
 }
 
@@ -224,6 +235,18 @@ function mapReflection(
       ).toUpperCase() || (!apiOnly ? mock.saysBy : ''),
     description,
     image: pickImage(record.thumbnail_url ?? record.thumbnailUrl, apiOnly ? undefined : mock.image),
+    youtubeVideoId:
+      extractYouTubeId(
+        firstString(record.youtube_video_id, record.interview_video, record.youtubeVideoId)
+      ) || (!apiOnly ? mock.youtubeVideoId : ''),
+    soundCloudUrl:
+      firstString(
+        record.soundcloud_track_id,
+        record.soundCloudTrackUrl,
+        record.interview_audio
+      ) || (!apiOnly ? mock.soundCloudUrl : ''),
+    downloadUrl:
+      firstString(record.download_url, record.downloadUrl) || (!apiOnly ? mock.downloadUrl : ''),
   };
 }
 

@@ -582,7 +582,7 @@ export default function CLFilmDetail({ id: idProp }: { id?: string }) {
                           </button>
                         </span>
                       ))}
-                    </div>
+            </div>
                   )}
 
                   {renderDescription()}

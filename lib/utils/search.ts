@@ -10,7 +10,7 @@ export interface SearchApiResponse {
   results: Record<SearchCategory, Record<string, any>[]>;
 }
 
-export const SEARCH_ENDPOINT = `${AJAB_API_BASE}/Api/nitesh`;
+export const SEARCH_ENDPOINT = `${AJAB_API_BASE}/Api/search`;
 
 const toArray = (value: unknown): Record<string, any>[] => {
   if (!value) return [];

@@ -154,6 +154,12 @@ export default function CLSongsIndex() {
   const [catalogTotal, setCatalogTotal] = useState<number | null>(null);
   const [visibleCount, setVisibleCount] = useState(SONGS_PER_PAGE);
 
+  // Server-side filtered results (A-Z letter + singer/poet/theme). When any filter is
+  // active we query `/Api/list` with those params so results span the whole catalog,
+  // not just the pages already loaded in browse mode.
+  const [filterSongs, setFilterSongs] = useState<any[]>([]);
+  const [filterLoading, setFilterLoading] = useState(false);
+
   const handleFilterSelect = (type: FilterType, value: string) => {
     if (type === 'Singer') {
       setSingerNames((prev) =>
@@ -264,20 +270,87 @@ export default function CLSongsIndex() {
     setAvailablePoets((prev) => (prev.length ? prev : poets));
   }, [allSongs]);
 
-  // Client-side dynamic filtering
-  const filteredSongs = useMemo(() => {
-    let result = [...allSongs];
+  const activeLetter =
+    activeFilter && activeFilter.toLowerCase() !== 'all' ? activeFilter.toLowerCase().trim() : '';
 
-    // 1. A-Z Letter Filter (Strict starts-with match)
-    if (activeFilter && activeFilter.toLowerCase() !== 'all') {
-      const letter = activeFilter.toLowerCase().trim();
-      result = result.filter((song) => {
-        const title = (song.Songtitle_transliteration || '').toLowerCase().trim();
-        return title.startsWith(letter);
-      });
+  const hasActiveFilters =
+    activeFilter !== SONGS_FILTER[0] ||
+    singerNames.length > 0 ||
+    poetNames.length > 0 ||
+    themeNames.length > 0;
+
+  // Fetch the server-filtered catalog whenever a filter (A-Z / singer / poet / theme) is active.
+  // `/Api/list` filters server-side: search (contains, title), singer, poet, theme — combined with AND.
+  useEffect(() => {
+    if (!hasActiveFilters) {
+      setFilterSongs([]);
+      setFilterLoading(false);
+      return;
     }
 
-    // 2. Singer Filter
+    let cancelled = false;
+
+    const loadFiltered = async () => {
+      setFilterLoading(true);
+
+      const params = new URLSearchParams({
+        // A-Z letter → `search` (server does a contains match; we refine to starts-with below).
+        search: activeLetter,
+        page: '1',
+        limit: '1000',
+        singer: singerNames.join(','),
+        poet: poetNames.join(','),
+        theme: themeNames.join(','),
+      });
+
+      try {
+        const res = await fetch(`${AJAB_API_BASE}/Api/list?${params.toString()}`, {
+          cache: 'no-store',
+        });
+        const data = res.ok ? await res.json() : null;
+        let rows: Record<string, unknown>[] = Array.isArray(data?.data) ? data.data : [];
+
+        // Backend can't AND multiple comma values (and some names have irregular spacing),
+        // so if a chip selection returns nothing, fall back to the full catalog and filter client-side.
+        if (
+          rows.length === 0 &&
+          (singerNames.length > 0 || poetNames.length > 0 || themeNames.length > 0)
+        ) {
+          const fullRes = await fetch(
+            `${AJAB_API_BASE}/Api/list?search=&page=1&limit=1000&singer=&poet=`,
+            { cache: 'no-store' }
+          );
+          const fullData = fullRes.ok ? await fullRes.json() : null;
+          rows = Array.isArray(fullData?.data) ? fullData.data : [];
+        }
+
+        if (cancelled) return;
+        setFilterSongs(sortSongsByTitle(rows.map((item) => formatSongListItem(item))));
+      } catch {
+        if (!cancelled) setFilterSongs([]);
+      } finally {
+        if (!cancelled) setFilterLoading(false);
+      }
+    };
+
+    void loadFiltered();
+    return () => {
+      cancelled = true;
+    };
+  }, [hasActiveFilters, activeLetter, singerNames, poetNames, themeNames]);
+
+  // Filtered results come from the server query; browse mode uses the paginated `allSongs`.
+  const filteredSongs = useMemo(() => {
+    let result = hasActiveFilters ? [...filterSongs] : [...allSongs];
+
+    // 1. A-Z Letter Filter (strict starts-with — server `search` is a contains match).
+    if (activeLetter) {
+      result = result.filter((song) =>
+        (song.Songtitle_transliteration || '').toLowerCase().trim().startsWith(activeLetter)
+      );
+    }
+
+    // 2. Singer Filter (safety refine — also covers the full-catalog fallback path).
     if (singerNames.length > 0) {
       result = result.filter((song) => fieldMatchesFilters(song.singer || '', singerNames));
     }
@@ -287,29 +360,20 @@ export default function CLSongsIndex() {
       result = result.filter((song) => fieldMatchesFilters(song.poet || '', poetNames));
     }
 
-    // Theme filter labels come from `/Api/song_filters` (glossary words), not SEO meta_keywords.
-    // Per-song theme links are not on list rows yet — skip client-side theme matching.
+    // Theme is filtered server-side via the `theme` param (song rows carry no theme field to refine).
 
     return result;
-  }, [allSongs, activeFilter, singerNames, poetNames, themeNames]);
+  }, [allSongs, filterSongs, hasActiveFilters, activeLetter, singerNames, poetNames, themeNames]);
 
   const displayedSongs = useMemo(() => {
     return filteredSongs.slice(0, visibleCount);
   }, [filteredSongs, visibleCount]);
 
-  const hasActiveFilters =
-    activeFilter !== SONGS_FILTER[0] ||
-    singerNames.length > 0 ||
-    poetNames.length > 0 ||
-    themeNames.length > 0;
-
-  const hasMore = catalogHasMore(
-    allSongs.length,
-    visibleCount,
-    filteredSongs.length,
-    catalogTotal,
-    { filtersActive: hasActiveFilters }
-  );
+  const hasMore = hasActiveFilters
+    ? visibleCount < filteredSongs.length
+    : catalogHasMore(allSongs.length, visibleCount, filteredSongs.length, catalogTotal, {
+        filtersActive: false,
+      });
 
   const headingCount = hasActiveFilters
     ? filteredSongs.length
@@ -317,6 +381,14 @@ export default function CLSongsIndex() {
 
   const handleLoadMore = () => {
     if (loadingMore) return;
+
+    // Filter mode: the full filtered set is already loaded — paginate it client-side.
+    if (hasActiveFilters) {
+      if (visibleCount < filteredSongs.length) {
+        setVisibleCount((prev) => prev + SONGS_PER_PAGE);
+      }
+      return;
+    }
 
     if (visibleCount < filteredSongs.length) {
       setVisibleCount((prev) => prev + SONGS_PER_PAGE);
@@ -400,6 +472,8 @@ export default function CLSongsIndex() {
                     <CLSongCard {...song} />
                   </div>
                 ))
+              ) : filterLoading ? (
+                <p className="cl-no-results">Loading songs…</p>
               ) : (
                 <p className="cl-no-results">No songs found matching active filters.</p>
               )}

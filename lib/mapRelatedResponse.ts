@@ -18,6 +18,23 @@ function resolveThumb(raw?: string | null): string {
   return `${AJAB_API_BASE}${raw.startsWith('/') ? raw : `/${raw}`}`;
 }
 
+/** CMS flag — curator-picked related rows surface first in detail lists. */
+export function isAdminRelatedItem(item: unknown): boolean {
+  const v = (item as { admin_related?: unknown } | null)?.admin_related;
+  return v === true || v === 1 || v === '1' || v === 'true';
+}
+
+/** Keep API order within each group; `admin_related` rows precede the rest. */
+export function sortRelatedByAdminFirst<T>(items: T[]): T[] {
+  const admin: T[] = [];
+  const rest: T[] = [];
+  for (const item of items) {
+    if (isAdminRelatedItem(item)) admin.push(item);
+    else rest.push(item);
+  }
+  return [...admin, ...rest];
+}
+
 function mapRelatedItem(it: any) {
   return {
     id: String(it.id || it.song_id || it.poem_id || it.reflection_id || ''),
@@ -45,6 +62,7 @@ function mapRelatedItem(it: any) {
     thumbnailUrl: resolveThumb(it.thumbnail_url || it.thumbnailUrl),
     Songtitle_transliteration: it.Songtitle_transliteration,
     songtitletraan: it.songtitletraan,
+    admin_related: isAdminRelatedItem(it),
   };
 }
 
@@ -102,11 +120,18 @@ export function normalizeRelatedResponse(json: any): RelatedContent | null {
 
   for (const key of bucketKeys) {
     const arr = raw[key];
-    data[key] = Array.isArray(arr) ? arr.map(mapRelatedItem) : [];
+    data[key] = Array.isArray(arr)
+      ? sortRelatedByAdminFirst(arr.map(mapRelatedItem))
+      : [];
   }
 
   if (Array.isArray(raw.people) && raw.people.length) {
-    data.other = [...data.other, ...raw.people.map(mapRelatedItem)];
+    data.other = sortRelatedByAdminFirst([
+      ...data.other,
+      ...raw.people.map(mapRelatedItem),
+    ]);
+  } else if (data.other.length) {
+    data.other = sortRelatedByAdminFirst(data.other);
   }
 
   const counts = json.counts || {};

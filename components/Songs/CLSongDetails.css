@@ -430,6 +430,18 @@
   margin: 0;
 }
 
+.cld-description-body--clamped {
+  line-height: 1.45;
+  min-height: calc(1.45em * 3);
+  max-height: calc(1.45em * 3);
+  overflow: hidden;
+  white-space: normal;
+}
+
+.cld-description-body--clamped .cld-description-more {
+  margin-left: 0;
+}
+
 .cld-description-body p {
   margin: 0 0 1em;
 }

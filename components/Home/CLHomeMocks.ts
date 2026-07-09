@@ -15,6 +15,9 @@ export const MOCK_HOME_SONG = {
   description:
     'The delicacy of locking eyes with the beloved and losing one\'s heart to him combines in this song with a delightful disregard for social convention, represented by the gossiping neighbourhood women.',
   image: MOCK_CARD_IMAGE,
+  youtubeVideoId: '',
+  soundCloudUrl: '',
+  downloadUrl: '',
 };
 
 export const MOCK_HOME_POEM = {
@@ -35,6 +38,9 @@ export const MOCK_HOME_REFLECTION = {
   description:
     "'Nothing has its own intrinsic character. Everything exists in relation to something else.' The name of this realization is 'shoonya'.",
   image: MOCK_CARD_IMAGE,
+  youtubeVideoId: '',
+  soundCloudUrl: '',
+  downloadUrl: '',
 };
 
 export const MOCK_HOME_PEOPLE = {

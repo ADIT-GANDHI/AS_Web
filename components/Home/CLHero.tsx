@@ -1,7 +1,6 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import Link from 'next/link';
 import Header from '@/components/Header';
 import Loader from '@/components/Loader';
 import ContentSliderModal, { NewsPopupSlide } from '@/components/CLContentSliderModal';
@@ -33,7 +32,8 @@ import {
 import HomeCardImage from './HomeCardImage';
 import HomeCardShell from './HomeCardShell';
 import HomeCardVideo from './HomeCardVideo';
-import { withAppBasePath } from '@/lib/resolveCmsAssetUrl';
+import HomeCardMediaActions from './HomeCardMediaActions';
+import HomeCardBodyLink from './HomeCardBodyLink';
 
 const NEWS_ASSET_BASE = `${AJAB_API_BASE}/`;
 
@@ -44,14 +44,11 @@ const toImageUrl = (value?: string) => {
 };
 
 function SongCard({ data, imageFallback }: { data: HomeSongCard; imageFallback: string }) {
-  return (
-    <HomeCardShell
-      className="clh-song-card"
-      href={`/songs/details/${data.id}`}
-      media={
-        <HomeCardImage src={data.image} fallbackSrc={imageFallback} alt={data.title || 'Song'} />
-      }
-    >
+  const detailHref = `/songs/details/${data.id}`;
+  const hasVideo = Boolean(data.youtubeVideoId);
+
+  const body = (
+    <>
       <div className="clh-card-title">{data.title}</div>
       {data.subtitle && <div className="clh-card-subtitle">{data.subtitle}</div>}
       {data.singer && (
@@ -71,6 +68,30 @@ function SongCard({ data, imageFallback }: { data: HomeSongCard; imageFallback: 
       <div className="clh-card-footer">
         <span className="clh-card-cta">EXPLORE SONG</span>
       </div>
+    </>
+  );
+
+  return (
+    <HomeCardShell
+      className="clh-song-card"
+      href={hasVideo ? undefined : detailHref}
+      media={
+        <>
+          {hasVideo ? (
+            <HomeCardVideo videoId={data.youtubeVideoId!} title={data.title || 'Song'} />
+          ) : (
+            <HomeCardImage src={data.image} fallbackSrc={imageFallback} alt={data.title || 'Song'} />
+          )}
+          <HomeCardMediaActions
+            soundCloudUrl={data.soundCloudUrl}
+            downloadUrl={data.downloadUrl}
+          />
+        </>
+      }
+    >
+      <HomeCardBodyLink detailHref={detailHref} active={hasVideo}>
+        {body}
+      </HomeCardBodyLink>
     </HomeCardShell>
   );
 }
@@ -80,8 +101,8 @@ function PoemCard({ data }: { data: HomePoemCard }) {
     <HomeCardShell className="clh-poem-card" href={`/poems/details/${data.id}`}>
       <div className="clh-poem-content">
         {data.transliteration && <div className="clh-poem-text">{data.transliteration}</div>}
-        {data.translation && <div className="clh-poem-translation">{data.translation}</div>}
         <div className="clh-poem-spacer" />
+        {data.translation && <div className="clh-poem-translation">{data.translation}</div>}
         <div className="clh-poem-divider" />
         <div className="clh-poem-poet">
           <span className="clh-poem-poet-label">poet </span>
@@ -102,18 +123,11 @@ function ReflectionCard({
   data: HomeReflectionCard;
   imageFallback: string;
 }) {
-  return (
-    <HomeCardShell
-      className="clh-reflection-card"
-      href={`/reflections/details/${data.id}`}
-      media={
-        <HomeCardImage
-          src={data.image}
-          fallbackSrc={imageFallback}
-          alt={data.title || 'Reflection'}
-        />
-      }
-    >
+  const detailHref = `/reflections/details/${data.id}`;
+  const hasVideo = Boolean(data.youtubeVideoId);
+
+  const body = (
+    <>
       <div className="clh-card-title">{data.title}</div>
       {data.saysBy && (
         <div className="clh-card-meta">
@@ -126,6 +140,34 @@ function ReflectionCard({
       <div className="clh-card-footer">
         <span className="clh-card-cta">EXPLORE REFLECTION</span>
       </div>
+    </>
+  );
+
+  return (
+    <HomeCardShell
+      className="clh-reflection-card"
+      href={hasVideo ? undefined : detailHref}
+      media={
+        <>
+          {hasVideo ? (
+            <HomeCardVideo videoId={data.youtubeVideoId!} title={data.title || 'Reflection'} />
+          ) : (
+            <HomeCardImage
+              src={data.image}
+              fallbackSrc={imageFallback}
+              alt={data.title || 'Reflection'}
+            />
+          )}
+          <HomeCardMediaActions
+            soundCloudUrl={data.soundCloudUrl}
+            downloadUrl={data.downloadUrl}
+          />
+        </>
+      }
+    >
+      <HomeCardBodyLink detailHref={detailHref} active={hasVideo}>
+        {body}
+      </HomeCardBodyLink>
     </HomeCardShell>
   );
 }
@@ -160,18 +202,8 @@ function FilmCard({ data, imageFallback }: { data: HomeFilmCard; imageFallback: 
   const detailHref = `/films/details/${data.id}`;
   const hasVideo = Boolean(data.youtubeVideoId);
 
-  return (
-    <HomeCardShell
-      className="clh-film-card"
-      href={hasVideo ? undefined : detailHref}
-      media={
-        hasVideo ? (
-          <HomeCardVideo videoId={data.youtubeVideoId} title={data.title || 'Film'} />
-        ) : (
-          <HomeCardImage src={data.image} fallbackSrc={imageFallback} alt={data.title || 'Film'} />
-        )
-      }
-    >
+  const body = (
+    <>
       <div className="clh-card-title">{data.title}</div>
       {data.subtitle && <div className="clh-card-subtitle">{data.subtitle}</div>}
       {data.filmBy && (
@@ -183,14 +215,26 @@ function FilmCard({ data, imageFallback }: { data: HomeFilmCard; imageFallback: 
       <div className="clh-card-divider" />
       <p className="clh-card-desc">{data.description}</p>
       <div className="clh-card-footer">
-        {hasVideo ? (
-          <Link href={withAppBasePath(detailHref)} className="clh-card-cta">
-            EXPLORE FILM
-          </Link>
-        ) : (
-          <span className="clh-card-cta">EXPLORE FILM</span>
-        )}
+        <span className="clh-card-cta">EXPLORE FILM</span>
       </div>
+    </>
+  );
+
+  return (
+    <HomeCardShell
+      className="clh-film-card"
+      href={hasVideo ? undefined : detailHref}
+      media={
+        hasVideo ? (
+          <HomeCardVideo videoId={data.youtubeVideoId!} title={data.title || 'Film'} />
+        ) : (
+          <HomeCardImage src={data.image} fallbackSrc={imageFallback} alt={data.title || 'Film'} />
+        )
+      }
+    >
+      <HomeCardBodyLink detailHref={detailHref} active={hasVideo}>
+        {body}
+      </HomeCardBodyLink>
     </HomeCardShell>
   );
 }
