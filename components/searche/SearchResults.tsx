@@ -166,7 +166,10 @@ const getItemHref = (item: Record<string, any>, category: SearchCategory): strin
 
 export default function SearchResults() {
   const searchParams = useSearchParams();
-  const rawQuery = (searchParams.get('search') || searchParams.get('q') || '').trim();
+  const themeParam = (searchParams.get('theme') || '').trim();
+  const searchParam = (searchParams.get('search') || searchParams.get('q') || '').trim();
+  const rawQuery = themeParam || searchParam;
+  const apiParam = themeParam ? 'theme' : 'search';
   const [activeFilter, setActiveFilter] = useState<FilterKey>('ALL');
   const [expandedDescriptions, setExpandedDescriptions] = useState<Record<string, boolean>>({});
   const [data, setData] = useState<SearchApiResponse>(emptySearchResponse);
@@ -202,9 +205,12 @@ export default function SearchResults() {
       setErrorText('');
 
       try {
-        const response = await fetch(`${SEARCH_ENDPOINT}?search=${encodeURIComponent(rawQuery)}`, {
+        const response = await fetch(
+          `${SEARCH_ENDPOINT}?${apiParam}=${encodeURIComponent(rawQuery)}`,
+          {
           cache: 'no-store',
-        });
+          }
+        );
 
         if (!response.ok) {
           throw new Error('Unable to fetch search results.');
@@ -232,7 +238,7 @@ export default function SearchResults() {
     return () => {
       isCancelled = true;
     };
-  }, [rawQuery]);
+  }, [rawQuery, apiParam]);
 
   // [Claude] these changes have been recommended by claude — removed OTHER which was always 0
   const filterCounts: Record<FilterKey, number> = {
@@ -276,7 +282,7 @@ export default function SearchResults() {
           </h1>
         </div>
 
-        <div className="flex flex-wrap items-center gap-2 mb-10 border-t pt-3 pb-4">
+        <div className="flex flex-wrap items-center gap-2 mb-10 pt-3 pb-4">
           {FILTER_ORDER.map((filter, index) => (
             <div key={filter} className="flex items-center">
               <button

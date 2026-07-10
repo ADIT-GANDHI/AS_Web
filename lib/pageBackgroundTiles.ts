@@ -49,6 +49,14 @@ export const REFLECTIONS_DETAIL_BG: PageBackgroundTile = {
   fallbackColor: '#dedede',
 };
 
+/** Search results — mandala plate cropped to matched edges (9px top / 2px bottom, no blend band). */
+export const SEARCH_RESULTS_BG: PageBackgroundTile = {
+  url: tileUrl('/news-assets/ajab-news-bg-tile.png'),
+  tileWidth: 1230,
+  tileHeight: 1843,
+  fallbackColor: '#f5f5f5',
+};
+
 export const FILMS_LISTING_BG: PageBackgroundTile = {
   url: tileUrl('/film-page-bg.png'),
   tileWidth: 1920,

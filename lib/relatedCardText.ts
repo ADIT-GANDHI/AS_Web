@@ -30,6 +30,8 @@ export function getRelatedCardTitle(item: any, bucket: string): string {
     item?.title,
     item?.english_transliteration,
     item?.original_title,
+    item?.person_name,
+    item?.person_name_english,
     item?.word_transliteration,
   ]) {
     if (typeof field === 'string' && field.trim()) return field.trim();
@@ -39,6 +41,9 @@ export function getRelatedCardTitle(item: any, bucket: string): string {
 
 /** Italic subtitle beside the title (songs, films). */
 export function getRelatedCardSubtitle(item: any): string {
+  if (item?.category_name && typeof item.category_name === 'string') {
+    return item.category_name.trim();
+  }
   if (item?.word_translation && typeof item.word_translation === 'string') {
     return item.word_translation.trim();
   }

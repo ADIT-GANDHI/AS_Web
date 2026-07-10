@@ -1,8 +1,14 @@
+/* Repeat-y art on RepeatingPageBackground — cropped tile, matched top/bottom rows */
 .cl-search-page-root {
-  background: url(/news-assets/ajab-news-bg.png) top center / 100% auto repeat-y;
-  min-height: 100dvh;
   position: relative;
-  overflow-x: hidden;
+  min-height: 100dvh;
+  background-color: #f5f5f5;
+  background-image: none;
+}
+
+body:has(.cl-search-page-root) footer.footer-bg {
+  position: relative;
+  z-index: 10;
 }
 
 .news-border,

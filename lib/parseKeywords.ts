@@ -30,7 +30,7 @@ export function mergeKeywordTerms(...sources: unknown[]): string[] {
 }
 
 export function keywordSearchHref(term: string): string {
-  return `/searche?search=${encodeURIComponent(term)}`;
+  return `/searche?theme=${encodeURIComponent(term)}`;
 }
 
 /** Drop obvious CMS test/junk glossary entries (e.g. "Saudaagir asdasdasd"). */

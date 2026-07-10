@@ -9,6 +9,7 @@ export interface RelatedContent {
     reflections: number;
     other: number;
     films?: number;
+    people?: number;
   };
 }
 
@@ -43,6 +44,7 @@ function mapRelatedItem(it: any) {
       it.title ||
       it.english_transliteration ||
       it.original_title ||
+      it.person_name ||
       it.person_name_english ||
       it.word_transliteration ||
       '',
@@ -62,6 +64,12 @@ function mapRelatedItem(it: any) {
     thumbnailUrl: resolveThumb(it.thumbnail_url || it.thumbnailUrl),
     Songtitle_transliteration: it.Songtitle_transliteration,
     songtitletraan: it.songtitletraan,
+    person_name: it.person_name,
+    person_name_english: it.person_name_english,
+    category_name: it.category_name,
+    director_name: it.director_name,
+    year_of_production: it.year_of_production,
+    film_id: it.film_id,
     admin_related: isAdminRelatedItem(it),
   };
 }
@@ -138,18 +146,28 @@ export function normalizeRelatedResponse(json: any): RelatedContent | null {
   const songs = counts.songs ?? data.songs.length;
   const poems = counts.poems ?? data.poems.length;
   const reflections = counts.reflections ?? data.reflections.length;
-  const other = data.other.length || counts.other || 0;
   const films = counts.films ?? data.films?.length ?? 0;
+  const people = counts.people ?? (Array.isArray(raw.people) ? raw.people.length : 0);
+  /* OTHER tab = people (merged into data.other) + related films + legacy other rows. */
+  const other =
+    data.other.length + films ||
+    counts.other ||
+    people + films ||
+    0;
 
   return {
     data,
     counts: {
-      all: counts.all || songs + poems + reflections + other + films,
+      all:
+        counts.all ||
+        json.total_related ||
+        songs + poems + reflections + other,
       songs,
       poems,
       reflections,
       other,
       films,
+      people,
     },
   };
 }
@@ -176,7 +194,7 @@ export async function fetchRelatedByParam(
 
 export const EMPTY_RELATED: RelatedContent = {
   data: { songs: [], poems: [], reflections: [], other: [], films: [], keywords: [] },
-  counts: { all: 0, songs: 0, poems: 0, reflections: 0, other: 0, films: 0 },
+  counts: { all: 0, songs: 0, poems: 0, reflections: 0, other: 0, films: 0, people: 0 },
 };
 
 /** Coerce legacy mock related objects into RelatedContent. */

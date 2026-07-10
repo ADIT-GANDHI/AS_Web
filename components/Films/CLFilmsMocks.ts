@@ -140,6 +140,7 @@ export const FILM_RELATED = {
 export const MOCK_FILM_EPISODES = [
   {
     id: 'ep1',
+    episodeNumber: 1,
     title: 'What Are You Searching For, My Friend?',
     subtitle: 'Episode 1',
     duration: '12:40',
@@ -147,9 +148,12 @@ export const MOCK_FILM_EPISODES = [
     videoId: 'M7lc1UVf-VE',
     description:
       'We go with Prahladji into his home turf - the villages of Malwa, Madhya Pradesh - where he has learnt, imbibed and now re-expresses Kabir...',
+    body:
+      'We go with Prahladji into his home turf - the villages of Malwa, Madhya Pradesh - where he has learnt, imbibed and now re-expresses Kabir...',
   },
   {
     id: 'ep2',
+    episodeNumber: 2,
     title: 'What Are You Searching For, My Friend?',
     subtitle: 'Episode 2',
     duration: '18:05',
@@ -157,15 +161,20 @@ export const MOCK_FILM_EPISODES = [
     videoId: 'M7lc1UVf-VE',
     description:
       'We go with Prahladji into his home turf - the villages of Malwa, Madhya Pradesh - where he has learnt, imbibed and now re-expresses Kabir...',
+    body:
+      'We go with Prahladji into his home turf - the villages of Malwa, Madhya Pradesh - where he has learnt, imbibed and now re-expresses Kabir...',
   },
   {
     id: 'ep3',
+    episodeNumber: 3,
     title: 'Where Did You Come From, Where Are You Going?',
     subtitle: 'Episode 3',
     duration: '14:22',
     thumbnailUrl: '/TN-About-Basavalingaiah-Hiremath.jpg',
     videoId: 'M7lc1UVf-VE',
     description:
+      'We go with Prahladji into his home turf - the villages of Malwa, Madhya Pradesh - where he has learnt, imbibed and now re-expresses Kabir...',
+    body:
       'We go with Prahladji into his home turf - the villages of Malwa, Madhya Pradesh - where he has learnt, imbibed and now re-expresses Kabir...',
   },
 ];

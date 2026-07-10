@@ -16,6 +16,12 @@ export type RepeatingPageBackgroundProps = {
   tile: PageBackgroundTile;
   /** Defer heavy assets until window load (Songs composite ~7 MB). */
   deferUntilLoad?: boolean;
+  /** Extra px added to scaled tile height (default 4). */
+  tileOverlapPx?: number;
+  /** Vertical offset for the second sheet (default 6). */
+  sheetShiftPx?: number;
+  /** When true, render one repeat-y sheet only (e.g. search mandala). */
+  singleSheet?: boolean;
 };
 
 /**
@@ -26,6 +32,9 @@ export default function RepeatingPageBackground({
   containerRef,
   tile,
   deferUntilLoad = false,
+  tileOverlapPx = TILE_OVERLAP_PX,
+  sheetShiftPx = SHEET_SHIFT_PX,
+  singleSheet = false,
 }: RepeatingPageBackgroundProps) {
   const [bgHeight, setBgHeight] = useState(0);
   const [tileH, setTileH] = useState(0);
@@ -37,8 +46,8 @@ export default function RepeatingPageBackground({
     setBgHeight(measurePageBackgroundHeight(shell));
     const w = shell.clientWidth;
     const scaled = (Math.min(w, tile.tileWidth) * tile.tileHeight) / tile.tileWidth;
-    setTileH(Math.max(1, Math.ceil(scaled) + TILE_OVERLAP_PX));
-  }, [containerRef, tile.tileWidth, tile.tileHeight]);
+    setTileH(Math.max(1, Math.ceil(scaled) + tileOverlapPx));
+  }, [containerRef, tile.tileWidth, tile.tileHeight, tileOverlapPx]);
 
   useEffect(() => {
     if (!deferUntilLoad) return;
@@ -90,17 +99,21 @@ export default function RepeatingPageBackground({
       aria-hidden
     >
       {showArt ? (
-        <>
+        singleSheet ? (
           <div className="repeating-page-bg__sheet repeating-page-bg__sheet--a" style={sheetStyle} />
-          <div
-            className="repeating-page-bg__sheet repeating-page-bg__sheet--b"
-            style={{
-              ...sheetStyle,
-              top: -SHEET_SHIFT_PX,
-              backgroundPosition: `left -${SHEET_SHIFT_PX}px`,
-            }}
-          />
-        </>
+        ) : (
+          <>
+            <div className="repeating-page-bg__sheet repeating-page-bg__sheet--a" style={sheetStyle} />
+            <div
+              className="repeating-page-bg__sheet repeating-page-bg__sheet--b"
+              style={{
+                ...sheetStyle,
+                top: -sheetShiftPx,
+                backgroundPosition: `left -${sheetShiftPx}px`,
+              }}
+            />
+          </>
+        )
       ) : null}
     </div>
   );
