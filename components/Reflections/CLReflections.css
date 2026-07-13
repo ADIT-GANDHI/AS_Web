@@ -206,6 +206,9 @@ body:has(.clrd-page) .nav-link--songs .nav-link-songs-count {
   --clrd-gap-header-video: min(8px, calc(100vw * 8 / var(--clrd-artboard-w)));
   --clrd-gap-video-about: min(43px, calc(100vw * 43 / var(--clrd-artboard-w)));
   --clrd-gap-about-related: min(64px, calc(100vw * 64 / var(--clrd-artboard-w)));
+  /* Song detail sets thumb size on .cld-detail-body-align; reflections reuses cld-related-* without it */
+  --cld-related-thumb-w: min(280px, calc(100vw * 280 / var(--clrd-artboard-w)));
+  --cld-related-thumb-h: min(156px, calc(100vw * 156 / var(--clrd-artboard-w)));
   position: relative;
   width: 100%;
   max-width: none;
@@ -354,6 +357,19 @@ body:has(.clrd-page) .nav-link--songs .nav-link-songs-count {
   max-width: 100%;
   margin: 0 0 clamp(32px, 4vw, 48px);
   padding-left: 0;
+}
+
+/* Keep thumbs fixed-size when CMS URL is missing or fails — layout must not shift */
+.clrd-page .cld-related-thumb {
+  flex-shrink: 0;
+  overflow: hidden;
+}
+
+.clrd-page .cld-related-thumb img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
 }
 
 /* Figma: "Related" Lora Regular 30 #3C3C3B */

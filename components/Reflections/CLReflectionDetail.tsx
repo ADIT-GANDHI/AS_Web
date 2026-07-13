@@ -358,7 +358,15 @@ export default function CLReflectionDetail({ id: idProp }: { id?: string }) {
                     const itemInner = (
                       <>
                         <div className="cld-related-thumb">
-                          {thumbSrc && <img src={thumbSrc} alt={item.title} />}
+                          {thumbSrc && (
+                            <img
+                              src={thumbSrc}
+                              alt=""
+                              onError={(e) => {
+                                e.currentTarget.style.display = 'none';
+                              }}
+                            />
+                          )}
                         </div>
                         <div className="cld-related-body">
                           <div className="cld-related-titlerow">

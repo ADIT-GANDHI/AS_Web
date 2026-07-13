@@ -16,9 +16,7 @@ import {
   fetchRelatedByParam,
   type RelatedContent,
 } from '@/lib/mapRelatedResponse';
-import KeywordCloud from '@/components/shared/KeywordCloud';
 import RepeatingPageBackground from '@/components/shared/RepeatingPageBackground';
-import { keywordsFromRelatedBucket } from '@/lib/parseKeywords';
 import { PEOPLE_DETAIL_BG } from '@/lib/pageBackgroundTiles';
 import { getRelatedDetailHref } from '@/lib/relatedDetailHref';
 import {
@@ -287,11 +285,6 @@ export default function CLPeopleDetail({ id: idProp }: { id?: string }) {
 
   const hasMoreRelated = visibleRelatedEntries.length > RELATED_INITIAL_COUNT;
 
-  const keywordTerms = useMemo(
-    () => keywordsFromRelatedBucket((related.data.keywords || []) as unknown[]),
-    [related.data.keywords]
-  );
-
   if (loading) return <LoadingShell />;
 
   if (!person) return <PersonNotFound />;
@@ -343,8 +336,6 @@ export default function CLPeopleDetail({ id: idProp }: { id?: string }) {
             </div>
 
             <div className="clped-detail-rail">
-            <KeywordCloud terms={keywordTerms} className="clped-keyword-cloud" />
-
             <div className="cld-detail-body-align clped-related-align">
             <section className="cld-related">
               <h2 className="cld-related-title">Related</h2>

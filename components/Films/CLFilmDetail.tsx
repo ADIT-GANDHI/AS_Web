@@ -7,10 +7,10 @@ import Header from '@/components/Header';
 import Loader from '@/components/Loader';
 import Link from 'next/link';
 import {
-  extractYouTubeId,
   formatFilmDirector,
   getFilmDescription,
 } from './filmFieldUtils';
+import { extractYouTubeId } from '@/lib/youtube';
 import { glossaryTermsFromKeywords } from '@/lib/parseKeywords';
 import { truncateAtWord, truncateToFitLines } from '@/lib/truncateAtWord';
 import { AJAB_API_BASE } from '@/lib/ajabEnv';
@@ -34,7 +34,19 @@ import './FilmLanguageToggle.css';
 import RepeatingPageBackground from '@/components/shared/RepeatingPageBackground';
 import GlossaryStrip from '@/components/shared/GlossaryStrip';
 import { FILMS_DETAIL_BG } from '@/lib/pageBackgroundTiles';
+import { ChevronLeft, ChevronRight } from 'lucide-react';
+import WavyCard from '@/components/shared/WavyCard';
 import { FilmsNavCountContext } from '@/components/Films/FilmsNavCountContext';
+
+function resolveFilmYouTubeId(item: any): string {
+  const raw =
+    item?.youtube_video_id ??
+    item?.youtubeVideoId ??
+    item?.youtube_url ??
+    item?.youtubeUrl ??
+    '';
+  return extractYouTubeId(typeof raw === 'string' ? raw : String(raw || ''));
+}
 
 function thumbUrl(raw: string | null | undefined): string {
   if (!raw) return '';
@@ -155,7 +167,7 @@ function mapApiItem(it: any): FilmDetail {
     year: String(it.year_of_production || it.year || ''),
     languages: it.language || '',
     description: getFilmDescription(it),
-    videoId: extractYouTubeId(it.youtube_video_id),
+    videoId: resolveFilmYouTubeId(it),
     thumbnailUrl: thumbUrl(it.thumbnail_url),
   };
 }
@@ -171,7 +183,7 @@ function mapApiEpisode(it: any, index: number): FilmEpisode {
     subtitle: it.english_translation || '',
     duration: it.duration || '',
     thumbnailUrl: thumbUrl(it.thumbnail_url),
-    videoId: extractYouTubeId(it.youtube_video_id),
+    videoId: resolveFilmYouTubeId(it),
     description: cardBlurb,
     body: getFilmDescription(it) || cardBlurb,
   };
@@ -229,6 +241,8 @@ export default function CLFilmDetail({ id: idProp }: { id?: string }) {
     setActiveFilmTab('film');
     setSelectedEpisodeIdx(0);
     setEpisodeCarouselStart(0);
+    setActiveVideoId('');
+    setActiveLang('');
   }, [id]);
 
   useEffect(() => {
@@ -274,6 +288,12 @@ export default function CLFilmDetail({ id: idProp }: { id?: string }) {
         const listRes = await fetch(`${AJAB_API_BASE}/Api/film_list?page=1&limit=400`, {
           cache: 'no-store',
         });
+        const currentLang = resolveLanguageLabel(
+          mapped.title,
+          mapped.languages || item?.language,
+          'Original'
+        );
+
         if (listRes.ok) {
           const listJson = await listRes.json();
           const list = Array.isArray(listJson?.data) ? listJson.data : [];
@@ -287,15 +307,9 @@ export default function CLFilmDetail({ id: idProp }: { id?: string }) {
           const sameBaseRows = base
             ? list.filter((f: any) => {
                 const otherBase = normalizeFilmBase(f.english_transliteration || '');
-                return otherBase === base && extractYouTubeId(f.youtube_video_id);
+                return otherBase === base && resolveFilmYouTubeId(f);
               })
             : [];
-
-          const currentLang = resolveLanguageLabel(
-            mapped.title,
-            mapped.languages || item?.language,
-            'Original'
-          );
 
           const versions: LanguageVersion[] = sameBaseRows.map((f: any) => {
             const title = String(f.english_transliteration || f.original_title || '');
@@ -307,7 +321,7 @@ export default function CLFilmDetail({ id: idProp }: { id?: string }) {
                 f.language,
                 isCurrent ? currentLang : 'English'
               ),
-              videoId: extractYouTubeId(f.youtube_video_id),
+              videoId: resolveFilmYouTubeId(f),
               description: getFilmDescription(f),
               title,
               subtitle: String(f.english_translation || ''),
@@ -324,15 +338,14 @@ export default function CLFilmDetail({ id: idProp }: { id?: string }) {
           }
           const languageVersionsList = sortLanguageVersions([...versionsByLang.values()]);
           setLanguageVersions(languageVersionsList);
-          setEpisodes(apiEpisodes);
-
-          if (mapped.videoId) {
-            setActiveVideoId(mapped.videoId);
-            setActiveLang(currentLang);
-          }
         } else {
-          setEpisodes(apiEpisodes);
           setLanguageVersions([]);
+        }
+
+        setEpisodes(apiEpisodes);
+        if (mapped.videoId) {
+          setActiveVideoId(mapped.videoId);
+          setActiveLang(currentLang);
         }
       } catch {
         clearTimeout(timeoutId);
@@ -419,10 +432,22 @@ export default function CLFilmDetail({ id: idProp }: { id?: string }) {
     return () => observer.disconnect();
   }, [activeDescription, descExpanded, isLong]);
 
-  const videoId =
-    activeFilmTab === 'episodes' && selectedEpisode?.videoId
-      ? selectedEpisode.videoId
-      : activeVideoId || activeLanguageVersion?.videoId || data?.videoId || '';
+  const videoId = useMemo(() => {
+    if (activeFilmTab === 'episodes' && selectedEpisode?.videoId) {
+      return extractYouTubeId(selectedEpisode.videoId);
+    }
+    const fromActive = extractYouTubeId(activeVideoId);
+    if (fromActive) return fromActive;
+    const fromVersion = extractYouTubeId(activeLanguageVersion?.videoId);
+    if (fromVersion) return fromVersion;
+    return extractYouTubeId(data?.videoId || '');
+  }, [
+    activeFilmTab,
+    selectedEpisode?.videoId,
+    activeVideoId,
+    activeLanguageVersion?.videoId,
+    data?.videoId,
+  ]);
   const languagesFromVersions = languageVersions.map((v) => v.language);
   const headerTitle = displayFilmTitle(
     activeFilmTab === 'film' && activeLanguageVersion?.title
@@ -476,13 +501,11 @@ export default function CLFilmDetail({ id: idProp }: { id?: string }) {
     );
   }
 
-  const renderVideo = (title: string, posterUrl?: string) => (
+  const renderVideo = (title: string) => (
     <div className="clfd-media-stage">
       <div className="clfd-video-wrap">
         {videoId ? (
           <YouTubeEmbedFrame key={videoId} videoId={videoId} title={title} />
-        ) : posterUrl ? (
-          <img src={posterUrl} alt={title} />
         ) : (
           <div className="clfd-video-placeholder">Video not available</div>
         )}
@@ -572,10 +595,7 @@ export default function CLFilmDetail({ id: idProp }: { id?: string }) {
 
               {activeFilmTab === 'film' ? (
                 <>
-                  {renderVideo(
-                    headerTitle,
-                    activeLanguageVersion?.thumbnailUrl || data.thumbnailUrl
-                  )}
+                  {renderVideo(headerTitle)}
 
                   {languagesFromVersions.length > 1 && (
                     <div className="film-lang-toggle clfd-lang-toggle">
@@ -603,7 +623,9 @@ export default function CLFilmDetail({ id: idProp }: { id?: string }) {
                 </>
               ) : (
                 <div className="clfd-episodes-panel">
-                  <div className="clfd-episode-carousel">
+                  <div className="clfd-episodes-divider" aria-hidden="true" />
+
+                  <div className="clfd-episode-carousel-wrap">
                     <button
                       type="button"
                       className="clfd-episode-nav clfd-episode-nav--prev"
@@ -613,7 +635,7 @@ export default function CLFilmDetail({ id: idProp }: { id?: string }) {
                         setEpisodeCarouselStart((s) => Math.max(0, s - 1))
                       }
                     >
-                      <span aria-hidden>‹</span>
+                      <ChevronLeft size={36} strokeWidth={2.8} aria-hidden />
                     </button>
 
                     <div className="clfd-episode-cards">
@@ -621,20 +643,18 @@ export default function CLFilmDetail({ id: idProp }: { id?: string }) {
                         const absoluteIdx = episodeCarouselStart + i;
                         const isSelected = absoluteIdx === selectedEpisodeIdx;
                         return (
-                          <button
+                          <WavyCard
                             key={ep.id}
-                            type="button"
-                            className={`clfd-episode-card${isSelected ? ' is-selected' : ''}`}
                             onClick={() => {
                               setSelectedEpisodeIdx(absoluteIdx);
                               setDescExpanded(false);
                             }}
+                            imageSrc={ep.thumbnailUrl || undefined}
+                            imageAlt={ep.title}
+                            className={`clfd-episode-card${isSelected ? ' is-selected' : ''}`}
+                            bodyClassName="clfd-episode-card-body"
+                            thumbClassName="clfd-episode-card-thumb"
                           >
-                            <div className="clfd-episode-card-thumb">
-                              {ep.thumbnailUrl ? (
-                                <img src={ep.thumbnailUrl} alt={ep.title} />
-                              ) : null}
-                            </div>
                             <div className="clfd-episode-card-title">{ep.title}</div>
                             <div className="clfd-episode-card-label">
                               Episode {ep.episodeNumber}
@@ -642,7 +662,7 @@ export default function CLFilmDetail({ id: idProp }: { id?: string }) {
                             {ep.description && (
                               <p className="clfd-episode-card-blurb">{ep.description}</p>
                             )}
-                          </button>
+                          </WavyCard>
                         );
                       })}
                     </div>
@@ -658,7 +678,7 @@ export default function CLFilmDetail({ id: idProp }: { id?: string }) {
                         )
                       }
                     >
-                      <span aria-hidden>›</span>
+                      <ChevronRight size={36} strokeWidth={2.8} aria-hidden />
                     </button>
                   </div>
 
@@ -672,7 +692,7 @@ export default function CLFilmDetail({ id: idProp }: { id?: string }) {
                           {selectedEpisode.title}
                         </h2>
                       </div>
-                      {renderVideo(selectedEpisode.title, selectedEpisode.thumbnailUrl)}
+                      {renderVideo(selectedEpisode.title)}
                       {renderDescription()}
                     </>
                   )}
@@ -786,7 +806,7 @@ export default function CLFilmDetail({ id: idProp }: { id?: string }) {
 
               {glossaryTerms.length > 0 && (
                 <div className="clfd-glossary-align">
-                  <GlossaryStrip terms={glossaryTerms} />
+                  <GlossaryStrip terms={glossaryTerms} className="clfd-glossary-strip" />
                 </div>
               )}
             </div>

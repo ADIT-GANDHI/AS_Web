@@ -1,12 +1,15 @@
 'use client';
 
-import React, { useEffect, useMemo, useState } from 'react';
+import React, { useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
 import Link from 'next/link';
 import { useSearchParams } from 'next/navigation';
 import Loader from '@/components/Loader';
 import './SearchResults.css';
 import { AJAB_API_BASE } from '@/lib/ajabEnv';
+import { textExceedsLines, truncateToFitLines } from '@/lib/truncateAtWord';
 import { SEARCH_ENDPOINT, emptySearchResponse, normalizeSearchPayload, type SearchApiResponse } from '@/lib/utils/search';
+
+const SEARCH_DESC_LINES = 3;
 
 type SearchCategory = 'songs' | 'poems' | 'reflections' | 'people' | 'films';
 type FilterKey = 'ALL' | Uppercase<SearchCategory>;
@@ -164,6 +167,74 @@ const getItemHref = (item: Record<string, any>, category: SearchCategory): strin
   }
 };
 
+function SearchDescriptionClamp({
+  text,
+  expanded,
+  onToggle,
+}: {
+  text: string;
+  expanded: boolean;
+  onToggle: () => void;
+}) {
+  const normalized = useMemo(() => text.replace(/\s+/g, ' ').trim(), [text]);
+  const measureRef = useRef<HTMLParagraphElement>(null);
+  const [needsClamp, setNeedsClamp] = useState(false);
+  const [clipped, setClipped] = useState(normalized);
+
+  useLayoutEffect(() => {
+    const measure = () => {
+      const node = measureRef.current;
+      if (!node) return;
+
+      const exceeds = textExceedsLines(node, normalized, SEARCH_DESC_LINES);
+      setNeedsClamp(exceeds);
+
+      if (!expanded && exceeds) {
+        setClipped(
+          truncateToFitLines(node, normalized, SEARCH_DESC_LINES, 'Read more', 'search-read-more')
+        );
+      }
+    };
+
+    measure();
+    const node = measureRef.current;
+    if (!node) return;
+    const observer = new ResizeObserver(measure);
+    observer.observe(node);
+    return () => observer.disconnect();
+  }, [normalized, expanded]);
+
+  if (!normalized) return null;
+
+  if (expanded && needsClamp) {
+    return (
+      <p ref={measureRef} className="search-result-text">
+        {normalized}{' '}
+        <button type="button" className="search-read-more" onClick={onToggle}>
+          Read less
+        </button>
+      </p>
+    );
+  }
+
+  if (!needsClamp) {
+    return (
+      <p ref={measureRef} className="search-result-text">
+        {normalized}
+      </p>
+    );
+  }
+
+  return (
+    <p ref={measureRef} className="search-result-text search-result-text--clamped">
+      {clipped}{' '}
+      <button type="button" className="search-read-more" onClick={onToggle}>
+        Read more
+      </button>
+    </p>
+  );
+}
+
 export default function SearchResults() {
   const searchParams = useSearchParams();
   const themeParam = (searchParams.get('theme') || '').trim();
@@ -175,15 +246,6 @@ export default function SearchResults() {
   const [data, setData] = useState<SearchApiResponse>(emptySearchResponse);
   const [isLoading, setIsLoading] = useState(false);
   const [errorText, setErrorText] = useState('');
-  const DESCRIPTION_PREVIEW_LIMIT = 240;
-
-  const getPreviewText = (text: string) => {
-    if (text.length <= DESCRIPTION_PREVIEW_LIMIT) {
-      return text;
-    }
-
-    return `${text.slice(0, DESCRIPTION_PREVIEW_LIMIT)}...`;
-  };
 
   useEffect(() => {
     setActiveFilter('ALL');
@@ -327,8 +389,6 @@ export default function SearchResults() {
               const href = getItemHref(item, category);
               const resultKey = `${category}-${item.id || index}`;
               const isExpanded = Boolean(expandedDescriptions[resultKey]);
-              const hasLongDescription = description.length > DESCRIPTION_PREVIEW_LIMIT;
-              const visibleDescription = isExpanded ? description : getPreviewText(description);
 
               return (
                 <div key={resultKey} className="search-result-card">
@@ -337,11 +397,11 @@ export default function SearchResults() {
                     <div className="flex-shrink-0">
                       <Link href={href}>
                         {imageUrl ? (
-                          <div className="flex-shrink-0 w-full md:w-44 h-24 md:h-28 bg-gray-200 overflow-hidden rounded-md news-banner-shadow">
-                            <img src={imageUrl} alt={title} className="w-full h-full object-cover" />
+                          <div className="search-result-thumb news-banner-shadow">
+                            <img src={imageUrl} alt={title} />
                           </div>
                         ) : (
-                          <div className="flex-shrink-0 w-full md:w-44 h-24 md:h-28 search-image-placeholder rounded-md" />
+                          <div className="search-result-thumb search-image-placeholder" />
                         )}
                       </Link>
                     </div>
@@ -356,23 +416,16 @@ export default function SearchResults() {
                       </h2>
 
                       {!!description && (
-                        <>
-                          <p className="search-result-text mb-2">{visibleDescription}</p>
-                          {hasLongDescription && (
-                            <button
-                              type="button"
-                              className="text-pink text-sm cursor-pointer"
-                              onClick={() =>
-                                setExpandedDescriptions((prev) => ({
-                                  ...prev,
-                                  [resultKey]: !prev[resultKey],
-                                }))
-                              }
-                            >
-                              {isExpanded ? 'Read less' : 'Read more'}
-                            </button>
-                          )}
-                        </>
+                        <SearchDescriptionClamp
+                          text={description}
+                          expanded={isExpanded}
+                          onToggle={() =>
+                            setExpandedDescriptions((prev) => ({
+                              ...prev,
+                              [resultKey]: !prev[resultKey],
+                            }))
+                          }
+                        />
                       )}
                       {!description && (
                         <p className="search-result-type-label mb-4">{category.toUpperCase()}</p>

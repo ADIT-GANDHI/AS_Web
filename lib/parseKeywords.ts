@@ -76,12 +76,20 @@ export function glossaryTermsFromKeywords(
   const out: Array<{ term: string; meaning: string }> = [];
   for (const k of keywords) {
     const term = String(
-      (k as Record<string, unknown>)?.word_transliteration || ''
+      (k as Record<string, unknown>)?.word_transliteration ||
+        (k as Record<string, unknown>)?.title ||
+        (k as Record<string, unknown>)?.term ||
+        (k as Record<string, unknown>)?.word ||
+        ''
     )
       .replace(/\s+/g, ' ')
       .trim();
     const meaning = String(
-      (k as Record<string, unknown>)?.word_translation || ''
+      (k as Record<string, unknown>)?.word_translation ||
+        (k as Record<string, unknown>)?.subtitle ||
+        (k as Record<string, unknown>)?.meaning ||
+        (k as Record<string, unknown>)?.translation ||
+        ''
     )
       .replace(/\s+/g, ' ')
       .trim();

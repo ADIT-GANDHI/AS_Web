@@ -65,9 +65,9 @@ body:has(.clped-page) footer.footer-bg .footer-inner {
 
 /* [Claude] these changes have been recommended by claude —
    Measured from design artboard (1921px): content spans 443px–1471px = 1028px wide (53.5%).
-   1000px max-width matches this proportion. Was wrongly using --ajab-grid-max-w (800px). */
+   950px max-width matches this proportion. Was wrongly using --ajab-grid-max-w (800px). */
 .clpe-list {
-  max-width: 1000px;
+  max-width: 950px;
   margin: 30px auto 0;
   padding: 0 clamp(24px, 2vw, 40px);
   box-sizing: border-box;
