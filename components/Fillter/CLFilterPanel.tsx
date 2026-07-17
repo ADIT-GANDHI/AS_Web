@@ -5,6 +5,8 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
 import type {
   ListingFilterCategory,
+  ListingFilterOption,
+  ListingFilterOptionInput,
   ListingFilterPanelProps,
 } from '@/components/shared/listingFilterTypes';
 import {
@@ -30,6 +32,24 @@ const DEFAULT_CATEGORY_LABELS: Record<FilterType, string> = {
   Poet: 'Poet',
   Theme: 'Theme',
 };
+
+function normalizeFilterOptions(list: ListingFilterOptionInput[] | undefined): ListingFilterOption[] {
+  if (!list?.length) return [];
+  const seen = new Set<string>();
+  const out: ListingFilterOption[] = [];
+  for (const item of list) {
+    const id =
+      typeof item === 'string' ? String(item ?? '').trim() : String(item?.id ?? '').trim();
+    const label =
+      typeof item === 'string'
+        ? String(item ?? '').replace(/\s+/g, ' ').trim()
+        : String(item?.label ?? '').replace(/\s+/g, ' ').trim();
+    if (!id || !label || seen.has(id)) continue;
+    seen.add(id);
+    out.push({ id, label });
+  }
+  return out;
+}
 
 function cleanList(list: any[]) {
   return dedupeOrderedStrings(list.map((value) => String(value ?? '')));
@@ -141,9 +161,15 @@ export default function CLFilterPanel({
   const [thumbHeight, setThumbHeight] = useState(480);
 
   const filterLists = useMemo(() => {
-    const pick = (available: string[] | undefined, mock: string[]) => {
-      if (available !== undefined && available.length > 0) return available;
-      return useSongsMockFallback ? mock : available ?? [];
+    const pick = (
+      available: ListingFilterOptionInput[] | undefined,
+      mock: string[]
+    ): ListingFilterOption[] => {
+      const normalized = normalizeFilterOptions(available);
+      if (normalized.length > 0) return normalized;
+      return useSongsMockFallback
+        ? normalizeFilterOptions(mock)
+        : normalizeFilterOptions(available ?? []);
     };
     return {
       Singer: pick(availableSingers, MOCK_FILTERS.Singer),
@@ -152,13 +178,33 @@ export default function CLFilterPanel({
     };
   }, [availableSingers, availablePoets, availableThemes, useSongsMockFallback]);
 
+  const labelById = useMemo(() => {
+    const map = new Map<string, string>();
+    (['Singer', 'Poet', 'Theme'] as FilterType[]).forEach((cat) => {
+      filterLists[cat].forEach((opt) => map.set(`${cat}:${opt.id}`, opt.label));
+    });
+    return map;
+  }, [filterLists]);
+
   const selectedFilters = useMemo(
     () => [
-      ...selectedSingers.map((value: string) => ({ type: 'Singer' as const, value })),
-      ...selectedPoets.map((value: string) => ({ type: 'Poet' as const, value })),
-      ...selectedThemes.map((value: string) => ({ type: 'Theme' as const, value })),
+      ...selectedSingers.map((value: string) => ({
+        type: 'Singer' as const,
+        value,
+        label: labelById.get(`Singer:${value}`) || value,
+      })),
+      ...selectedPoets.map((value: string) => ({
+        type: 'Poet' as const,
+        value,
+        label: labelById.get(`Poet:${value}`) || value,
+      })),
+      ...selectedThemes.map((value: string) => ({
+        type: 'Theme' as const,
+        value,
+        label: labelById.get(`Theme:${value}`) || value,
+      })),
     ],
-    [selectedSingers, selectedPoets, selectedThemes]
+    [selectedSingers, selectedPoets, selectedThemes, labelById]
   );
 
   const maxFiltersLimit =
@@ -477,17 +523,17 @@ export default function CLFilterPanel({
                       }}
                     >
                       <ul style={{ listStyle: 'none', margin: 0, padding: 0 }}>
-                        {filterLists[activeCategory].map((item: any, index: number) => {
+                        {filterLists[activeCategory].map((item, index) => {
                           const isSelected =
                             activeCategory === 'Singer'
-                              ? selectedSingers.includes(item)
+                              ? selectedSingers.includes(item.id)
                               : activeCategory === 'Poet'
-                                ? selectedPoets.includes(item)
-                                : selectedThemes.includes(item);
+                                ? selectedPoets.includes(item.id)
+                                : selectedThemes.includes(item.id);
                           return (
                             <li
-                              key={`${activeCategory}-${index}-${item}`}
-                              onClick={() => handleFilterSelect(activeCategory, item)}
+                              key={`${activeCategory}-${index}-${item.id}`}
+                              onClick={() => handleFilterSelect(activeCategory, item.id)}
                               style={{
                                 fontFamily: FONT,
                                 fontWeight: isSelected ? 400 : 300,
@@ -500,7 +546,7 @@ export default function CLFilterPanel({
                                 alignItems: 'center',
                               }}
                             >
-                              <span>{item}</span>
+                              <span>{item.label}</span>
                             </li>
                           );
                         })}
@@ -568,7 +614,7 @@ export default function CLFilterPanel({
                             overflowX: 'hidden',
                           }}
                         >
-                          {selectedFilters.map(({ type, value }) => (
+                          {selectedFilters.map(({ type, value, label }) => (
                             <button
                               key={`${type}-${value}`}
                               type="button"
@@ -597,7 +643,7 @@ export default function CLFilterPanel({
                                   minWidth: 0,
                                 }}
                               >
-                                {value}
+                                {label}
                               </span>
                               <span
                                 style={{

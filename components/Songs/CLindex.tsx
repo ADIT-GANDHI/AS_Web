@@ -8,21 +8,25 @@ import RepeatingPageBackground from '@/components/shared/RepeatingPageBackground
 import { SONGS_LISTING_BG } from '@/lib/pageBackgroundTiles';
 import { MOCK_SONGS, SONGS_FILTER, SONGS_INTRO } from './CLconstants';
 import ListingFilterBar from '@/components/shared/ListingFilterBar';
+import type { ListingFilterOption } from '@/components/shared/listingFilterTypes';
 import CLSongCard from './CLSongCard';
 import './CLSongs.css';
 import { SongsNavCountContext } from '@/components/Songs/SongsNavCountContext';
 import { AJAB_API_BASE } from '@/lib/ajabEnv';
 import { catalogHasMore, mergeCatalogById } from '@/lib/catalogPagination';
-import { dedupeOrderedStrings } from '@/lib/dedupeStrings';
 import { parseCatalogTotal } from '@/lib/parseCatalogTotal';
 
 type FilterType = 'Singer' | 'Poet' | 'Theme';
+/** API query keys — order in `filterOrder` = hierarchy (first = base / frozen list). */
+type FilterDim = 'singer' | 'poet' | 'theme';
 
 const SONGS_PER_PAGE = 9;
 
-function normalizeFilterToken(value: string): string {
-  return String(value || '').toLowerCase().replace(/\s+/g, ' ').trim();
-}
+const DIM_FROM_TYPE: Record<FilterType, FilterDim> = {
+  Singer: 'singer',
+  Poet: 'poet',
+  Theme: 'theme',
+};
 
 function formatFilterLabel(value: string): string {
   const cleaned = String(value || '').replace(/\s+/g, ' ').trim();
@@ -31,40 +35,6 @@ function formatFilterLabel(value: string): string {
     .split(' ')
     .map((word) => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())
     .join(' ');
-}
-
-function splitFilterParts(value: string): string[] {
-  return String(value || '')
-    .split(/[&,]/)
-    .map((part) => normalizeFilterToken(part))
-    .filter(Boolean);
-}
-
-/** Match comma-separated CMS fields (singer / poet / keywords) against selected filter chips. */
-function fieldMatchesFilters(field: string, filterNames: string[]): boolean {
-  if (filterNames.length === 0) return true;
-  const parts = splitFilterParts(field);
-  if (parts.length === 0) return false;
-  return filterNames.some((name) => {
-    const needle = normalizeFilterToken(name);
-    return parts.some((part) => part.includes(needle) || needle.includes(part));
-  });
-}
-
-function collectFilterOptions(values: string[], set: Set<string>) {
-  values.forEach((raw) => {
-    const label = formatFilterLabel(raw);
-    if (label) set.add(label);
-  });
-}
-
-function addFilterPartsFromField(raw: string, set: Set<string>) {
-  String(raw || '')
-    .split(/[&,]/)
-    .forEach((part) => {
-      const label = formatFilterLabel(part);
-      if (label) set.add(label);
-    });
 }
 
 function formatSongListItem(item: Record<string, unknown>) {
@@ -94,44 +64,78 @@ function sortSongsByTitle<T extends { Songtitle_transliteration?: string }>(song
   });
 }
 
-function buildFilterOptionsFromSongs(songs: ReturnType<typeof formatSongListItem>[]) {
-  const singersSet = new Set<string>();
-  const poetsSet = new Set<string>();
-
-  songs.forEach((song) => {
-    addFilterPartsFromField(song.singer, singersSet);
-    addFilterPartsFromField(song.poet, poetsSet);
-  });
-
-  return {
-    singers: Array.from(singersSet).sort(),
-    poets: Array.from(poetsSet).sort(),
-  };
+function parseFilterOptions(
+  rows: unknown[] | undefined,
+  nameKeys: string[]
+): ListingFilterOption[] {
+  if (!Array.isArray(rows)) return [];
+  const seen = new Set<string>();
+  const out: ListingFilterOption[] = [];
+  for (const raw of rows) {
+    const row = raw as Record<string, unknown>;
+    const id = String(row.id ?? '').trim();
+    if (!id || seen.has(id)) continue;
+    let label = '';
+    for (const key of nameKeys) {
+      const candidate = formatFilterLabel(String(row[key] ?? ''));
+      if (candidate) {
+        label = candidate;
+        break;
+      }
+    }
+    if (!label) continue;
+    seen.add(id);
+    out.push({ id, label });
+  }
+  return out.sort((a, b) => a.label.localeCompare(b.label));
 }
 
 function parseSongFiltersResponse(data: Record<string, unknown> | undefined) {
   const bucket = data || {};
-  const singers = dedupeOrderedStrings(
-    (Array.isArray(bucket.song) ? bucket.song : []).map((item) =>
-      String((item as { singer_name?: string }).singer_name || '')
-    )
-  ).sort((a, b) => a.localeCompare(b));
-  const poets = dedupeOrderedStrings(
-    (Array.isArray(bucket.poet) ? bucket.poet : []).map((item) =>
-      String((item as { poet_name?: string }).poet_name || '')
-    )
-  ).sort((a, b) => a.localeCompare(b));
+  const singers = parseFilterOptions(
+    Array.isArray(bucket.song) ? bucket.song : undefined,
+    ['singer_name', 'name']
+  );
+  const poets = parseFilterOptions(
+    Array.isArray(bucket.poet) ? bucket.poet : undefined,
+    ['poet_name', 'name']
+  );
   const themeBucket = Array.isArray(bucket.theme)
     ? bucket.theme
     : Array.isArray(bucket.them)
       ? bucket.them
       : [];
-  const themes = dedupeOrderedStrings(
-    themeBucket.map((item) =>
-      String((item as { word_transliteration?: string }).word_transliteration || '')
-    )
-  ).sort((a, b) => a.localeCompare(b));
+  const themes = parseFilterOptions(themeBucket, [
+    'word_transliteration',
+    'theme_name',
+    'name',
+  ]);
   return { singers, poets, themes };
+}
+
+/** Build query string with dims in hierarchy order (first key = base layer). */
+function buildFilterQuery(order: FilterDim[], ids: Record<FilterDim, string[]>): string {
+  const params = new URLSearchParams();
+  for (const dim of order) {
+    const values = ids[dim];
+    if (values.length > 0) params.set(dim, values.join(','));
+  }
+  return params.toString();
+}
+
+function toggleId(prev: string[], id: string): string[] {
+  return prev.includes(id) ? prev.filter((x) => x !== id) : [...prev, id];
+}
+
+function nextFilterOrder(
+  prevOrder: FilterDim[],
+  dim: FilterDim,
+  nextIds: string[]
+): FilterDim[] {
+  if (nextIds.length > 0) {
+    return prevOrder.includes(dim) ? prevOrder : [...prevOrder, dim];
+  }
+  return prevOrder.filter((d) => d !== dim);
 }
 
 export default function CLSongsIndex() {
@@ -139,55 +143,196 @@ export default function CLSongsIndex() {
   const { setSongsNavTotal } = useContext(SongsNavCountContext);
   const [activeFilter, setActiveFilter] = useState(SONGS_FILTER[0]);
 
-  const [singerNames, setSingerNames] = useState<string[]>([]);
-  const [poetNames, setPoetNames] = useState<string[]>([]);
-  const [themeNames, setThemeNames] = useState<string[]>([]);
+  /** Selected filter IDs (not names). */
+  const [singerIds, setSingerIds] = useState<string[]>([]);
+  const [poetIds, setPoetIds] = useState<string[]>([]);
+  const [themeIds, setThemeIds] = useState<string[]>([]);
+
+  /**
+   * Hierarchy of active filter dims — first entry is the base layer whose option
+   * list stays frozen at the initial full catalog list.
+   */
+  const [filterOrder, setFilterOrder] = useState<FilterDim[]>([]);
+
+  /** Initial full lists from `/Api/song_filters` (no params). */
+  const [fullSingers, setFullSingers] = useState<ListingFilterOption[]>([]);
+  const [fullPoets, setFullPoets] = useState<ListingFilterOption[]>([]);
+  const [fullThemes, setFullThemes] = useState<ListingFilterOption[]>([]);
+
+  /** Lists currently shown in the drawer (cascaded for non-locked dims). */
+  const [availableSingers, setAvailableSingers] = useState<ListingFilterOption[]>([]);
+  const [availablePoets, setAvailablePoets] = useState<ListingFilterOption[]>([]);
+  const [availableThemes, setAvailableThemes] = useState<ListingFilterOption[]>([]);
 
   const [allSongs, setAllSongs] = useState<any[]>([]);
-  const [availableSingers, setAvailableSingers] = useState<string[]>([]);
-  const [availablePoets, setAvailablePoets] = useState<string[]>([]);
-  const [availableThemes, setAvailableThemes] = useState<string[]>([]);
-
   const [isLoading, setIsLoading] = useState(true);
   const [loadingMore, setLoadingMore] = useState(false);
   const [apiPage, setApiPage] = useState(1);
   const [catalogTotal, setCatalogTotal] = useState<number | null>(null);
   const [visibleCount, setVisibleCount] = useState(SONGS_PER_PAGE);
 
-  // Server-side filtered results (A-Z letter + singer/poet/theme). When any filter is
-  // active we query `/Api/list` with those params so results span the whole catalog,
-  // not just the pages already loaded in browse mode.
   const [filterSongs, setFilterSongs] = useState<any[]>([]);
   const [filterLoading, setFilterLoading] = useState(false);
 
+  const selectedIds = useMemo(
+    () => ({ singer: singerIds, poet: poetIds, theme: themeIds }),
+    [singerIds, poetIds, themeIds]
+  );
+
+  const labelLookup = useMemo(() => {
+    const map = new Map<string, string>();
+    const ingest = (dim: FilterDim, list: ListingFilterOption[]) => {
+      list.forEach((opt) => map.set(`${dim}:${opt.id}`, opt.label));
+    };
+    ingest('singer', fullSingers);
+    ingest('poet', fullPoets);
+    ingest('theme', fullThemes);
+    ingest('singer', availableSingers);
+    ingest('poet', availablePoets);
+    ingest('theme', availableThemes);
+    return map;
+  }, [
+    fullSingers,
+    fullPoets,
+    fullThemes,
+    availableSingers,
+    availablePoets,
+    availableThemes,
+  ]);
+
+  /** Ensure chips always have labels even if an option dropped out of a cascaded list. */
+  const panelSingers = useMemo(() => {
+    const byId = new Map(availableSingers.map((o) => [o.id, o]));
+    singerIds.forEach((id) => {
+      if (!byId.has(id)) {
+        byId.set(id, {
+          id,
+          label: labelLookup.get(`singer:${id}`) || id,
+        });
+      }
+    });
+    return Array.from(byId.values());
+  }, [availableSingers, singerIds, labelLookup]);
+
+  const panelPoets = useMemo(() => {
+    const byId = new Map(availablePoets.map((o) => [o.id, o]));
+    poetIds.forEach((id) => {
+      if (!byId.has(id)) {
+        byId.set(id, {
+          id,
+          label: labelLookup.get(`poet:${id}`) || id,
+        });
+      }
+    });
+    return Array.from(byId.values());
+  }, [availablePoets, poetIds, labelLookup]);
+
+  const panelThemes = useMemo(() => {
+    const byId = new Map(availableThemes.map((o) => [o.id, o]));
+    themeIds.forEach((id) => {
+      if (!byId.has(id)) {
+        byId.set(id, {
+          id,
+          label: labelLookup.get(`theme:${id}`) || id,
+        });
+      }
+    });
+    return Array.from(byId.values());
+  }, [availableThemes, themeIds, labelLookup]);
+
+  const applyCascadedFilterLists = useCallback(
+    (
+      order: FilterDim[],
+      parsed: {
+        singers: ListingFilterOption[];
+        poets: ListingFilterOption[];
+        themes: ListingFilterOption[];
+      },
+      full: {
+        singers: ListingFilterOption[];
+        poets: ListingFilterOption[];
+        themes: ListingFilterOption[];
+      }
+    ) => {
+      const locked = new Set(order);
+      const base = order[0];
+
+      const nextSingers =
+        base === 'singer'
+          ? full.singers
+          : locked.has('singer')
+            ? null
+            : parsed.singers;
+      const nextPoets =
+        base === 'poet' ? full.poets : locked.has('poet') ? null : parsed.poets;
+      const nextThemes =
+        base === 'theme'
+          ? full.themes
+          : locked.has('theme')
+            ? null
+            : parsed.themes;
+
+      if (nextSingers) setAvailableSingers(nextSingers);
+      if (nextPoets) setAvailablePoets(nextPoets);
+      if (nextThemes) setAvailableThemes(nextThemes);
+    },
+    []
+  );
+
   const handleFilterSelect = (type: FilterType, value: string) => {
-    if (type === 'Singer') {
-      setSingerNames((prev) =>
-        prev.includes(value) ? prev.filter((i) => i !== value) : [...prev, value]
-      );
-    }
-    if (type === 'Poet') {
-      setPoetNames((prev) =>
-        prev.includes(value) ? prev.filter((i) => i !== value) : [...prev, value]
-      );
-    }
-    if (type === 'Theme') {
-      setThemeNames((prev) =>
-        prev.includes(value) ? prev.filter((i) => i !== value) : [...prev, value]
-      );
+    const dim = DIM_FROM_TYPE[type];
+    if (dim === 'singer') {
+      setSingerIds((prev) => {
+        const next = toggleId(prev, value);
+        setFilterOrder((order) => nextFilterOrder(order, dim, next));
+        return next;
+      });
+    } else if (dim === 'poet') {
+      setPoetIds((prev) => {
+        const next = toggleId(prev, value);
+        setFilterOrder((order) => nextFilterOrder(order, dim, next));
+        return next;
+      });
+    } else {
+      setThemeIds((prev) => {
+        const next = toggleId(prev, value);
+        setFilterOrder((order) => nextFilterOrder(order, dim, next));
+        return next;
+      });
     }
   };
 
   const handleRemoveFilter = (type: FilterType, value: string) => {
-    if (type === 'Singer') setSingerNames((prev) => prev.filter((i) => i !== value));
-    if (type === 'Poet') setPoetNames((prev) => prev.filter((i) => i !== value));
-    if (type === 'Theme') setThemeNames((prev) => prev.filter((i) => i !== value));
+    const dim = DIM_FROM_TYPE[type];
+    if (dim === 'singer') {
+      setSingerIds((prev) => {
+        const next = prev.filter((i) => i !== value);
+        setFilterOrder((order) => nextFilterOrder(order, dim, next));
+        return next;
+      });
+    } else if (dim === 'poet') {
+      setPoetIds((prev) => {
+        const next = prev.filter((i) => i !== value);
+        setFilterOrder((order) => nextFilterOrder(order, dim, next));
+        return next;
+      });
+    } else {
+      setThemeIds((prev) => {
+        const next = prev.filter((i) => i !== value);
+        setFilterOrder((order) => nextFilterOrder(order, dim, next));
+        return next;
+      });
+    }
   };
 
   const handleClearAllFilters = () => {
-    setSingerNames([]);
-    setPoetNames([]);
-    setThemeNames([]);
+    setSingerIds([]);
+    setPoetIds([]);
+    setThemeIds([]);
+    setFilterOrder([]);
+    setAvailableSingers(fullSingers);
+    setAvailablePoets(fullPoets);
+    setAvailableThemes(fullThemes);
   };
 
   const fetchSongsPage = useCallback(
@@ -246,6 +391,7 @@ export default function CLSongsIndex() {
     void fetchSongsPage(1, true);
   }, [fetchSongsPage]);
 
+  // Initial full filter catalogs (no cascade params).
   useEffect(() => {
     const fetchSongFilters = async () => {
       try {
@@ -254,33 +400,76 @@ export default function CLSongsIndex() {
         const json = await res.json();
         if (!json?.status) return;
         const { singers, poets, themes } = parseSongFiltersResponse(json.data);
-        if (singers.length) setAvailableSingers(singers);
-        if (poets.length) setAvailablePoets(poets);
-        if (themes.length) setAvailableThemes(themes);
+        setFullSingers(singers);
+        setFullPoets(poets);
+        setFullThemes(themes);
+        setAvailableSingers(singers);
+        setAvailablePoets(poets);
+        setAvailableThemes(themes);
       } catch {
-        /* Fallback to options derived from loaded song rows */
+        /* Lists stay empty until API recovers */
       }
     };
     void fetchSongFilters();
   }, []);
 
-  useEffect(() => {
-    const { singers, poets } = buildFilterOptionsFromSongs(allSongs);
-    setAvailableSingers((prev) => (prev.length ? prev : singers));
-    setAvailablePoets((prev) => (prev.length ? prev : poets));
-  }, [allSongs]);
-
   const activeLetter =
     activeFilter && activeFilter.toLowerCase() !== 'all' ? activeFilter.toLowerCase().trim() : '';
 
+  const hasChipFilters =
+    singerIds.length > 0 || poetIds.length > 0 || themeIds.length > 0;
   const hasActiveFilters =
-    activeFilter !== SONGS_FILTER[0] ||
-    singerNames.length > 0 ||
-    poetNames.length > 0 ||
-    themeNames.length > 0;
+    activeFilter !== SONGS_FILTER[0] || hasChipFilters;
 
-  // Fetch the server-filtered catalog whenever a filter (A-Z / singer / poet / theme) is active.
-  // `/Api/list` filters server-side: search (contains, title), singer, poet, theme — combined with AND.
+  // Cascade option lists whenever chip selection / hierarchy changes.
+  useEffect(() => {
+    if (!hasChipFilters) {
+      if (fullSingers.length || fullPoets.length || fullThemes.length) {
+        setAvailableSingers(fullSingers);
+        setAvailablePoets(fullPoets);
+        setAvailableThemes(fullThemes);
+      }
+      return;
+    }
+
+    let cancelled = false;
+    const query = buildFilterQuery(filterOrder, selectedIds);
+    if (!query) return;
+
+    const loadFilterOptions = async () => {
+      try {
+        const res = await fetch(`${AJAB_API_BASE}/Api/song_filters?${query}`, {
+          cache: 'no-store',
+        });
+        if (!res.ok || cancelled) return;
+        const json = await res.json();
+        if (!json?.status || cancelled) return;
+        const parsed = parseSongFiltersResponse(json.data);
+        applyCascadedFilterLists(filterOrder, parsed, {
+          singers: fullSingers,
+          poets: fullPoets,
+          themes: fullThemes,
+        });
+      } catch {
+        /* Keep current lists on network errors */
+      }
+    };
+
+    void loadFilterOptions();
+    return () => {
+      cancelled = true;
+    };
+  }, [
+    hasChipFilters,
+    filterOrder,
+    selectedIds,
+    fullSingers,
+    fullPoets,
+    fullThemes,
+    applyCascadedFilterLists,
+  ]);
+
+  // Fetch filtered song rows via `/Api/list` with the same ID params (same key order).
   useEffect(() => {
     if (!hasActiveFilters) {
       setFilterSongs([]);
@@ -293,37 +482,23 @@ export default function CLSongsIndex() {
     const loadFiltered = async () => {
       setFilterLoading(true);
 
-      const params = new URLSearchParams({
-        // A-Z letter → `search` (server does a contains match; we refine to starts-with below).
-        search: activeLetter,
-        page: '1',
-        limit: '1000',
-        singer: singerNames.join(','),
-        poet: poetNames.join(','),
-        theme: themeNames.join(','),
-      });
+      const params = new URLSearchParams();
+      if (activeLetter) params.set('search', activeLetter);
+      params.set('page', '1');
+      params.set('limit', '1000');
+
+      // Append hierarchy dims in order so the first key is the base layer.
+      for (const dim of filterOrder) {
+        const values = selectedIds[dim];
+        if (values.length > 0) params.set(dim, values.join(','));
+      }
 
       try {
         const res = await fetch(`${AJAB_API_BASE}/Api/list?${params.toString()}`, {
           cache: 'no-store',
         });
         const data = res.ok ? await res.json() : null;
-        let rows: Record<string, unknown>[] = Array.isArray(data?.data) ? data.data : [];
-
-        // Backend can't AND multiple comma values (and some names have irregular spacing),
-        // so if a chip selection returns nothing, fall back to the full catalog and filter client-side.
-        if (
-          rows.length === 0 &&
-          (singerNames.length > 0 || poetNames.length > 0 || themeNames.length > 0)
-        ) {
-          const fullRes = await fetch(
-            `${AJAB_API_BASE}/Api/list?search=&page=1&limit=1000&singer=&poet=`,
-            { cache: 'no-store' }
-          );
-          const fullData = fullRes.ok ? await fullRes.json() : null;
-          rows = Array.isArray(fullData?.data) ? fullData.data : [];
-        }
-
+        const rows: Record<string, unknown>[] = Array.isArray(data?.data) ? data.data : [];
         if (cancelled) return;
         setFilterSongs(sortSongsByTitle(rows.map((item) => formatSongListItem(item))));
       } catch {
@@ -337,33 +512,20 @@ export default function CLSongsIndex() {
     return () => {
       cancelled = true;
     };
-  }, [hasActiveFilters, activeLetter, singerNames, poetNames, themeNames]);
+  }, [hasActiveFilters, activeLetter, filterOrder, selectedIds]);
 
-  // Filtered results come from the server query; browse mode uses the paginated `allSongs`.
   const filteredSongs = useMemo(() => {
     let result = hasActiveFilters ? [...filterSongs] : [...allSongs];
 
-    // 1. A-Z Letter Filter (strict starts-with — server `search` is a contains match).
+    // A-Z letter: server `search` is contains — refine to starts-with for the letter bar.
     if (activeLetter) {
       result = result.filter((song) =>
         (song.Songtitle_transliteration || '').toLowerCase().trim().startsWith(activeLetter)
       );
     }
 
-    // 2. Singer Filter (safety refine — also covers the full-catalog fallback path).
-    if (singerNames.length > 0) {
-      result = result.filter((song) => fieldMatchesFilters(song.singer || '', singerNames));
-    }
-
-    // 3. Poet Filter
-    if (poetNames.length > 0) {
-      result = result.filter((song) => fieldMatchesFilters(song.poet || '', poetNames));
-    }
-
-    // Theme is filtered server-side via the `theme` param (song rows carry no theme field to refine).
-
     return result;
-  }, [allSongs, filterSongs, hasActiveFilters, activeLetter, singerNames, poetNames, themeNames]);
+  }, [allSongs, filterSongs, hasActiveFilters, activeLetter]);
 
   const displayedSongs = useMemo(() => {
     return filteredSongs.slice(0, visibleCount);
@@ -382,7 +544,6 @@ export default function CLSongsIndex() {
   const handleLoadMore = () => {
     if (loadingMore) return;
 
-    // Filter mode: the full filtered set is already loaded — paginate it client-side.
     if (hasActiveFilters) {
       if (visibleCount < filteredSongs.length) {
         setVisibleCount((prev) => prev + SONGS_PER_PAGE);
@@ -402,10 +563,9 @@ export default function CLSongsIndex() {
     }
   };
 
-  // Reset page pagination count when active filters change
   useEffect(() => {
     setVisibleCount(SONGS_PER_PAGE);
-  }, [activeFilter, singerNames, poetNames, themeNames]);
+  }, [activeFilter, singerIds, poetIds, themeIds]);
 
   if (isLoading) {
     return <Loader />;
@@ -431,9 +591,9 @@ export default function CLSongsIndex() {
             <ListingFilterBar
               allActive={
                 activeFilter === SONGS_FILTER[0] &&
-                singerNames.length === 0 &&
-                poetNames.length === 0 &&
-                themeNames.length === 0
+                singerIds.length === 0 &&
+                poetIds.length === 0 &&
+                themeIds.length === 0
               }
               onAllClick={() => {
                 setActiveFilter(SONGS_FILTER[0]);
@@ -443,12 +603,12 @@ export default function CLSongsIndex() {
                 onFilterSelect: handleFilterSelect,
                 onRemoveFilter: handleRemoveFilter,
                 onClearAll: handleClearAllFilters,
-                selectedSingers: singerNames,
-                selectedPoets: poetNames,
-                selectedThemes: themeNames,
-                availableSingers,
-                availablePoets,
-                availableThemes,
+                selectedSingers: singerIds,
+                selectedPoets: poetIds,
+                selectedThemes: themeIds,
+                availableSingers: panelSingers,
+                availablePoets: panelPoets,
+                availableThemes: panelThemes,
               }}
               azRow={
                 <div className="cl-az-row">

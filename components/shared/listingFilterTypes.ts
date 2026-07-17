@@ -1,11 +1,17 @@
 /** Shared listing filter categories — internal keys used by CLFilterPanel. */
 export type ListingFilterCategory = 'Singer' | 'Poet' | 'Theme';
 
+/** Songs listing uses `{ id, label }` (API IDs). Other modules may still pass plain name strings. */
+export type ListingFilterOption = { id: string; label: string };
+
+export type ListingFilterOptionInput = string | ListingFilterOption;
+
 export type ListingFilterLabels = Partial<Record<ListingFilterCategory, string>>;
 
 export type ListingFilterLists = Record<ListingFilterCategory, string[]>;
 
 export type ListingFilterHandlers = {
+  /** `value` is the option id when lists use `{ id, label }`, otherwise the display name. */
   onFilterSelect: (type: ListingFilterCategory, value: string) => void;
   onRemoveFilter: (type: ListingFilterCategory, value: string) => void;
   onClearAll: () => void;
@@ -19,9 +25,9 @@ export type ListingFilterSelection = {
 
 export type ListingFilterPanelProps = ListingFilterHandlers &
   ListingFilterSelection & {
-    availableSingers?: string[];
-    availablePoets?: string[];
-    availableThemes?: string[];
+    availableSingers?: ListingFilterOptionInput[];
+    availablePoets?: ListingFilterOptionInput[];
+    availableThemes?: ListingFilterOptionInput[];
     categoryLabels?: ListingFilterLabels;
     /** Max combined chips — omit for unlimited (Songs listing). */
     maxFilters?: number;
