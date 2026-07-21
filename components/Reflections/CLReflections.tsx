@@ -39,6 +39,7 @@ import ListingFilterBar from '@/components/shared/ListingFilterBar';
 import RepeatingPageBackground from '@/components/shared/RepeatingPageBackground';
 import { REFLECTIONS_LISTING_BG } from '@/lib/pageBackgroundTiles';
 import WavyCard from '@/components/shared/WavyCard';
+import type { ListingFilterOption } from '@/components/shared/listingFilterTypes';
 import {
   REFLECTIONS_INTRO,
   MOCK_REFLECTIONS,
@@ -50,7 +51,6 @@ import './CLReflections.css';
 import { AJAB_API_BASE } from '@/lib/ajabEnv';
 import { getSpeakerNameMap } from '@/lib/speakerNames';
 import { catalogHasMore, mergeCatalogById } from '@/lib/catalogPagination';
-import { dedupeOrderedStrings } from '@/lib/dedupeStrings';
 import { parseCatalogTotal } from '@/lib/parseCatalogTotal';
 import { ReflectionsNavCountContext } from '@/components/Reflections/ReflectionsNavCountContext';
 
@@ -66,16 +66,12 @@ function pickReflectionExcerpt(raw: unknown): string {
 }
 
 type FilterType = 'Singer' | 'Poet' | 'Theme';
+type FilterDim = 'speaker' | 'format' | 'theme';
 
-/** Set true when CMS theme tags align with reflection_filter (see reflection_list?theme=). */
-const REFLECTION_LIST_USE_THEME_API = false;
-// When enabling: buildReflectionListQuery already appends theme={id}; client-side theme
-// filtering is skipped once usesServerThemeFilter is true.
-
-type ReflectionListQuery = {
-  bySpeaker?: string;
-  format?: string;
-  theme?: string;
+const DIM_FROM_TYPE: Record<FilterType, FilterDim> = {
+  Singer: 'speaker',
+  Poet: 'format',
+  Theme: 'theme',
 };
 
 function speakerFilterLabel(row: {
@@ -86,50 +82,97 @@ function speakerFilterLabel(row: {
   return [row.first_name, row.middle_name, row.last_name].filter(Boolean).join(' ').trim();
 }
 
-/** CMS accepts one by_speaker / format / theme per request — fan out when multiple chips selected. */
-function buildReflectionListQueries(
-  selectedSpeakers: string[],
-  selectedFormats: string[],
-  selectedThemes: string[],
-  speakerIdByLabel: Record<string, string>,
-  themeIdByLabel: Record<string, string>
-): ReflectionListQuery[] {
-  const speakerIds = selectedSpeakers
-    .map((label) => speakerIdByLabel[label])
-    .filter((id): id is string => !!id);
-  const formatLabels = selectedFormats.length ? selectedFormats : [undefined];
-  const speakerKeys = speakerIds.length ? speakerIds : [undefined];
+function normalizeFilterLabel(value: unknown): string {
+  return String(value ?? '').replace(/\s+/g, ' ').trim();
+}
 
-  const queries: ReflectionListQuery[] = [];
-  for (const bySpeaker of speakerKeys) {
-    for (const format of formatLabels) {
-      const query: ReflectionListQuery = {};
-      if (bySpeaker) query.bySpeaker = bySpeaker;
-      if (format) query.format = format;
-      if (REFLECTION_LIST_USE_THEME_API && selectedThemes.length === 1) {
-        const themeId = themeIdByLabel[selectedThemes[0]];
-        if (themeId) query.theme = themeId;
-      }
-      queries.push(query);
-    }
+function parseFilterOptions(
+  rows: unknown,
+  getLabel: (row: Record<string, unknown>) => string
+): ListingFilterOption[] {
+  if (!Array.isArray(rows)) return [];
+  const seen = new Set<string>();
+  const options: ListingFilterOption[] = [];
+  for (const raw of rows) {
+    const row = raw as Record<string, unknown>;
+    const id = String(row.id ?? '').trim();
+    const label = normalizeFilterLabel(getLabel(row));
+    if (!id || !label || seen.has(id)) continue;
+    seen.add(id);
+    options.push({ id, label });
   }
-
-  return queries.length ? queries : [{}];
+  return options.sort((a, b) => a.label.localeCompare(b.label));
 }
 
-function queriesNeedServerFetch(queries: ReflectionListQuery[]): boolean {
-  return queries.some((q) => !!(q.bySpeaker || q.format || q.theme));
+function parseReflectionFilters(data: Record<string, unknown> | undefined) {
+  const bucket = data || {};
+  return {
+    speakers: parseFilterOptions(bucket.speaker, (row) =>
+      speakerFilterLabel(row as {
+        first_name?: string;
+        middle_name?: string;
+        last_name?: string;
+      })
+    ),
+    themes: parseFilterOptions(
+      bucket.theme,
+      (row) => String(row.word_transliteration ?? row.name ?? '')
+    ),
+    formats: parseFilterOptions(
+      bucket.format,
+      (row) => String(row.name ?? row.id ?? '')
+    ),
+  };
 }
 
-function reflectionListUrl(page: number, limit: number, query: ReflectionListQuery): string {
-  const params = new URLSearchParams({
-    page: String(page),
-    limit: String(limit),
-  });
-  if (query.bySpeaker) params.set('by_speaker', query.bySpeaker);
-  if (query.format) params.set('format', query.format);
-  if (query.theme) params.set('theme', query.theme);
+function buildFilterQuery(order: FilterDim[], ids: Record<FilterDim, string[]>): string {
+  const params = new URLSearchParams();
+  for (const dim of order) {
+    if (ids[dim].length) params.set(dim, ids[dim].join(','));
+  }
+  return params.toString();
+}
+
+function reflectionListUrl(
+  page: number,
+  limit: number,
+  order: FilterDim[] = [],
+  ids: Record<FilterDim, string[]> = { speaker: [], format: [], theme: [] }
+): string {
+  const params = new URLSearchParams();
+  for (const dim of order) {
+    const values = ids[dim];
+    if (!values.length) continue;
+    params.set(dim === 'speaker' ? 'by_speaker' : dim, values.join(','));
+  }
+  params.set('page', String(page));
+  params.set('limit', String(limit));
   return `${AJAB_API_BASE}/Api/reflection_list?${params.toString()}`;
+}
+
+function toggleId(prev: string[], id: string): string[] {
+  return prev.includes(id) ? prev.filter((value) => value !== id) : [...prev, id];
+}
+
+function nextFilterOrder(
+  order: FilterDim[],
+  dim: FilterDim,
+  nextIds: string[]
+): FilterDim[] {
+  if (nextIds.length) return order.includes(dim) ? order : [...order, dim];
+  return order.filter((item) => item !== dim);
+}
+
+function optionsWithSelected(
+  available: ListingFilterOption[],
+  selectedIds: string[],
+  labels: Map<string, string>
+): ListingFilterOption[] {
+  const byId = new Map(available.map((option) => [option.id, option]));
+  for (const id of selectedIds) {
+    if (!byId.has(id)) byId.set(id, { id, label: labels.get(id) || id });
+  }
+  return Array.from(byId.values());
 }
 
 function parseRelatedKeywordIds(raw: unknown): string[] {
@@ -218,66 +261,88 @@ export default function CLReflections() {
   const [loadingMore, setLoadingMore] = useState(false);
   const [browsePage, setBrowsePage] = useState(1);
   const [visibleCount, setVisibleCount] = useState(REFLECTIONS_PER_PAGE);
-  const [availableSpeakers, setAvailableSpeakers] = useState<string[]>([]);
-  const [availableThemes, setAvailableThemes] = useState<string[]>([]);
-  const [availableFormats, setAvailableFormats] = useState<string[]>([]);
+
+  const [fullSpeakers, setFullSpeakers] = useState<ListingFilterOption[]>([]);
+  const [fullThemes, setFullThemes] = useState<ListingFilterOption[]>([]);
+  const [fullFormats, setFullFormats] = useState<ListingFilterOption[]>([]);
+  const [availableSpeakers, setAvailableSpeakers] = useState<ListingFilterOption[]>([]);
+  const [availableThemes, setAvailableThemes] = useState<ListingFilterOption[]>([]);
+  const [availableFormats, setAvailableFormats] = useState<ListingFilterOption[]>([]);
+
+  /** Selected API IDs. `filterOrder[0]` is the base list and remains complete. */
   const [selectedSpeakers, setSelectedSpeakers] = useState<string[]>([]);
   const [selectedThemes, setSelectedThemes] = useState<string[]>([]);
   const [selectedFormats, setSelectedFormats] = useState<string[]>([]);
+  const [filterOrder, setFilterOrder] = useState<FilterDim[]>([]);
 
-  const [themeIdByLabel, setThemeIdByLabel] = useState<Record<string, string>>({});
-  const [speakerIdByLabel, setSpeakerIdByLabel] = useState<Record<string, string>>({});
-
-  const speakerIdsReady =
-    selectedSpeakers.length === 0 ||
-    selectedSpeakers.every((label) => !!speakerIdByLabel[label]);
-
-  const listQueries = useMemo(
-    () =>
-      buildReflectionListQueries(
-        selectedSpeakers,
-        selectedFormats,
-        selectedThemes,
-        speakerIdByLabel,
-        themeIdByLabel
-      ),
-    [selectedSpeakers, selectedFormats, selectedThemes, speakerIdByLabel, themeIdByLabel]
+  const selectedIds = useMemo(
+    () => ({
+      speaker: selectedSpeakers,
+      format: selectedFormats,
+      theme: selectedThemes,
+    }),
+    [selectedSpeakers, selectedFormats, selectedThemes]
   );
 
-  const usesServerThemeFilter =
-    REFLECTION_LIST_USE_THEME_API && selectedThemes.length === 1 && !!listQueries[0]?.theme;
-  const usesServerListFilters = queriesNeedServerFetch(listQueries);
+  const speakerLabels = useMemo(
+    () => new Map(fullSpeakers.map((option) => [option.id, option.label])),
+    [fullSpeakers]
+  );
+  const themeLabels = useMemo(
+    () => new Map(fullThemes.map((option) => [option.id, option.label])),
+    [fullThemes]
+  );
+  const formatLabels = useMemo(
+    () => new Map(fullFormats.map((option) => [option.id, option.label])),
+    [fullFormats]
+  );
 
   const filterLists = useMemo(
     () => ({
-      speakers: availableSpeakers,
-      themes: availableThemes,
-      formats: availableFormats,
+      speakers: optionsWithSelected(availableSpeakers, selectedSpeakers, speakerLabels),
+      themes: optionsWithSelected(availableThemes, selectedThemes, themeLabels),
+      formats: optionsWithSelected(availableFormats, selectedFormats, formatLabels),
     }),
-    [availableSpeakers, availableThemes, availableFormats]
+    [
+      availableSpeakers,
+      availableThemes,
+      availableFormats,
+      selectedSpeakers,
+      selectedThemes,
+      selectedFormats,
+      speakerLabels,
+      themeLabels,
+      formatLabels,
+    ]
   );
 
   const hasActiveFilters =
     selectedSpeakers.length > 0 || selectedThemes.length > 0 || selectedFormats.length > 0;
 
-  const applyThemeClientFilter = useCallback(
-    (items: ReflectionCardData[]) => {
-      if (!selectedThemes.length || usesServerThemeFilter) return items;
-      return items.filter((r) => {
-        const ids = r.relatedKeywordIds || [];
-        return selectedThemes.some((label) => {
-          const themeId = themeIdByLabel[label];
-          return themeId ? ids.includes(themeId) : false;
-        });
-      });
+  const applyCascadedLists = useCallback(
+    (
+      order: FilterDim[],
+      parsed: ReturnType<typeof parseReflectionFilters>
+    ) => {
+      const locked = new Set(order);
+      const base = order[0];
+
+      if (base === 'speaker') setAvailableSpeakers(fullSpeakers);
+      else if (!locked.has('speaker')) setAvailableSpeakers(parsed.speakers);
+
+      if (base === 'theme') setAvailableThemes(fullThemes);
+      else if (!locked.has('theme')) setAvailableThemes(parsed.themes);
+
+      if (base === 'format') setAvailableFormats(fullFormats);
+      else if (!locked.has('format')) setAvailableFormats(parsed.formats);
     },
-    [selectedThemes, themeIdByLabel, usesServerThemeFilter]
+    [fullSpeakers, fullThemes, fullFormats]
   );
 
   const filteredReflections = useMemo(() => {
     if (!hasActiveFilters) return browseReflections;
-    return applyThemeClientFilter(filterReflections);
-  }, [hasActiveFilters, browseReflections, filterReflections, applyThemeClientFilter]);
+    return filterReflections;
+  }, [hasActiveFilters, browseReflections, filterReflections]);
 
   const displayedReflections = useMemo(
     () => filteredReflections.slice(0, visibleCount),
@@ -312,7 +377,7 @@ export default function CLReflections() {
 
       try {
         const res = await fetch(
-          reflectionListUrl(page, REFLECTIONS_PER_PAGE, {}),
+          reflectionListUrl(page, REFLECTIONS_PER_PAGE),
           { cache: 'no-store', signal: controller.signal }
         );
         clearTimeout(timeoutId);
@@ -322,7 +387,7 @@ export default function CLReflections() {
         if (!Array.isArray(data?.data)) return;
 
         const speakerNames = await getSpeakerNameMap();
-        const list: ReflectionCardData[] = data.data.map((it) =>
+        const list: ReflectionCardData[] = data.data.map((it: Record<string, unknown>) =>
           mapReflectionListItem(it, speakerNames)
         );
 
@@ -349,26 +414,20 @@ export default function CLReflections() {
   );
 
   const fetchFilteredReflections = useCallback(
-    async (queries: ReflectionListQuery[], signal: AbortSignal) => {
+    async (
+      order: FilterDim[],
+      ids: Record<FilterDim, string[]>,
+      signal: AbortSignal
+    ) => {
       const speakerNames = await getSpeakerNameMap();
-      const responses = await Promise.all(
-        queries.map(async (query) => {
-          const res = await fetch(
-            reflectionListUrl(1, REFLECTIONS_FILTER_FETCH_LIMIT, query),
-            { cache: 'no-store', signal }
-          );
-          if (!res.ok) return [] as Record<string, unknown>[];
-          const json = await res.json();
-          return Array.isArray(json?.data) ? json.data : [];
-        })
+      const res = await fetch(
+        reflectionListUrl(1, REFLECTIONS_FILTER_FETCH_LIMIT, order, ids),
+        { cache: 'no-store', signal }
       );
-
-      let merged: ReflectionCardData[] = [];
-      for (const rows of responses) {
-        const list = rows.map((it) => mapReflectionListItem(it, speakerNames));
-        merged = mergeCatalogById(merged, list);
-      }
-      return merged;
+      if (!res.ok) return [];
+      const json = await res.json();
+      const rows: Record<string, unknown>[] = Array.isArray(json?.data) ? json.data : [];
+      return rows.map((item) => mapReflectionListItem(item, speakerNames));
     },
     []
   );
@@ -398,40 +457,57 @@ export default function CLReflections() {
 
   useEffect(() => {
     if (!hasActiveFilters) {
-      setFilterReflections([]);
-      setFilterLoading(false);
+      setAvailableSpeakers(fullSpeakers);
+      setAvailableThemes(fullThemes);
+      setAvailableFormats(fullFormats);
       return;
     }
 
-    if (!usesServerListFilters && selectedThemes.length > 0) {
-      setFilterLoading(true);
-      const controller = new AbortController();
-      const timeoutId = setTimeout(() => controller.abort(), 15000);
-      void fetchFilteredReflections([{}], controller.signal)
-        .then((merged) => {
-          if (!controller.signal.aborted) setFilterReflections(merged);
-        })
-        .catch(() => {
-          if (!controller.signal.aborted) setFilterReflections([]);
-        })
-        .finally(() => {
-          clearTimeout(timeoutId);
-          if (!controller.signal.aborted) setFilterLoading(false);
+    const query = buildFilterQuery(filterOrder, selectedIds);
+    if (!query) return;
+
+    let cancelled = false;
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 15000);
+
+    const fetchCascadedFilters = async () => {
+      try {
+        const res = await fetch(`${AJAB_API_BASE}/Api/reflection_filter?${query}`, {
+          cache: 'no-store',
+          signal: controller.signal,
         });
-      return () => {
+        if (!res.ok) return;
+        const json = await res.json();
+        if (!cancelled && json?.status) {
+          applyCascadedLists(filterOrder, parseReflectionFilters(json.data));
+        }
+      } catch {
+        /* Keep the current option lists when the cascade request fails. */
+      } finally {
         clearTimeout(timeoutId);
-        controller.abort();
-      };
-    }
+      }
+    };
 
-    if (!usesServerListFilters) {
+    void fetchCascadedFilters();
+    return () => {
+      cancelled = true;
+      clearTimeout(timeoutId);
+      controller.abort();
+    };
+  }, [
+    hasActiveFilters,
+    filterOrder,
+    selectedIds,
+    fullSpeakers,
+    fullThemes,
+    fullFormats,
+    applyCascadedLists,
+  ]);
+
+  useEffect(() => {
+    if (!hasActiveFilters || filterOrder.length === 0) {
       setFilterReflections([]);
       setFilterLoading(false);
-      return;
-    }
-
-    if (selectedSpeakers.length > 0 && !speakerIdsReady) {
-      setFilterLoading(true);
       return;
     }
 
@@ -440,9 +516,9 @@ export default function CLReflections() {
     const timeoutId = setTimeout(() => controller.abort(), 15000);
     setFilterLoading(true);
 
-    void fetchFilteredReflections(listQueries, controller.signal)
-      .then((merged) => {
-        if (!cancelled) setFilterReflections(merged);
+    void fetchFilteredReflections(filterOrder, selectedIds, controller.signal)
+      .then((rows) => {
+        if (!cancelled) setFilterReflections(rows);
       })
       .catch(() => {
         if (!cancelled) setFilterReflections([]);
@@ -459,87 +535,76 @@ export default function CLReflections() {
     };
   }, [
     hasActiveFilters,
-    usesServerListFilters,
-    listQueries,
-    selectedThemes.length,
-    speakerIdsReady,
+    filterOrder,
+    selectedIds,
     fetchFilteredReflections,
   ]);
 
   const handleFilterSelect = (type: FilterType, value: string) => {
-    if (type === 'Singer') {
-      setSelectedSpeakers((prev) =>
-        prev.includes(value) ? prev.filter((x) => x !== value) : [...prev, value]
-      );
-    }
-    if (type === 'Poet') {
-      setSelectedFormats((prev) =>
-        prev.includes(value) ? prev.filter((x) => x !== value) : [...prev, value]
-      );
-    }
-    if (type === 'Theme') {
-      setSelectedThemes((prev) =>
-        prev.includes(value) ? prev.filter((x) => x !== value) : [...prev, value]
-      );
-    }
+    const dim = DIM_FROM_TYPE[type];
+    const update = (
+      setter: React.Dispatch<React.SetStateAction<string[]>>
+    ) => {
+      setter((prev) => {
+        const next = toggleId(prev, value);
+        setFilterOrder((order) => nextFilterOrder(order, dim, next));
+        return next;
+      });
+    };
+
+    if (dim === 'speaker') update(setSelectedSpeakers);
+    else if (dim === 'format') update(setSelectedFormats);
+    else update(setSelectedThemes);
   };
 
   const handleRemoveFilter = (type: FilterType, value: string) => {
-    if (type === 'Singer') setSelectedSpeakers((prev) => prev.filter((x) => x !== value));
-    if (type === 'Poet') setSelectedFormats((prev) => prev.filter((x) => x !== value));
-    if (type === 'Theme') setSelectedThemes((prev) => prev.filter((x) => x !== value));
+    const dim = DIM_FROM_TYPE[type];
+    const remove = (
+      setter: React.Dispatch<React.SetStateAction<string[]>>
+    ) => {
+      setter((prev) => {
+        const next = prev.filter((id) => id !== value);
+        setFilterOrder((order) => nextFilterOrder(order, dim, next));
+        return next;
+      });
+    };
+
+    if (dim === 'speaker') remove(setSelectedSpeakers);
+    else if (dim === 'format') remove(setSelectedFormats);
+    else remove(setSelectedThemes);
   };
 
   const clearAllFilters = () => {
     setSelectedSpeakers([]);
     setSelectedThemes([]);
     setSelectedFormats([]);
+    setFilterOrder([]);
+    setAvailableSpeakers(fullSpeakers);
+    setAvailableThemes(fullThemes);
+    setAvailableFormats(fullFormats);
   };
 
   useEffect(() => {
     const fetchFilters = async () => {
       try {
-        const res = await fetch(`${AJAB_API_BASE}/Api/reflection_filter`, { cache: 'no-store' });
+        const res = await fetch(`${AJAB_API_BASE}/Api/reflection_filter`, {
+          cache: 'no-store',
+        });
         if (!res.ok) return;
         const json = await res.json();
-        const data = json?.data || {};
-        const speakerRows = (data.speaker || []) as Array<{
-          id?: string;
-          first_name?: string;
-          middle_name?: string;
-          last_name?: string;
-        }>;
-        const speakers = dedupeOrderedStrings(
-          speakerRows.map((s) => speakerFilterLabel(s))
-        );
-        const themeRows = (data.theme || []) as Array<{ id?: string; word_transliteration?: string }>;
-        const themes = dedupeOrderedStrings(themeRows.map((t) => t.word_transliteration || ''));
-        const formatRows = (data.format || []) as Array<{ id?: string; name?: string }>;
-        const formats = dedupeOrderedStrings(
-          formatRows.map((f) => String(f.name || f.id || '').trim())
-        );
-        const themeMap: Record<string, string> = {};
-        themeRows.forEach((t) => {
-          const label = (t.word_transliteration || '').trim();
-          const themeId = String(t.id || '').trim();
-          if (label && themeId) themeMap[label] = themeId;
-        });
-        const speakerMap: Record<string, string> = {};
-        speakerRows.forEach((s) => {
-          const label = speakerFilterLabel(s);
-          const speakerId = String(s.id || '').trim();
-          if (label && speakerId) speakerMap[label] = speakerId;
-        });
-        setAvailableSpeakers(speakers);
-        setAvailableThemes(themes);
-        setAvailableFormats(formats);
-        setThemeIdByLabel(themeMap);
-        setSpeakerIdByLabel(speakerMap);
+        if (!json?.status) return;
+        const parsed = parseReflectionFilters(json.data);
+        setFullSpeakers(parsed.speakers);
+        setFullThemes(parsed.themes);
+        setFullFormats(parsed.formats);
+        setAvailableSpeakers(parsed.speakers);
+        setAvailableThemes(parsed.themes);
+        setAvailableFormats(parsed.formats);
       } catch {
-        /* API-only filter lists — leave empty when reflection_filter fails */
+        /* API-only filter lists — leave empty when reflection_filter fails. */
       }
     };
-    fetchFilters();
+    void fetchFilters();
   }, []);
 
   const headingCount = hasActiveFilters ? filteredReflections.length : (catalogTotal ?? 0);
