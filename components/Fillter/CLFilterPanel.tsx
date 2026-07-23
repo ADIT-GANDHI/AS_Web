@@ -108,6 +108,7 @@ export default function CLFilterPanel({
   availablePoets,
   availableThemes,
   categoryLabels = DEFAULT_CATEGORY_LABELS,
+  categoryOrder,
   maxFilters,
   useSongsMockFallback = false,
   hideTrigger = false,
@@ -159,6 +160,7 @@ export default function CLFilterPanel({
   const selectionsScrollRef = useRef<HTMLDivElement>(null);
   const [thumbTop, setThumbTop] = useState(0);
   const [thumbHeight, setThumbHeight] = useState(480);
+  const panelRef = useRef<HTMLDivElement>(null);
 
   const filterLists = useMemo(() => {
     const pick = (
@@ -288,14 +290,56 @@ export default function CLFilterPanel({
 
   useEffect(() => {
     if (!open) return;
-    const prev = document.body.style.overflow;
+    const prevBody = document.body.style.overflow;
+    const prevHtml = document.documentElement.style.overflow;
     document.body.style.overflow = 'hidden';
+    document.documentElement.style.overflow = 'hidden';
     return () => {
-      document.body.style.overflow = prev;
+      document.body.style.overflow = prevBody;
+      document.documentElement.style.overflow = prevHtml;
     };
   }, [open]);
 
-  const categories: FilterType[] = singleListMode ? ['Singer'] : ['Singer', 'Poet', 'Theme'];
+  /** Non-passive wheel lock: list scrolls inside the drawer; page behind never moves. */
+  useEffect(() => {
+    if (!open) return;
+
+    const onWheel = (event: WheelEvent) => {
+      const panel = panelRef.current;
+      const list = scrollRef.current;
+      const target = event.target as Node | null;
+      if (!panel || !target) return;
+
+      // Click/scroll outside the drawer panel → block page scroll.
+      if (!panel.contains(target)) {
+        event.preventDefault();
+        return;
+      }
+
+      // Inside the option list: allow scroll until the edge, then stop chaining.
+      if (list?.contains(target)) {
+        const { scrollTop, scrollHeight, clientHeight } = list;
+        const atTop = scrollTop <= 0;
+        const atBottom = scrollTop + clientHeight >= scrollHeight - 1;
+        if ((event.deltaY < 0 && atTop) || (event.deltaY > 0 && atBottom)) {
+          event.preventDefault();
+        }
+        return;
+      }
+
+      // Drawer chrome (tabs / chips) — don't scroll the page underneath.
+      event.preventDefault();
+    };
+
+    document.addEventListener('wheel', onWheel, { passive: false, capture: true });
+    return () => document.removeEventListener('wheel', onWheel, true);
+  }, [open]);
+
+  const categories: FilterType[] = singleListMode
+    ? ['Singer']
+    : categoryOrder?.length
+      ? categoryOrder
+      : ['Singer', 'Poet', 'Theme'];
   const labelFor = (cat: FilterType) => categoryLabels[cat] ?? cat;
 
   return (
@@ -352,6 +396,7 @@ export default function CLFilterPanel({
 
                   {/* Portaled drawer — wavy bg from top:0; header stacks above (z-index 10000). */}
                   <motion.div
+                  ref={panelRef}
                   style={{
                     position: 'fixed',
                     top: FILTER_DRAWER_TOP,
@@ -366,6 +411,7 @@ export default function CLFilterPanel({
                     zIndex: FILTER_DRAWER_Z_PANEL,
                     overflow: 'hidden',
                     pointerEvents: 'auto',
+                    overscrollBehavior: 'contain',
                   }}
                   initial={{ x: '-100%', opacity: 0 }}
                   animate={{ x: 0, opacity: 1 }}
@@ -520,6 +566,8 @@ export default function CLFilterPanel({
                         paddingTop: '14px',
                         paddingBottom: '24px',
                         width: '258px',
+                        overscrollBehavior: 'contain',
+                        touchAction: 'pan-y',
                       }}
                     >
                       <ul style={{ listStyle: 'none', margin: 0, padding: 0 }}>

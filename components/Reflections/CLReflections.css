@@ -335,8 +335,17 @@ body:has(.clrd-page) .nav-link--songs .nav-link-songs-count {
   margin: 0;
 }
 
+.clrd-description-body--clamped {
+  line-height: 1.4;
+  max-height: calc(1.4em * 3);
+  overflow: hidden;
+  white-space: normal;
+}
+
 .clrd-description-body.is-expanded {
   display: block;
+  max-height: none;
+  overflow: visible;
 }
 
 .clrd-description-more {

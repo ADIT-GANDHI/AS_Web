@@ -515,24 +515,29 @@ body:has(.clfd-page) .nav-link--films .nav-link-films-count {
   position: relative;
 }
 
+/* JS truncate places "...more" inline — use max-height (not -webkit-line-clamp)
+   so the button isn't clipped mid-line on first paint. */
 .clfd-about-text.clamped {
-  display: -webkit-box;
-  line-clamp: 3;
-  -webkit-line-clamp: 3;
-  -webkit-box-orient: vertical;
+  line-height: 1.4;
+  max-height: calc(1.4em * 4);
   overflow: hidden;
+  white-space: normal;
 }
 
 .clfd-description-more {
+  display: inline;
   color: var(--ajab-pink-primary);
   cursor: pointer;
   font-weight: 300;
   background: none;
   border: none;
   padding: 0;
+  margin: 0;
   font: inherit;
   font-size: inherit;
   line-height: inherit;
+  white-space: nowrap;
+  vertical-align: baseline;
 }
 
 /* PDF: HINDI | ENGLISH | KANNADA — left-aligned under video, all pink */

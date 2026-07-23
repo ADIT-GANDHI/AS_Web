@@ -640,6 +640,7 @@ export default function CLReflections() {
                 availablePoets: filterLists.formats,
                 availableThemes: filterLists.themes,
                 categoryLabels: { Singer: 'Speaker', Poet: 'Format', Theme: 'Theme' },
+                categoryOrder: ['Singer', 'Theme', 'Poet'],
                 filterTriggerAlwaysPink: true,
               }}
             />

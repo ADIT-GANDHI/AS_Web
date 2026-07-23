@@ -12,6 +12,8 @@
    Layout: rows are explicit so the wrap point doesn't drift with viewport
    width. Songs/Poems/Reflections/Films all use the 2 + 3 split (2 terms
    on the first row, 3 on the second) — render two .gs-row children.
+   Each .gs-term stays on one line (word + meaning); if a row is too
+   crowded, whole terms wrap to the next line via flex-wrap.
 ───────────────────────────────────────────── */
 
 .gs-strip {
@@ -28,7 +30,7 @@
 .gs-row {
   display: flex;
   justify-content: center;
-  flex-wrap: nowrap;
+  flex-wrap: wrap;
   gap: 36px;
 }
 
@@ -49,6 +51,8 @@
   position: relative;
   z-index: 1;
   pointer-events: auto;
+  /* Keep word + meaning as one unit — never wrap meaning under the term. */
+  white-space: nowrap;
 }
 
 .gs-term-word {

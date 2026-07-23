@@ -3,7 +3,7 @@
 // [Claude] Reflection detail page — fetches live data from Api/explore_reflection
 // and renders the title/saysBy header, YouTube embed, description and related section.
 
-import { useEffect, useMemo, useRef, useState, useContext } from 'react';
+import { useEffect, useLayoutEffect, useMemo, useRef, useState, useContext } from 'react';
 import { usePathname } from 'next/navigation';
 import YouTubeEmbedFrame from '@/components/Reusable/YouTubeEmbedFrame';
 import Link from 'next/link';
@@ -18,7 +18,7 @@ import {
   REFLECTIONS_RELATED,
 } from './CLReflectionMocks';
 import { AJAB_API_BASE } from '@/lib/ajabEnv';
-import { truncateAtWord } from '@/lib/truncateAtWord';
+import { truncateAtWord, truncateToFitLinesLive, moreButtonOnOwnLine } from '@/lib/truncateAtWord';
 import { getSpeakerNameMap } from '@/lib/speakerNames';
 import { parseCatalogTotal } from '@/lib/parseCatalogTotal';
 import { ReflectionsNavCountContext } from '@/components/Reflections/ReflectionsNavCountContext';
@@ -35,7 +35,8 @@ import '@/components/Songs/CLSongs.css';
 import '@/components/Songs/CLSongDetails.css';
 import './CLReflections.css';
 
-const DESCRIPTION_TRUNCATE = 220; /* ~3 lines at PDF column width (matches song detail) */
+const DESCRIPTION_MIN_CHARS = 180;
+const DESCRIPTION_CLAMP_LINES = 3;
 const RELATED_INITIAL_COUNT = 3;
 
 // [Claude] Same HTML stripper used across all detail pages
@@ -129,19 +130,86 @@ function mapApiGlossaryTerms(keywords: any[]): GlossaryStripTerm[] {
 
 function ReflectionDescription({ text }: { text: string }) {
   const [expanded, setExpanded] = useState(false);
-  const isLong = text.length > DESCRIPTION_TRUNCATE + 20;
+  const clampRef = useRef<HTMLParagraphElement>(null);
+  const normalized = useMemo(() => text.replace(/\s+/g, ' ').trim(), [text]);
+  const isLong = normalized.length > DESCRIPTION_MIN_CHARS;
+  const [clipped, setClipped] = useState(normalized);
 
-  if (!text) return null;
+  useLayoutEffect(() => {
+    setExpanded(false);
+  }, [normalized]);
+
+  useLayoutEffect(() => {
+    if (expanded || !isLong || !normalized) return;
+
+    let cancelled = false;
+    const timers: number[] = [];
+
+    const measure = () => {
+      const node = clampRef.current;
+      if (!node || cancelled || !node.querySelector('button')) return;
+      if (!node.getBoundingClientRect().width) return;
+      const next = truncateToFitLinesLive(node, normalized, DESCRIPTION_CLAMP_LINES);
+      setClipped((prev) => (prev === next ? prev : next));
+    };
+
+    const measureSoon = () => {
+      measure();
+      requestAnimationFrame(() => {
+        measure();
+        requestAnimationFrame(() => {
+          measure();
+          const live = clampRef.current;
+          if (live && moreButtonOnOwnLine(live)) measure();
+        });
+      });
+    };
+
+    measureSoon();
+
+    void (async () => {
+      try {
+        if (typeof document !== 'undefined' && document.fonts?.ready) {
+          await document.fonts.ready;
+        }
+      } catch {
+        /* ignore */
+      }
+      if (cancelled) return;
+      measureSoon();
+      [50, 150, 400].forEach((ms) => {
+        timers.push(window.setTimeout(measure, ms));
+      });
+    })();
+
+    const node = clampRef.current;
+    const observer = new ResizeObserver(measure);
+    if (node) observer.observe(node);
+
+    return () => {
+      cancelled = true;
+      timers.forEach((id) => window.clearTimeout(id));
+      observer.disconnect();
+    };
+  }, [normalized, expanded, isLong]);
+
+  if (!normalized) return null;
+
+  if (expanded || !isLong) {
+    return (
+      <div className="clrd-description">
+        <p className={`clrd-description-body${expanded ? ' is-expanded' : ''}`}>{normalized}</p>
+      </div>
+    );
+  }
 
   return (
     <div className="clrd-description">
-      <p className={`clrd-description-body${expanded ? ' is-expanded' : ''}`}>
-        {expanded || !isLong ? text : truncateAtWord(text, DESCRIPTION_TRUNCATE)}
-        {isLong && !expanded && (
-          <button type="button" className="clrd-description-more" onClick={() => setExpanded(true)}>
-            ...more
-          </button>
-        )}
+      <p ref={clampRef} className="clrd-description-body clrd-description-body--clamped">
+        {clipped}{' '}
+        <button type="button" className="clrd-description-more" onClick={() => setExpanded(true)}>
+          ...more
+        </button>
       </p>
     </div>
   );

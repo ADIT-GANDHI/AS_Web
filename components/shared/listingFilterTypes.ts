@@ -29,6 +29,11 @@ export type ListingFilterPanelProps = ListingFilterHandlers &
     availablePoets?: ListingFilterOptionInput[];
     availableThemes?: ListingFilterOptionInput[];
     categoryLabels?: ListingFilterLabels;
+    /**
+     * Tab order for the drawer categories. Defaults to Singer → Poet → Theme.
+     * Reflections uses Speaker → Theme → Format (`['Singer', 'Theme', 'Poet']`).
+     */
+    categoryOrder?: ListingFilterCategory[];
     /** Max combined chips — omit for unlimited (Songs listing). */
     maxFilters?: number;
     /** Single-column list (e.g. People occupation categories) — hides Singer/Poet/Theme tabs. */

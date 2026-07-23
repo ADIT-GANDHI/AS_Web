@@ -12,7 +12,7 @@ import {
 } from './filmFieldUtils';
 import { extractYouTubeId } from '@/lib/youtube';
 import { glossaryTermsFromKeywords } from '@/lib/parseKeywords';
-import { truncateAtWord, truncateToFitLines } from '@/lib/truncateAtWord';
+import { truncateAtWord, truncateToFitLinesLive, moreButtonOnOwnLine } from '@/lib/truncateAtWord';
 import { AJAB_API_BASE } from '@/lib/ajabEnv';
 import {
   EMPTY_RELATED,
@@ -136,8 +136,8 @@ interface FilmEpisode {
 
 const EPISODE_CAROUSEL_VISIBLE = 3;
 const RELATED_INITIAL_COUNT = 3;
-const ABOUT_MIN_LINES_CHARS = 220;
-const ABOUT_CLAMP_LINES = 3;
+const ABOUT_MIN_LINES_CHARS = 280;
+const ABOUT_CLAMP_LINES = 4;
 
 type RelatedListEntry = { bucket: string; item: any };
 
@@ -414,22 +414,69 @@ export default function CLFilmDetail({ id: idProp }: { id?: string }) {
     if (!isLong || descExpanded || !activeDescription) return;
 
     const normalized = activeDescription.replace(/\s+/g, ' ').trim();
+    let cancelled = false;
+    const timers: number[] = [];
+
     const measure = () => {
       const node = descClampRef.current;
-      if (!node) return;
-      setClippedDescription(
-        truncateToFitLines(node, normalized, ABOUT_CLAMP_LINES, '...more')
-      );
+      if (!node || cancelled) return;
+      if (!node.getBoundingClientRect().width) return;
+      // Must already have the "...more" button in the DOM (clamped render).
+      if (!node.querySelector('button')) return;
+
+      const next = truncateToFitLinesLive(node, normalized, ABOUT_CLAMP_LINES);
+      setClippedDescription((prev) => (prev === next ? prev : next));
     };
 
-    setClippedDescription(truncateAtWord(normalized, ABOUT_MIN_LINES_CHARS));
-    measure();
+    // Live-DOM measure (real fonts/width) — same path that works after Hindi→English.
+    const measureSoon = () => {
+      measure();
+      requestAnimationFrame(() => {
+        measure();
+        requestAnimationFrame(() => {
+          measure();
+          const live = descClampRef.current;
+          if (live && moreButtonOnOwnLine(live)) measure();
+        });
+      });
+    };
+
+    measureSoon();
+
+    void (async () => {
+      try {
+        if (typeof document !== 'undefined' && document.fonts?.ready) {
+          await document.fonts.ready;
+        }
+      } catch {
+        /* ignore */
+      }
+      if (cancelled) return;
+      measureSoon();
+      [50, 150, 400, 800].forEach((ms) => {
+        timers.push(window.setTimeout(measure, ms));
+      });
+    })();
+
+    const onFontsDone = () => {
+      if (!cancelled) measure();
+    };
+    document.fonts?.addEventListener?.('loadingdone', onFontsDone);
 
     const node = descClampRef.current;
-    if (!node) return;
     const observer = new ResizeObserver(measure);
-    observer.observe(node);
-    return () => observer.disconnect();
+    if (node) {
+      observer.observe(node);
+      const column = node.closest('.clfd-content');
+      if (column) observer.observe(column);
+    }
+
+    return () => {
+      cancelled = true;
+      timers.forEach((id) => window.clearTimeout(id));
+      observer.disconnect();
+      document.fonts?.removeEventListener?.('loadingdone', onFontsDone);
+    };
   }, [activeDescription, descExpanded, isLong]);
 
   const videoId = useMemo(() => {
