@@ -49,12 +49,13 @@ const getSearchItemTitle = (item: Record<string, any>, section: SearchCategory) 
   }
   if (section === 'poems') {
     return (
-      item.original_title ||
+      item.couplet_transliteration ||
       item.poem_title_english ||
       item.poem_title ||
-      item.couplet_transliteration ||
+      item.meta_title ||
       item.title ||
       item.english_translation ||
+      item.original_title ||
       'Untitled'
     );
   }
@@ -159,7 +160,7 @@ export default function Header() {
     if (!id) return '#';
     switch (section) {
       case 'songs':        return `/songs/details/${id}`;
-      case 'poems':        return `/poems/${id}`;
+      case 'poems':        return `/poems?id=${id}`;
       case 'reflections':  return `/reflections/details/${id}`;
       case 'people':       return `/people/${id}`;
       case 'films':        return `/films/details/${id}`;

@@ -10,7 +10,7 @@ import Link from 'next/link';
 import Header from '@/components/Header';
 import Loader from '@/components/Loader';
 import { CLGlossaryPopup } from '@/components/Poems/CLPoemPopups';
-import GlossaryStrip, { type GlossaryStripTerm } from '@/components/shared/GlossaryStrip';
+import ExploreSection from '@/components/shared/ExploreSection';
 import RepeatingPageBackground from '@/components/shared/RepeatingPageBackground';
 import { REFLECTIONS_DETAIL_BG } from '@/lib/pageBackgroundTiles';
 import {
@@ -28,8 +28,6 @@ import {
   asRelatedContent,
   type RelatedContent,
 } from '@/lib/mapRelatedResponse';
-import { getRelatedDetailHref } from '@/lib/relatedDetailHref';
-import { resolveCmsAssetUrl, withAppBasePath } from '@/lib/resolveCmsAssetUrl';
 import '@/styles/CustomStyle.css';
 import '@/components/Songs/CLSongs.css';
 import '@/components/Songs/CLSongDetails.css';
@@ -37,7 +35,6 @@ import './CLReflections.css';
 
 const DESCRIPTION_MIN_CHARS = 180;
 const DESCRIPTION_CLAMP_LINES = 3;
-const RELATED_INITIAL_COUNT = 3;
 
 // [Claude] Same HTML stripper used across all detail pages
 function htmlToPlainText(raw: string): string {
@@ -84,48 +81,6 @@ function mapApiItem(it: any, speakerNames: Record<string, string>): ReflectionDe
     ),
     format: (it.format || 'Interview'),
   };
-}
-
-function getRelatedItemDescription(item: any): string {
-  return htmlToPlainText(
-    String(item?.about || item?.description || item?.meta_description || item?.thumbnail_excerpt || '')
-  );
-}
-
-type RelatedListEntry = { bucket: string; item: any };
-
-function relatedEntryKey(bucket: string, item: any, index: number): string {
-  const entryId = item?.id != null && item?.id !== '' ? String(item.id) : 'noid';
-  return `${bucket}-${entryId}-${index}`;
-}
-
-function buildAllRelatedEntries(data: Record<string, any[]>): RelatedListEntry[] {
-  const blocks: Array<[string, any[]]> = [
-    ['songs', data.songs || []],
-    ['poems', data.poems || []],
-    ['reflections', data.reflections || []],
-    ['other', [...(data.other || []), ...(data.films || [])]],
-  ];
-  return blocks.flatMap(([bucket, items]) => items.map((item) => ({ bucket, item })));
-}
-
-/** Related API `keywords` bucket → wavy pill terms (API only, no static fallback).
- *  Search href is applied by GlossaryStrip (same as song detail). */
-function mapApiGlossaryTerms(keywords: any[]): GlossaryStripTerm[] {
-  const terms = keywords
-    .map((k) => {
-      const term = htmlToPlainText(
-        String(k.word_transliteration || k.title || k.term || k.word || '')
-      );
-      const meaning = htmlToPlainText(
-        String(k.word_translation || k.subtitle || k.meaning || k.translation || '')
-      );
-      if (!term) return null;
-      return { term, meaning };
-    })
-    .filter((t): t is GlossaryStripTerm => t != null);
-
-  return terms;
 }
 
 function ReflectionDescription({ text }: { text: string }) {
@@ -227,10 +182,7 @@ export default function CLReflectionDetail({ id: idProp }: { id?: string }) {
   const [data, setData] = useState<ReflectionDetail | null>(null);
   const [loading, setLoading] = useState(true);
   const [related, setRelated] = useState<RelatedContent>(EMPTY_RELATED);
-  const [activeTab, setActiveTab] = useState<'all' | 'songs' | 'poems' | 'reflections' | 'other'>('songs');
   const [showGlossary, setShowGlossary] = useState(false);
-  const [relatedExpanded, setRelatedExpanded] = useState<Record<string, boolean>>({});
-  const [relatedListExpanded, setRelatedListExpanded] = useState(false);
 
   useEffect(() => {
     fetch(`${AJAB_API_BASE}/Api/reflection_list?page=1&limit=1`, { cache: 'no-store' })
@@ -273,11 +225,6 @@ export default function CLReflectionDetail({ id: idProp }: { id?: string }) {
   }, [id]);
 
   useEffect(() => {
-    setRelatedExpanded({});
-    setRelatedListExpanded(false);
-  }, [activeTab]);
-
-  useEffect(() => {
     if (!id) {
       setRelated(asRelatedContent(REFLECTIONS_RELATED));
       return;
@@ -291,40 +238,6 @@ export default function CLReflectionDetail({ id: idProp }: { id?: string }) {
       cancelled = true;
     };
   }, [id]);
-
-  const counts = related.counts;
-  const tabs = [
-    { key: 'all' as const, label: 'ALL', count: counts.all },
-    { key: 'songs' as const, label: 'SONGS', count: counts.songs },
-    { key: 'poems' as const, label: 'POEMS', count: counts.poems },
-    { key: 'reflections' as const, label: 'REFLECTIONS', count: counts.reflections },
-    { key: 'other' as const, label: 'OTHER', count: counts.other },
-  ];
-
-  const visibleRelatedEntries = useMemo((): RelatedListEntry[] => {
-    const d = related.data as Record<string, any[]>;
-    if (activeTab === 'all') {
-      return buildAllRelatedEntries(d);
-    }
-    if (activeTab === 'other') {
-      return [...(d.other || []), ...(d.films || [])].map((item) => ({ bucket: 'other', item }));
-    }
-    return (d[activeTab] || []).map((item) => ({ bucket: activeTab, item }));
-  }, [activeTab, related]);
-
-  const displayedRelatedEntries = useMemo(() => {
-    if (relatedListExpanded || visibleRelatedEntries.length <= RELATED_INITIAL_COUNT) {
-      return visibleRelatedEntries;
-    }
-    return visibleRelatedEntries.slice(0, RELATED_INITIAL_COUNT);
-  }, [visibleRelatedEntries, relatedListExpanded]);
-
-  const hasMoreRelated = visibleRelatedEntries.length > RELATED_INITIAL_COUNT;
-
-  const glossaryTerms = useMemo(
-    () => mapApiGlossaryTerms((related.data.keywords || []) as any[]),
-    [related]
-  );
 
   if (loading) return <LoadingShell />;
 
@@ -395,109 +308,7 @@ export default function CLReflectionDetail({ id: idProp }: { id?: string }) {
                 Location/year moved here (after description) to match PDF layout. */}
             <ReflectionDescription text={description} />
 
-            {/* Related section */}
-            <section className="cld-related">
-              <h2 className="cld-related-title">Related</h2>
-              <div className="cld-related-tabs">
-                {tabs.map((t, i) => (
-                  <span key={t.key} style={{ display: 'inline-flex', alignItems: 'center', gap: 16 }}>
-                    <button
-                      className={`cld-related-tab${activeTab === t.key ? ' active' : ''}`}
-                      onClick={() => setActiveTab(t.key)}
-                    >
-                      {t.label}
-                      <span className="cld-related-tab-count">({t.count})</span>
-                    </button>
-                    {i < tabs.length - 1 && <span className="cld-related-tab-sep">|</span>}
-                  </span>
-                ))}
-              </div>
-              <div className="cld-related-list">
-                {displayedRelatedEntries.length ? (
-                  displayedRelatedEntries.map((entry, idx) => {
-                    const { bucket, item } = entry;
-                    const relKey = relatedEntryKey(bucket, item, idx);
-                    const descPlain = getRelatedItemDescription(item);
-                    const expanded = !!relatedExpanded[relKey];
-                    const newlineCount = (descPlain.match(/\n/g) || []).length;
-                    const needsClamp = descPlain.length > 140 || newlineCount >= 2;
-                    const detailHref = getRelatedDetailHref(bucket, item);
-                    const thumbSrc = resolveCmsAssetUrl(item.thumbnailUrl || item.thumbnail_url);
-                    const itemInner = (
-                      <>
-                        <div className="cld-related-thumb">
-                          {thumbSrc && (
-                            <img
-                              src={thumbSrc}
-                              alt=""
-                              onError={(e) => {
-                                e.currentTarget.style.display = 'none';
-                              }}
-                            />
-                          )}
-                        </div>
-                        <div className="cld-related-body">
-                          <div className="cld-related-titlerow">
-                            <span className="cld-related-itemtitle">{item.title}</span>
-                            {item.subtitle && (
-                              <span className="cld-related-itemsubtitle">{item.subtitle}</span>
-                            )}
-                          </div>
-                          {descPlain && (
-                            <p className="cld-related-itemdesc">
-                              {needsClamp && !expanded
-                                ? truncateAtWord(descPlain, 140)
-                                : descPlain}
-                              {needsClamp && (
-                                <button
-                                  type="button"
-                                  className="cld-related-readmore"
-                                  onClick={(e) => {
-                                    e.preventDefault();
-                                    e.stopPropagation();
-                                    setRelatedExpanded((prev) => ({ ...prev, [relKey]: !expanded }));
-                                  }}
-                                >
-                                  {expanded ? ' read less' : '...more'}
-                                </button>
-                              )}
-                            </p>
-                          )}
-                        </div>
-                      </>
-                    );
-                    return detailHref ? (
-                      <Link
-                        key={relKey}
-                        href={withAppBasePath(detailHref)}
-                        className="cld-related-item cld-related-item--link"
-                      >
-                        {itemInner}
-                      </Link>
-                    ) : (
-                      <div key={relKey} className="cld-related-item">
-                        {itemInner}
-                      </div>
-                    );
-                  })
-                ) : (
-                  <div className="clrd-related-empty">No related items.</div>
-                )}
-              </div>
-              {hasMoreRelated && (
-                <button
-                  type="button"
-                  className="cld-related-seemore"
-                  onClick={() => setRelatedListExpanded((v) => !v)}
-                >
-                  {relatedListExpanded ? 'SEE LESS' : 'SEE MORE'}
-                </button>
-              )}
-            </section>
-
-            {glossaryTerms.length > 0 && (
-              <GlossaryStrip terms={glossaryTerms} className="clrd-glossary-strip" />
-            )}
+            <ExploreSection data={related.data} className="cld-related" />
             </div>
           </div>
         </main>

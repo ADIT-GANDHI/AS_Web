@@ -1,0 +1,214 @@
+{
+  "results": [
+    {
+      "name": "Intro present",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "Content column ~856",
+      "ok": true,
+      "detail": "w=856"
+    },
+    {
+      "name": "Content inset ~292",
+      "ok": true,
+      "detail": "x=292"
+    },
+    {
+      "name": "See All ~x1087",
+      "ok": true,
+      "detail": "x=1086"
+    },
+    {
+      "name": "Poem font 21px italic",
+      "ok": true,
+      "detail": "21px italic"
+    },
+    {
+      "name": "Poet pink uppercase",
+      "ok": true,
+      "detail": "KAMAAL"
+    },
+    {
+      "name": "Lang circles 55px ×3",
+      "ok": true,
+      "detail": "[{\"t\":\"अ\",\"active\":false,\"w\":55},{\"t\":\"ā\",\"active\":true,\"w\":55},{\"t\":\"a\",\"active\":false,\"w\":55}]"
+    },
+    {
+      "name": "Active script ā default",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "LISTEN|NOTES|GLOSSARY present",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "NOTES/GLOSSARY enabled",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "No Filters button",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "No volume circle button",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "No /poems/{id} detail links",
+      "ok": true,
+      "detail": "[]"
+    },
+    {
+      "name": "Explore title",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "Explore width ~856",
+      "ok": true,
+      "detail": "w=856"
+    },
+    {
+      "name": "Wavy divider before Explore",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "Previous/Next present",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "Script + LISTEN above fold @900",
+      "ok": true,
+      "detail": "langBottom=795 actionsBottom=850"
+    },
+    {
+      "name": "AI parchment background",
+      "ok": true,
+      "detail": "url(\"http://localhost:3000/poems-bg-ai.png\"), none"
+    },
+    {
+      "name": "Next changes poem",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "Listen opens",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "Listen >4 clips scrolls",
+      "ok": true,
+      "detail": "{\"open\":true,\"clips\":5,\"overflow\":\"auto\",\"scroll\":true}"
+    },
+    {
+      "name": "Listen Escape closes",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "Notes opens",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "Glossary opens",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "Devanagari toggle",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "English toggle",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "See All opens parda",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "Default list = All Poems",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "Oral note NOT on default poems list",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "Poet list shows poets",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "Oral Traditions → /reflections",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "Select poet → filtered poems",
+      "ok": true,
+      "detail": "39 Poems"
+    },
+    {
+      "name": "Chip + Clear all",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "Filtered by Poet indicator",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "Stage shows KABIR",
+      "ok": true,
+      "detail": "KABIR"
+    },
+    {
+      "name": "Theme list (no oral note)",
+      "ok": true,
+      "detail": "[\"Aap\",\"Aasakti\",\"Aava Gaman\"]"
+    },
+    {
+      "name": "Clear all resets",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "Parda closes",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "Deep link ?id=300 → KABIR",
+      "ok": true,
+      "detail": "{\"poet\":\"KABIR\",\"url\":\"http://localhost:3000/poems?id=300\"}"
+    },
+    {
+      "name": "Legacy /poems/300 redirects",
+      "ok": true,
+      "detail": "http://localhost:3000/poems?id=300"
+    },
+    {
+      "name": "Explore poem stays on /poems?id=",
+      "ok": true,
+      "detail": "http://localhost:3000/poems?id=32"
+    }
+  ]
+}

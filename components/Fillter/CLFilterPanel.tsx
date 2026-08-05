@@ -117,6 +117,8 @@ export default function CLFilterPanel({
   singleListMode = false,
   filterTriggerAlwaysPink = false,
   showClearAllAlways = false,
+  categoryFooter,
+  catalogList,
 }: ListingFilterPanelProps) {
   // Derives whether any filter is currently active — used for trigger colour
   const hasActiveFilters = selectedSingers.length > 0 || selectedPoets.length > 0 || selectedThemes.length > 0;
@@ -133,6 +135,13 @@ export default function CLFilterPanel({
   );
   const [mounted, setMounted] = useState(false);
   const [activeCategory, setActiveCategory] = useState<FilterType>('Singer');
+  // Poems: drawer opens on the poem catalog until a category tab is tapped.
+  const hasCatalog = Boolean(catalogList);
+  const [catalogMode, setCatalogMode] = useState(hasCatalog);
+
+  useEffect(() => {
+    if (open) setCatalogMode(hasCatalog);
+  }, [open, hasCatalog]);
 
   // Tracks the header's current bottom edge in the viewport so the filter content
   // starts exactly below the header at page-top and fills the full panel when scrolled.
@@ -272,7 +281,7 @@ export default function CLFilterPanel({
       window.removeEventListener('resize', recalcThumb);
       ro?.disconnect();
     };
-  }, [open, filterLists, activeCategory, selectedFilters.length, recalcThumb]);
+  }, [open, filterLists, activeCategory, catalogMode, selectedFilters.length, recalcThumb]);
 
   // Keep footer chip area at 2 rows — scroll up so newest selections stay visible.
   useEffect(() => {
@@ -341,6 +350,12 @@ export default function CLFilterPanel({
       ? categoryOrder
       : ['Singer', 'Poet', 'Theme'];
   const labelFor = (cat: FilterType) => categoryLabels[cat] ?? cat;
+
+  useEffect(() => {
+    if (!categories.includes(activeCategory)) {
+      setActiveCategory(categories[0] ?? 'Singer');
+    }
+  }, [categories, activeCategory]);
 
   return (
     <div className="relative inline-block">
@@ -500,12 +515,22 @@ export default function CLFilterPanel({
                           categories.map((cat, idx) => (
                             <span key={cat} style={{ display: 'inline-flex', alignItems: 'center' }}>
                               <button
-                                onClick={() => setActiveCategory(cat)}
+                                onClick={() => {
+                                  if (hasCatalog && !catalogMode && activeCategory === cat) {
+                                    setCatalogMode(true);
+                                    return;
+                                  }
+                                  setCatalogMode(false);
+                                  setActiveCategory(cat);
+                                }}
                                 style={{
                                   fontFamily: FONT,
                                   fontSize: '18px',
                                   fontWeight: 300,
-                                  color: activeCategory === cat ? '#E31E79' : '#333333',
+                                  color:
+                                    activeCategory === cat && !catalogMode
+                                      ? '#E31E79'
+                                      : '#333333',
                                   background: 'none',
                                   border: 'none',
                                   cursor: 'pointer',
@@ -570,6 +595,48 @@ export default function CLFilterPanel({
                         touchAction: 'pan-y',
                       }}
                     >
+                      {catalogMode && catalogList ? (
+                        <ul style={{ listStyle: 'none', margin: 0, padding: 0 }}>
+                          {catalogList.items.map((entry, index) => {
+                            const isActive = catalogList.activeId === entry.id;
+                            return (
+                              <li
+                                key={`catalog-${index}-${entry.id}`}
+                                onClick={() => catalogList.onSelect(entry.id)}
+                                style={{
+                                  fontFamily: FONT,
+                                  fontWeight: isActive ? 400 : 300,
+                                  fontSize: '17px',
+                                  lineHeight: '1.3',
+                                  color: isActive ? '#E31E79' : '#6F6F72',
+                                  cursor: 'pointer',
+                                  padding: '11px 0',
+                                }}
+                              >
+                                <span style={{ display: 'block' }}>{entry.label}</span>
+                                {entry.sublabel ? (
+                                  <span
+                                    style={{
+                                      display: 'block',
+                                      fontStyle: 'italic',
+                                      fontSize: '14px',
+                                      color: '#9A9A9C',
+                                      marginTop: '2px',
+                                    }}
+                                  >
+                                    {entry.sublabel}
+                                  </span>
+                                ) : null}
+                              </li>
+                            );
+                          })}
+                          {catalogList.items.length === 0 && (
+                            <li style={{ color: '#a7a7a7', padding: '12px 0', fontSize: '15px' }}>
+                              {catalogList.emptyLabel || 'Nothing to show'}
+                            </li>
+                          )}
+                        </ul>
+                      ) : (
                       <ul style={{ listStyle: 'none', margin: 0, padding: 0 }}>
                         {filterLists[activeCategory].map((item, index) => {
                           const isSelected =
@@ -604,6 +671,12 @@ export default function CLFilterPanel({
                           </li>
                         )}
                       </ul>
+                      )}
+                      {!catalogMode && categoryFooter?.[activeCategory] ? (
+                        <div style={{ paddingTop: 8, paddingBottom: 8 }}>
+                          {categoryFooter[activeCategory]}
+                        </div>
+                      ) : null}
                     </div>
 
                     {/* Custom scrollbar — track height tracks live list clientHeight */}

@@ -1,11 +1,13 @@
 'use client';
-// import Footer from '@/components/Footer';            // original — kept untouched
-// import Header from '@/components/Header';            // original — kept untouched
-// import Poems from '@/components/Poems';              // original — kept untouched
-// import FullBackground from '@/components/fullBackground'; // original — kept untouched
+
+import { Suspense } from 'react';
 import CLPoems from '@/components/Poems/CLPoems';
+import Loader from '@/components/Loader';
 
 export default function PoemsPage() {
-  // CLPoems includes Header; Footer is mounted globally in app/layout.tsx
-  return <CLPoems />;
+  return (
+    <Suspense fallback={<Loader />}>
+      <CLPoems />
+    </Suspense>
+  );
 }

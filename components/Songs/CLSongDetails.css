@@ -91,34 +91,35 @@
 
 /* ── REVERT: pre-2026-05-19 carousel pass → padding was 22px 50px 0 ── */
 
-/* ── Song detail: align header / video / about / related with first version card.
-   Version cards stay in the original flex row (chevron + gap + slider).
-   Inset = nav width + row gap — must stay equal to .cld-slider-nav width + .cld-versions-slider-wrap gap.
-   Widths scale from PDF/Figma artboard (1925 pt) so video + related match Page 3 proportions. ── */
+/* ── Song detail: header / video / about / explore share one 856px column.
+   Version cards live in the same 856px block; chevrons sit outside that block. ── */
 .cld-detail-body-align {
   --cld-artboard-w: 1925;
-  --cld-media-max-width: min(800px, 100%);
-  --cld-about-max-width: min(800px, 100%);
-  --cld-related-max-width: min(836px, 100%);
+  /* Client: detail content + player = 856px (Notes/Glossary drawers stay outside) */
+  --cld-media-max-width: min(856px, 100%);
+  --cld-about-max-width: min(856px, 100%);
+  --cld-related-max-width: min(856px, 100%);
   --cld-related-thumb-w: min(280px, calc(100vw * 280 / var(--cld-artboard-w)));
   --cld-related-thumb-h: min(156px, calc(100vw * 156 / var(--cld-artboard-w)));
-  max-width: 920px;
+  width: min(856px, 100%);
+  max-width: min(856px, 100%);
   margin-left: auto;
   margin-right: auto;
-  padding-left: var(--cld-rail-inset);
+  padding-left: 0;
   box-sizing: border-box;
 }
 
-/* ── Versions section — PDF Page 3 strict scale (Figma 361:1414–1446)
-   Revert baseline: components/Songs/CLSongDetails.carousel-revert.md ── */
+/* ── Versions section — same 856px content column; arrows hang outside ── */
 .cld-versions-section {
   --cld-version-card-w: 250px;
   --cld-version-thumb-h: 120px;
   --cld-version-gap: 25px;
   --cld-artboard-w: 1925;
   margin: 0 auto var(--cld-gap-versions-header);
-  max-width: 920px;
+  width: min(856px, 100%);
+  max-width: min(856px, 100%);
   box-sizing: border-box;
+  overflow: visible;
 }
 
 /* REVERT: margin was 22px auto 40px */
@@ -154,9 +155,11 @@
 
 .cld-versions-slider-wrap {
   position: relative;
-  max-width: 800px;
-  margin-left: auto;
-  margin-right: auto;
+  width: 100%;
+  max-width: 100%;
+  margin-left: 0;
+  margin-right: 0;
+  overflow: visible;
 }
 
 /* REVERT: gap was 16px; no max-width on wrap */
@@ -485,6 +488,8 @@
   justify-content: center;
   align-items: center;
   gap: 54px;
+  width: 100%;
+  max-width: min(856px, 100%);
   margin: 0 auto var(--cld-gap-lang-title);
 }
 
@@ -1070,7 +1075,7 @@
    Extra bottom margin so the footer tree (baked into Footer.png) sits farther
    below the dictionary pill strip than the default `.gs-strip` 80px. ── */
 .cl-songs-page-root:has(.cld-page) .gs-strip {
-  max-width: min(1015px, calc(100vw * 1015 / 1925));
+  max-width: min(856px, 100%);
   margin-left: 0;
   margin-right: auto;
   margin-top: 24px;

@@ -9,6 +9,7 @@ export interface FilmEntry {
   year: string;
   languages: string;
   description: string;
+  /** Listing thumb: YouTube poster preferred, else CMS image. Empty = blank slot. */
   thumbnailUrl?: string;
 }
 

@@ -11,6 +11,10 @@ import { AJAB_API_BASE } from '@/lib/ajabEnv';
 import { parseCatalogTotal } from '@/lib/parseCatalogTotal';
 import { MOCK_DETAIL, MOCK_VERSIONS, MOCK_RELATED } from '@/components/Songs/CLdetailMocks';
 import { SongsNavCountContext } from '@/components/Songs/SongsNavCountContext';
+import {
+  asRelatedContent,
+  fetchRelatedByParam,
+} from '@/lib/mapRelatedResponse';
 
 function SongsLoadingShell() {
   return <Loader />;
@@ -157,26 +161,18 @@ export default function CLSongDetailsClient({ id: idProp }: { id: string }) {
         })();
 
         try {
-          const relatedRes = await fetch(
-            `${AJAB_API_BASE}/Api/related?song_id=${encodeURIComponent(id)}`,
-            { cache: 'no-store' }
-          );
-          if (cancelled) return;
-
-          const relatedData = relatedRes.ok ? await relatedRes.json() : null;
+          const normalized = await fetchRelatedByParam('song_id', id);
           if (!cancelled) {
-            setRelated(
-              relatedData?.status === false || !relatedData ? MOCK_RELATED : relatedData
-            );
+            setRelated(normalized || asRelatedContent(MOCK_RELATED));
           }
         } catch {
-          if (!cancelled) setRelated(MOCK_RELATED);
+          if (!cancelled) setRelated(asRelatedContent(MOCK_RELATED));
         }
       } catch {
         if (cancelled) return;
         setSong(MOCK_DETAIL);
         setSongVersions(MOCK_VERSIONS);
-        setRelated(MOCK_RELATED);
+        setRelated(asRelatedContent(MOCK_RELATED));
         setSongReady(true);
       }
     })();

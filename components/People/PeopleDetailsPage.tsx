@@ -80,8 +80,13 @@ export default function PeopleDetailsPage({
     const poems = (Array.isArray(relatedData?.poems) ? relatedData.poems : []).map((item: any) => ({
       id: `poem-${item?.id}`,
       type: 'poems',
-      title: getText(item?.original_title) || getText(item?.title) || getText(item?.meta_title) || 'Untitled Poem',
-      subtitle: getText(item?.poet) || getText(item?.poet_name) || '',
+      title:
+        getText(item?.couplet_transliteration) ||
+        getText(item?.meta_title) ||
+        getText(item?.title) ||
+        getText(item?.original_title) ||
+        'Untitled Poem',
+      subtitle: getText(item?.couplet_translation) || getText(item?.poet) || getText(item?.poet_name) || '',
       description: getText(item?.meta_description) || '',
       image: normalizeImageUrl(item?.thumbnail_url || item?.thumbnailUrl || item?.thumbnail),
     }));

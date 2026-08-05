@@ -8,7 +8,7 @@ export function resolvePersonImageUrl(raw: unknown): string {
   return `${AJAB_API_BASE}${trimmed.startsWith('/') ? trimmed : `/${trimmed}`}`;
 }
 
-/** Role line beside name — strip CMS leading underscores. */
+/** Role line beside name — strip CMS leading underscores; show singular labels. */
 export function mapPersonRole(it: Record<string, unknown>): string {
   const raw =
     it.occupation_text ||
@@ -16,11 +16,31 @@ export function mapPersonRole(it: Record<string, unknown>): string {
     it.category_name ||
     it.occupation ||
     '';
-  return String(raw)
+  const normalized = String(raw)
     .replace(/^_+/, '')
     .replace(/\s+/g, ' ')
     .trim()
     .toUpperCase();
+  if (!normalized || normalized === '—') return '';
+  return singularizeOccupationLabel(normalized);
+}
+
+/** CMS stores plural occupations (SINGERS, POETS, LEGENDARY FIGURES). */
+export function singularizeOccupationLabel(label: string): string {
+  return label
+    .split(',')
+    .map((part) => {
+      const token = part.trim();
+      if (!token) return token;
+      if (/FIGURES$/i.test(token)) return token.replace(/FIGURES$/i, 'FIGURE');
+      if (/IES$/i.test(token)) return token.replace(/IES$/i, 'Y');
+      if (/S$/i.test(token) && !/(SS|US|IS)$/i.test(token)) {
+        return token.replace(/S$/i, '');
+      }
+      return token;
+    })
+    .filter(Boolean)
+    .join(', ');
 }
 
 /** Up to 3 unique gallery URLs (thumbnail + optional CMS gallery arrays). */

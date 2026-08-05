@@ -63,6 +63,17 @@ body:has(.clrd-page) footer.footer-bg .footer-inner {
   margin-bottom: 12px;
 }
 
+/* Align Filters | All under the "N Reflections" count (same inset as count row). */
+.clr-page.clr-listing-page .cl-filter-bar {
+  padding-left: clamp(80px, 16vw, 307px);
+  padding-right: clamp(80px, 16vw, 307px);
+}
+
+.clr-page.clr-listing-page .cl-filter-bar::before {
+  left: clamp(80px, 16vw, 307px);
+  right: clamp(80px, 16vw, 307px);
+}
+
 .clr-grid-status {
   grid-column: 1 / -1;
   text-align: center;
@@ -115,11 +126,12 @@ body:has(.clrd-page) footer.footer-bg .footer-inner {
 }
 
 /* [Claude] these changes have been recommended by claude —
-   Title reduced 24px → 18px to better fit 220px card width. */
+   Title reduced 24px → 18px to better fit 220px card width.
+   Jul 2026 PDF pass: listing titles +1px (18 → 19). */
 .clr-card-title {
   font-family: var(--ajab-font-serif);
   font-weight: 400;
-  font-size: var(--ajab-fs-body);
+  font-size: 19px;
   line-height: 1.2;
   color: var(--ajab-pink-card);
   margin: 0 0 6px;
@@ -168,7 +180,8 @@ body:has(.clrd-page) footer.footer-bg .footer-inner {
 .clr-card-mediatype {
   font-family: var(--ajab-font-sans);
   font-weight: 300;
-  font-size: var(--ajab-fs-tag);
+  /* Jul 2026 PDF pass: format tags −2px (14 → 12). */
+  font-size: 12px;
   color: var(--ajab-ink-300);
   letter-spacing: 0.04em;
   text-align: right;
@@ -198,11 +211,10 @@ body:has(.clrd-page) .nav-link--songs .nav-link-songs-count {
   display: none !important;
 }
 
-/* ── Detail page — PDF artboard 1920, content column 457→1484 (1027px) ── */
+/* ── Detail page — client content width 856px (player + column + glossary) ── */
 .clrd-page {
   --clrd-artboard-w: 1920;
-  --clrd-pdf-col-w: 1027;
-  --clrd-col-max: min(1027px, calc(100vw * var(--clrd-pdf-col-w) / var(--clrd-artboard-w)));
+  --clrd-col-max: min(856px, calc(100vw - 48px));
   --clrd-gap-header-video: min(8px, calc(100vw * 8 / var(--clrd-artboard-w)));
   --clrd-gap-video-about: min(43px, calc(100vw * 43 / var(--clrd-artboard-w)));
   --clrd-gap-about-related: min(64px, calc(100vw * 64 / var(--clrd-artboard-w)));
@@ -407,10 +419,10 @@ body:has(.clrd-page) .nav-link--songs .nav-link-songs-count {
   font-weight: 300;
 }
 
-/* Item title Lora 26 pink; subtitle Lora Italic 22; desc Merriweather Light 18 */
+/* Item title Lora 24 pink (−2 from prior 26); subtitle Lora Italic 22; desc Merriweather Light 18 */
 .clrd-page .cld-related-itemtitle {
   font-family: var(--ajab-font-serif);
-  font-size: var(--ajab-fs-h4);
+  font-size: 24px;
   font-weight: 400;
   color: var(--ajab-pink-related);
 }
@@ -421,6 +433,8 @@ body:has(.clrd-page) .nav-link--songs .nav-link-songs-count {
   font-size: var(--ajab-fs-h6);
   font-weight: 400;
   color: var(--ajab-ink-500);
+  /* PDF: tight wrap when subtitle breaks to a second line */
+  line-height: 1.15;
 }
 
 .clrd-page .cld-related-itemdesc {
@@ -454,7 +468,7 @@ body:has(.clrd-page) .nav-link--songs .nav-link-songs-count {
 
 /* Glossary strip — Figma 361:1569 wavy pill; PDF sits close to footer wave */
 .clrd-page .clrd-glossary-strip.gs-strip {
-  max-width: min(1015px, calc(100vw * 1015 / var(--clrd-artboard-w)));
+  max-width: min(856px, 100%);
   margin-top: min(24px, calc(100vw * 32 / var(--clrd-artboard-w)));
   margin-bottom: min(32px, calc(100vw * 40 / var(--clrd-artboard-w)));
   padding: min(28px, calc(100vw * 36 / var(--clrd-artboard-w)))

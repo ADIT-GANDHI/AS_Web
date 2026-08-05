@@ -37,30 +37,59 @@ export function sortRelatedByAdminFirst<T>(items: T[]): T[] {
 }
 
 function mapRelatedItem(it: any) {
-  return {
-    id: String(it.id || it.song_id || it.poem_id || it.reflection_id || ''),
-    title:
-      it.Songtitle_transliteration ||
-      it.title ||
+  const title = String(
+    it.Songtitle_transliteration ||
       it.english_transliteration ||
+      it.couplet_transliteration ||
+      it.word_transliteration ||
+      it.meta_title ||
+      it.title ||
       it.original_title ||
       it.person_name ||
       it.person_name_english ||
-      it.word_transliteration ||
-      '',
-    subtitle:
-      it.songtitletraan ||
-      it.subtitle ||
-      it.film_subtitle ||
-      it.english_translation ||
-      it.word_translation ||
-      '',
+      ''
+  ).trim();
+
+  const subtitleCandidates = [
+    it.songTitle,
+    it.english_translation,
+    it.couplet_translation,
+    it.songtitletraan,
+    it.word_translation,
+    it.film_subtitle,
+    it.subtitle,
+  ];
+  const titleNorm = title.replace(/\s+/g, ' ').trim().toLowerCase();
+  let subtitle = '';
+  for (const candidate of subtitleCandidates) {
+    const value = String(candidate || '').trim();
+    if (!value) continue;
+    // CMS often repeats transliteration in songtitletraan — keep translation only.
+    if (titleNorm && value.replace(/\s+/g, ' ').trim().toLowerCase() === titleNorm) {
+      continue;
+    }
+    subtitle = value;
+    break;
+  }
+
+  return {
+    id: String(it.id || it.song_id || it.poem_id || it.reflection_id || ''),
+    title,
+    subtitle,
     about: it.about || it.description || '',
     meta_description: it.meta_description || '',
     thumbnail_excerpt: it.thumbnail_excerpt || it.thumbnailexcerpt || '',
     thumbnailexcerpt: it.thumbnailexcerpt || it.thumbnail_excerpt || '',
     original_title: it.original_title || '',
+    couplet_transliteration: it.couplet_transliteration || '',
+    couplet_translation: it.couplet_translation || '',
     description: it.description || '',
+    format: it.format || it.reflection_type || '',
+    reflection_excerpt: it.reflection_excerpt || '',
+    songTitle: it.songTitle || '',
+    english_translation: it.english_translation || '',
+    english_transliteration: it.english_transliteration || '',
+    meta_title: it.meta_title || '',
     thumbnailUrl: resolveThumb(it.thumbnail_url || it.thumbnailUrl),
     Songtitle_transliteration: it.Songtitle_transliteration,
     songtitletraan: it.songtitletraan,
@@ -74,18 +103,92 @@ function mapRelatedItem(it: any) {
   };
 }
 
+/** Keep nested songs/poems/reflections for Explore theme filtering. */
+function mapRelatedKeyword(it: any) {
+  const transliteration = String(
+    it.word_transliteration || it.title || it.term || it.word || ''
+  ).trim();
+  const translation = String(
+    it.word_translation || it.subtitle || it.meaning || it.translation || ''
+  ).trim();
+
+  return {
+    id: String(it.id ?? ''),
+    word_transliteration: transliteration,
+    word_translation: translation,
+    title: transliteration,
+    subtitle: translation,
+    meta_title: it.meta_title ?? null,
+    meta_description: it.meta_description ?? null,
+    songs: Array.isArray(it.songs)
+      ? sortRelatedByAdminFirst(it.songs.map(mapRelatedItem))
+      : [],
+    poems: Array.isArray(it.poems)
+      ? sortRelatedByAdminFirst(it.poems.map(mapRelatedItem))
+      : [],
+    reflections: Array.isArray(it.reflections)
+      ? sortRelatedByAdminFirst(it.reflections.map(mapRelatedItem))
+      : [],
+    admin_related: isAdminRelatedItem(it),
+  };
+}
+
 function poemNeedsEnrichment(item: any): boolean {
   return !(
     item?.meta_description ||
     item?.thumbnail_excerpt ||
     item?.thumbnailexcerpt
-  );
+  ) || !String(item?.couplet_transliteration || '').trim();
+}
+
+function enrichPoemRow(p: any, byId: Map<string, any>): any {
+  const full = byId.get(String(p.id));
+  const couplet_transliteration =
+    p.couplet_transliteration || full?.couplet_transliteration || '';
+  const couplet_translation = p.couplet_translation || full?.couplet_translation || '';
+  const meta_title = p.meta_title || full?.meta_title || '';
+  const englishTitle =
+    couplet_transliteration ||
+    meta_title ||
+    p.title ||
+    full?.original_title ||
+    p.original_title ||
+    '';
+
+  if (!poemNeedsEnrichment(p) && couplet_transliteration) {
+    return {
+      ...p,
+      couplet_transliteration,
+      couplet_translation,
+      meta_title,
+      title: englishTitle || p.title,
+    };
+  }
+  if (!full && !couplet_transliteration) return p;
+  return {
+    ...p,
+    original_title: p.original_title || full?.original_title || '',
+    meta_description: full?.meta_description || p.meta_description || '',
+    meta_title,
+    thumbnail_excerpt:
+      full?.thumbnail_excerpt || full?.thumbnailexcerpt || p.thumbnail_excerpt || '',
+    thumbnailexcerpt:
+      full?.thumbnailexcerpt || full?.thumbnail_excerpt || p.thumbnailexcerpt || '',
+    couplet_transliteration,
+    couplet_translation,
+    title: englishTitle || p.title,
+  };
 }
 
 /** Related API omits poem excerpts — merge from the poems listing index. */
 export async function enrichRelatedPoems(content: RelatedContent): Promise<RelatedContent> {
   const poems = content.data.poems || [];
-  if (!poems.length || !poems.some(poemNeedsEnrichment)) return content;
+  const keywordPoems = (content.data.keywords || []).flatMap((kw) =>
+    Array.isArray(kw?.poems) ? kw.poems : []
+  );
+  const needsWork =
+    poems.some(poemNeedsEnrichment) || keywordPoems.some(poemNeedsEnrichment);
+  if (!needsWork) return content;
 
   try {
     const res = await fetch(`${AJAB_API_BASE}/Api/poems?page=1&limit=300`, {
@@ -98,23 +201,18 @@ export async function enrichRelatedPoems(content: RelatedContent): Promise<Relat
       if (row?.id != null) byId.set(String(row.id), row);
     }
 
-    const enrichedPoems = poems.map((p) => {
-      if (!poemNeedsEnrichment(p)) return p;
-      const full = byId.get(String(p.id));
-      if (!full) return p;
-      return {
-        ...p,
-        original_title: p.original_title || full.original_title || '',
-        meta_description: full.meta_description || p.meta_description || '',
-        thumbnail_excerpt:
-          full.thumbnail_excerpt || full.thumbnailexcerpt || p.thumbnail_excerpt || '',
-        thumbnailexcerpt:
-          full.thumbnailexcerpt || full.thumbnail_excerpt || p.thumbnailexcerpt || '',
-        title: p.title || full.original_title || p.title,
-      };
-    });
+    const enrichedPoems = poems.map((p) => enrichPoemRow(p, byId));
+    const enrichedKeywords = (content.data.keywords || []).map((kw) => ({
+      ...kw,
+      poems: Array.isArray(kw?.poems)
+        ? kw.poems.map((p: any) => enrichPoemRow(p, byId))
+        : kw?.poems,
+    }));
 
-    return { ...content, data: { ...content.data, poems: enrichedPoems } };
+    return {
+      ...content,
+      data: { ...content.data, poems: enrichedPoems, keywords: enrichedKeywords },
+    };
   } catch {
     return content;
   }
@@ -123,7 +221,7 @@ export async function enrichRelatedPoems(content: RelatedContent): Promise<Relat
 export function normalizeRelatedResponse(json: any): RelatedContent | null {
   if (!json || json.status === false) return null;
   const raw = json.data || {};
-  const bucketKeys = ['songs', 'poems', 'reflections', 'other', 'films', 'keywords'] as const;
+  const bucketKeys = ['songs', 'poems', 'reflections', 'other', 'films'] as const;
   const data: Record<string, any[]> = {};
 
   for (const key of bucketKeys) {
@@ -133,6 +231,10 @@ export function normalizeRelatedResponse(json: any): RelatedContent | null {
       : [];
   }
 
+  data.keywords = Array.isArray(raw.keywords)
+    ? sortRelatedByAdminFirst(raw.keywords.map(mapRelatedKeyword))
+    : [];
+
   if (Array.isArray(raw.people) && raw.people.length) {
     data.other = sortRelatedByAdminFirst([
       ...data.other,
@@ -140,6 +242,30 @@ export function normalizeRelatedResponse(json: any): RelatedContent | null {
     ]);
   } else if (data.other.length) {
     data.other = sortRelatedByAdminFirst(data.other);
+  }
+
+  /* Newer related APIs nest content under keywords and omit top-level
+     songs/poems/reflections — derive those buckets for legacy Related tabs
+     (Films / People) without changing their UI. */
+  if (!data.songs.length || !data.poems.length || !data.reflections.length) {
+    const seen = {
+      songs: new Set(data.songs.map((i) => String(i.id))),
+      poems: new Set(data.poems.map((i) => String(i.id))),
+      reflections: new Set(data.reflections.map((i) => String(i.id))),
+    };
+    for (const kw of data.keywords) {
+      for (const bucket of ['songs', 'poems', 'reflections'] as const) {
+        for (const item of kw[bucket] || []) {
+          const id = String(item?.id ?? '');
+          if (!id || seen[bucket].has(id)) continue;
+          seen[bucket].add(id);
+          data[bucket].push(item);
+        }
+      }
+    }
+    data.songs = sortRelatedByAdminFirst(data.songs);
+    data.poems = sortRelatedByAdminFirst(data.poems);
+    data.reflections = sortRelatedByAdminFirst(data.reflections);
   }
 
   const counts = json.counts || {};

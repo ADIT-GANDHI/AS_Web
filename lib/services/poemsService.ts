@@ -46,6 +46,30 @@ export async function getPublishedPoemsById(id: string) {
   }
 }
 
+export async function getPublishedPoemAudio(params?: { page?: number; limit?: number }) {
+  try {
+    const response = await axios.get(`${AJAB_API_BASE}/api/poem/getPublished`, {
+      params: { page: params?.page ?? 1, limit: params?.limit ?? 12 },
+    });
+    return response.data;
+  } catch (error) {
+    const message = handleApiError(error);
+    console.error('[getPublishedPoemAudio] API Error:', message);
+    throw new Error(message);
+  }
+}
+
+export async function getPoemAudioById(id: string) {
+  try {
+    const response = await axios.get(`${AJAB_API_BASE}/api/poem/getById/${id}`);
+    return response.data;
+  } catch (error) {
+    const message = handleApiError(error);
+    console.error('[getPoemAudioById] API Error:', message);
+    throw new Error(message);
+  }
+}
+
 export async function getRelatedByPoemId(poemId: string) {
   try {
     const params: RelatedQueryParams = { poem_id: poemId };

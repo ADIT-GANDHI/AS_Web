@@ -569,9 +569,10 @@ body::-webkit-scrollbar {
 .floating-actions {
   position: fixed !important;
   right: 20px !important;
-  top: 50% !important;
-  bottom: auto !important;
-  transform: translateY(-50%) !important;
+  top: auto !important;
+  /* ~1 inch from bottom edge (sitewide) */
+  bottom: 96px !important;
+  transform: none !important;
   display: flex !important;
   flex-direction: column !important;
   gap: 12px !important;
@@ -704,9 +705,9 @@ body::-webkit-scrollbar {
 @media (max-width: 640px) {
   .floating-actions {
     right: 12px !important;
-    top: 50% !important;
-    bottom: auto !important;
-    transform: translateY(-50%) !important;
+    top: auto !important;
+    bottom: 96px !important;
+    transform: none !important;
   }
 
   .floating-actions .floating-action-btn.scroll-top-btn,

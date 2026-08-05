@@ -8,7 +8,12 @@ export interface PoemData {
   text: string;        // transliteration (couplet_transliteration)
   hindi?: string;      // devanagari (original_text)
   english?: string;    // english translation (english_translation_text)
-  poet: string;        // attributed_poet
+  poet: string;        // attributed_poet / resolved poet name
+  poetId?: string;
+  translator?: string;
+  title?: string;
+  translationTitle?: string;
+  keywordIds?: string[];
   meta_keywords?: string;
   thumbnailUrl?: string;
   noteText?: string;   // note_text

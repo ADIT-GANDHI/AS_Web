@@ -19,11 +19,19 @@ function poemVerseExcerpt(text: string): string {
   return lines.slice(0, 2).join('\n');
 }
 
-/** Card title for a related row — bucket-aware (poems use Devanagari original_title). */
+/** Card title for a related row — poems use English transliteration, not Devanagari. */
 export function getRelatedCardTitle(item: any, bucket: string): string {
   if (bucket === 'poems') {
-    const t = item?.original_title || item?.title || '';
-    if (typeof t === 'string' && t.trim()) return t.trim();
+    for (const field of [
+      item?.couplet_transliteration,
+      item?.english_transliteration,
+      item?.meta_title,
+      item?.title,
+      item?.original_title,
+    ]) {
+      if (typeof field === 'string' && field.trim()) return field.trim();
+    }
+    return '';
   }
   for (const field of [
     item?.Songtitle_transliteration,
@@ -39,7 +47,7 @@ export function getRelatedCardTitle(item: any, bucket: string): string {
   return '';
 }
 
-/** Italic subtitle beside the title (songs, films). */
+/** Italic subtitle beside the title (songs, films, poems). */
 export function getRelatedCardSubtitle(item: any): string {
   if (item?.category_name && typeof item.category_name === 'string') {
     return item.category_name.trim();
@@ -48,6 +56,7 @@ export function getRelatedCardSubtitle(item: any): string {
     return item.word_translation.trim();
   }
   const sub =
+    item?.couplet_translation ||
     item?.subtitle ||
     item?.film_subtitle ||
     item?.songtitletraan ||

@@ -1,0 +1,243 @@
+/* Explore section — theme strip + mixed related list (Songs / Poems / Reflections). */
+
+.explore-section {
+  margin: 0 0 32px;
+  width: 100%;
+  max-width: min(856px, 100%);
+}
+
+.explore-title {
+  font-family: var(--ajab-font-serif);
+  font-size: var(--ajab-fs-h2);
+  font-weight: 400;
+  color: var(--ajab-ink-800);
+  margin: 0 0 10px;
+}
+
+.explore-themes {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  column-gap: 12px;
+  row-gap: 8px;
+  border-top: 1px solid var(--ajab-ink-100);
+  padding-top: 12px;
+  margin-bottom: 20px;
+}
+
+.explore-theme-group {
+  display: inline-flex;
+  align-items: baseline;
+  gap: 12px;
+}
+
+.explore-theme-sep {
+  color: var(--ajab-ink-200);
+  font-family: var(--ajab-font-sans);
+  font-weight: 300;
+  font-size: var(--ajab-fs-h6);
+  user-select: none;
+}
+
+.explore-theme {
+  display: inline-flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 6px;
+  font-family: var(--ajab-font-sans);
+  font-weight: 300;
+  font-size: var(--ajab-fs-h6);
+  color: var(--ajab-ink-700);
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 0 0 6px;
+  letter-spacing: 0;
+  text-transform: none;
+  line-height: 1.2;
+}
+
+.explore-theme-translit {
+  color: inherit;
+}
+
+.explore-theme-translation {
+  font-family: var(--ajab-font-serif);
+  font-style: italic;
+  font-weight: 400;
+  color: var(--ajab-ink-400);
+}
+
+.explore-theme.active {
+  color: var(--ajab-ink-900);
+  background-image: radial-gradient(circle, var(--ajab-pink-primary) 1.25px, transparent 1.3px);
+  background-size: 6px 3px;
+  background-position: left bottom;
+  background-repeat: repeat-x;
+}
+
+.explore-theme.active .explore-theme-translation {
+  color: var(--ajab-ink-500);
+}
+
+.explore-list {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.explore-item {
+  display: flex;
+  gap: 20px;
+  align-items: flex-start;
+}
+
+.explore-item--link {
+  text-decoration: none;
+  color: inherit;
+  cursor: pointer;
+  transition: opacity 0.15s ease;
+}
+
+.explore-item--link:hover {
+  opacity: 0.88;
+}
+
+.explore-item--link:focus-visible {
+  outline: 2px solid var(--ajab-pink-primary);
+  outline-offset: 2px;
+}
+
+.explore-item:not(:last-child) .explore-body {
+  border-bottom: 1px dotted #cfcfcf;
+  padding-bottom: 16px;
+  margin-bottom: 2px;
+}
+
+.explore-thumb {
+  width: min(280px, calc(100vw * 280 / 1925));
+  height: min(156px, calc(100vw * 156 / 1925));
+  flex-shrink: 0;
+  overflow: hidden;
+  background: #ececec;
+  border: 1px solid #fff;
+  box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.04);
+}
+
+.explore-thumb img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+.explore-body {
+  flex: 1;
+  min-width: 0;
+}
+
+.explore-titlerow {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 8px 12px;
+  margin-bottom: 6px;
+}
+
+.explore-itemtitle {
+  font-family: var(--ajab-font-serif);
+  font-size: 24px;
+  font-weight: 400;
+  line-height: 1.2;
+  color: var(--ajab-pink-related);
+}
+
+.explore-itemsubtitle {
+  font-family: var(--ajab-font-serif);
+  font-style: italic;
+  font-weight: 400;
+  font-size: var(--ajab-fs-body);
+  line-height: 1.15;
+  color: var(--ajab-ink-400);
+}
+
+.explore-itemdesc {
+  font-family: var(--ajab-font-serif);
+  font-size: var(--ajab-fs-body);
+  line-height: 1.45;
+  color: var(--ajab-ink-700);
+  margin: 0 0 10px;
+  white-space: pre-line;
+}
+
+/* Opt-in N-line clamp with trailing ellipsis (no read-more control). */
+.explore-itemdesc--clamped {
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  white-space: normal;
+}
+
+.explore-readmore {
+  font: inherit;
+  color: var(--ajab-pink-primary);
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 0;
+  margin-left: 2px;
+}
+
+.explore-readmore:hover {
+  text-decoration: underline;
+}
+
+.explore-format {
+  font-family: var(--ajab-font-sans);
+  font-weight: 300;
+  font-size: 12px;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--ajab-ink-300);
+}
+
+.explore-seemore {
+  display: inline-block;
+  margin-top: 8px;
+  font-family: var(--ajab-font-sans);
+  font-weight: 300;
+  font-size: var(--ajab-fs-h6);
+  color: var(--ajab-pink-related);
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 0;
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+}
+
+.explore-seemore:hover {
+  text-decoration: underline;
+}
+
+.explore-empty {
+  padding: 16px 0;
+  color: var(--ajab-ink-400);
+  font-family: var(--ajab-font-serif);
+}
+
+@media (max-width: 720px) {
+  .explore-item {
+    flex-direction: column;
+  }
+
+  .explore-thumb {
+    width: 100%;
+    height: auto;
+    aspect-ratio: 280 / 156;
+  }
+
+  .explore-itemtitle {
+    font-size: 20px;
+  }
+}

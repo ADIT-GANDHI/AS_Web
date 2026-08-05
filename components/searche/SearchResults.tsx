@@ -57,12 +57,13 @@ const getPrimaryText = (item: Record<string, any>, category: SearchCategory) => 
   }
   if (category === 'poems') {
     return (
-      item.original_title ||
+      item.couplet_transliteration ||
       item.poem_title_english ||
       item.poem_title ||
-      item.couplet_transliteration ||
+      item.meta_title ||
       item.title ||
       item.english_translation ||
+      item.original_title ||
       'Untitled'
     );
   }
@@ -159,7 +160,7 @@ const getItemHref = (item: Record<string, any>, category: SearchCategory): strin
   if (!id) return '#';
   switch (category) {
     case 'songs':        return `/songs/details/${id}`;
-    case 'poems':        return `/poems/${id}`;
+    case 'poems':        return `/poems?id=${id}`;
     case 'reflections':  return `/reflections/details/${id}`;
     case 'people':       return `/people/${id}`;
     case 'films':        return `/films/details/${id}`;

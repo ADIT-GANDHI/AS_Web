@@ -120,9 +120,18 @@ const SongDetails = ({
     const poems = (relatedData?.poems || []).map((item: any) => ({
       id: `poem-${item?.id}`,
       type: 'poems',
-      title: getText(item?.original_title) || 'Untitled Poem',
+      title:
+        getText(item?.couplet_transliteration) ||
+        getText(item?.meta_title) ||
+        getText(item?.title) ||
+        getText(item?.original_title) ||
+        'Untitled Poem',
       titleSecondary: '',
-      subtitle: getText(item?.attributed_poet) || getText(item?.poet_name) || '',
+      subtitle:
+        getText(item?.couplet_translation) ||
+        getText(item?.attributed_poet) ||
+        getText(item?.poet_name) ||
+        '',
       description: getText(item?.thumbnail_excerpt) || getText(item?.meta_description) || '',
       image: normalizeImageUrl(item?.thumbnail_url || item?.thumbnailUrl),
     }));

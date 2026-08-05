@@ -1,0 +1,392 @@
+{
+  "layout": {
+    "intro": {
+      "x": 355,
+      "y": 203,
+      "w": 730,
+      "h": 112,
+      "fs": "17px",
+      "color": "rgb(109, 110, 113)",
+      "fontStyle": "italic",
+      "text": "The Kabir doha or couplet has been called a 'gaagar mein saagar', or 'ocean in a"
+    },
+    "toolbar": {
+      "x": 292,
+      "y": 343,
+      "w": 856,
+      "h": 54,
+      "fs": "16px",
+      "color": "oklch(0.145 0 0)",
+      "fontStyle": "normal",
+      "text": "245 PoemsSee All"
+    },
+    "count": {
+      "x": 292,
+      "y": 362,
+      "w": 134,
+      "h": 35,
+      "fs": "27px",
+      "color": "rgb(60, 60, 59)",
+      "fontStyle": "normal",
+      "text": "245 Poems"
+    },
+    "seeAll": {
+      "x": 1086,
+      "y": 362,
+      "w": 62,
+      "h": 23,
+      "fs": "19px",
+      "color": "rgb(227, 30, 121)",
+      "fontStyle": "normal",
+      "text": "See All"
+    },
+    "nav": {
+      "x": 292,
+      "y": 409,
+      "w": 856,
+      "h": 23,
+      "fs": "16px",
+      "color": "oklch(0.145 0 0)",
+      "fontStyle": "normal",
+      "text": "PreviousNext"
+    },
+    "prev": {
+      "x": 292,
+      "y": 409,
+      "w": 99,
+      "h": 23,
+      "fs": "19px",
+      "color": "rgb(227, 30, 121)",
+      "fontStyle": "normal",
+      "text": "Previous"
+    },
+    "next": {
+      "x": 1083,
+      "y": 409,
+      "w": 65,
+      "h": 23,
+      "fs": "19px",
+      "color": "rgb(227, 30, 121)",
+      "fontStyle": "normal",
+      "text": "Next"
+    },
+    "stage": {
+      "x": 292,
+      "y": 460,
+      "w": 856,
+      "h": 390,
+      "fs": "16px",
+      "color": "oklch(0.145 0 0)",
+      "fontStyle": "normal",
+      "text": "(Chalti chaaki dekh kar, diya Kabira roye Do paatan ke beech mein, saabat bacha "
+    },
+    "poem": {
+      "x": 460,
+      "y": 460,
+      "w": 520,
+      "h": 168,
+      "fs": "21px",
+      "color": "rgb(79, 79, 79)",
+      "fontStyle": "italic",
+      "text": "(Chalti chaaki dekh kar, diya Kabira roye Do paatan ke beech mein, saabat bacha "
+    },
+    "poet": {
+      "x": 685,
+      "y": 652,
+      "w": 70,
+      "h": 23,
+      "fs": "15px",
+      "color": "rgb(227, 30, 121)",
+      "fontStyle": "normal",
+      "text": "KAMAAL"
+    },
+    "translator": {
+      "x": 718,
+      "y": 699,
+      "w": 3,
+      "h": 21,
+      "fs": "14px",
+      "color": "rgb(130, 130, 130)",
+      "fontStyle": "normal",
+      "text": ""
+    },
+    "lang": [
+      {
+        "t": "अ",
+        "active": false,
+        "w": 55
+      },
+      {
+        "t": "ā",
+        "active": true,
+        "w": 55
+      },
+      {
+        "t": "a",
+        "active": false,
+        "w": 55
+      }
+    ],
+    "actions": [
+      {
+        "t": "LISTEN",
+        "disabled": false,
+        "active": false
+      },
+      {
+        "t": "NOTES",
+        "disabled": false,
+        "active": false
+      },
+      {
+        "t": "GLOSSARY",
+        "disabled": false,
+        "active": false
+      }
+    ],
+    "divider": {
+      "x": 292,
+      "y": 890,
+      "w": 856,
+      "h": 28,
+      "fs": "16px",
+      "color": "oklch(0.145 0 0)",
+      "fontStyle": "normal",
+      "text": ""
+    },
+    "explore": {
+      "x": 292,
+      "y": 946,
+      "w": 856,
+      "h": 581,
+      "fs": "16px",
+      "color": "oklch(0.145 0 0)",
+      "fontStyle": "normal",
+      "text": "ExploreAll|Chakki Grinding StoneMaula Maula & Bhala HuaLorem ipsum dolor sit ame"
+    },
+    "exploreTitle": "Explore",
+    "exploreThemes": [
+      "All",
+      "Chakki Grinding Stone"
+    ],
+    "filtersBtn": false,
+    "detailLinks": [],
+    "poemQueryLinks": [
+      "/poems?id=32",
+      "/poems?id=106"
+    ],
+    "volumeBtn": false
+  },
+  "results": [
+    {
+      "name": "Intro present",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "Content column ~856",
+      "ok": true,
+      "detail": "w=856"
+    },
+    {
+      "name": "Content inset ~292",
+      "ok": true,
+      "detail": "x=292"
+    },
+    {
+      "name": "See All ~x1087",
+      "ok": true,
+      "detail": "x=1086"
+    },
+    {
+      "name": "Poem font 21px italic",
+      "ok": true,
+      "detail": "21px italic"
+    },
+    {
+      "name": "Poet pink uppercase",
+      "ok": true,
+      "detail": "KAMAAL"
+    },
+    {
+      "name": "Lang circles 55px ×3",
+      "ok": true,
+      "detail": "[{\"t\":\"अ\",\"active\":false,\"w\":55},{\"t\":\"ā\",\"active\":true,\"w\":55},{\"t\":\"a\",\"active\":false,\"w\":55}]"
+    },
+    {
+      "name": "Active script ā default",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "LISTEN|NOTES|GLOSSARY present",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "NOTES/GLOSSARY enabled",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "No Filters button (only See All parda)",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "No volume circle button",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "No /poems/{id} detail links",
+      "ok": true,
+      "detail": "[]"
+    },
+    {
+      "name": "Explore title",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "Explore width ~856",
+      "ok": true,
+      "detail": "w=856"
+    },
+    {
+      "name": "Wavy divider before Explore",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "Previous/Next present",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "Script + LISTEN above fold @900",
+      "ok": true,
+      "detail": "langBottom=795 actionsBottom=850 vh=900"
+    },
+    {
+      "name": "AI parchment background",
+      "ok": true,
+      "detail": "url(\"http://localhost:3000/poems-bg-ai.png\"), none"
+    },
+    {
+      "name": "Next changes poem",
+      "ok": true,
+      "detail": "(Chalti chaaki dekh kar, diya  → Mu bhaayo tal hekdo\nTal thya l"
+    },
+    {
+      "name": "Listen opens",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "Listen >4 clips scrolls",
+      "ok": true,
+      "detail": "{\"open\":true,\"clips\":5,\"maxH\":\"208px\",\"overflow\":\"auto\",\"scroll\":true}"
+    },
+    {
+      "name": "Listen Escape closes",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "Notes opens",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "Glossary opens",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "Devanagari toggle",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "English toggle",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "See All opens parda",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "Default list = All Poems",
+      "ok": true,
+      "detail": "{\"filterBy\":true,\"poetTheme\":true,\"poemRows\":true,\"oralOnDefault\":false}"
+    },
+    {
+      "name": "Oral note NOT on default poems list",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "Poet list shows poets",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "Oral Traditions → /reflections on poet screen",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "Select poet → filtered poems",
+      "ok": true,
+      "detail": "39 Poems"
+    },
+    {
+      "name": "Chip + Clear all",
+      "ok": true,
+      "detail": "[\"Kabir\"]"
+    },
+    {
+      "name": "Filtered by Poet indicator",
+      "ok": true,
+      "detail": "Filtered by Poet | Theme"
+    },
+    {
+      "name": "Stage shows KABIR",
+      "ok": true,
+      "detail": "KABIR"
+    },
+    {
+      "name": "Theme list (no oral note)",
+      "ok": true,
+      "detail": "[\"Aap\",\"Aasakti\",\"Aava Gaman\"]"
+    },
+    {
+      "name": "Clear all resets",
+      "ok": true,
+      "detail": "{\"chips\":0,\"count\":\"245 Poems\",\"filteredBy\":false}"
+    },
+    {
+      "name": "Parda closes",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "Deep link ?id=300 → KABIR",
+      "ok": true,
+      "detail": "{\"poet\":\"KABIR\",\"url\":\"http://localhost:3000/poems?id=300\"}"
+    },
+    {
+      "name": "Legacy /poems/300 redirects",
+      "ok": true,
+      "detail": "http://localhost:3000/poems?id=300"
+    },
+    {
+      "name": "Explore poem stays on /poems?id=",
+      "ok": true,
+      "detail": "http://localhost:3000/poems?id=32"
+    }
+  ]
+}

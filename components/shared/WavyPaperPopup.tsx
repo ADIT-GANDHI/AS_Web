@@ -1,6 +1,7 @@
 'use client';
 
 import type { CSSProperties, ReactNode } from 'react';
+import { useEffect } from 'react';
 import { AnimatePresence, motion } from 'framer-motion';
 import { X } from 'lucide-react';
 import './WavyPaperPopup.css';
@@ -75,6 +76,15 @@ export default function WavyPaperPopup({
   const z = style?.zIndex;
   const sheetZ = typeof z === 'number' ? z : 10100;
   const backdropZ = sheetZ - 1;
+
+  useEffect(() => {
+    if (!isOpen || !onClose) return;
+    const onKey = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') onClose();
+    };
+    document.addEventListener('keydown', onKey);
+    return () => document.removeEventListener('keydown', onKey);
+  }, [isOpen, onClose]);
 
   const anchoredStyle: CSSProperties = {
     top: '50%',

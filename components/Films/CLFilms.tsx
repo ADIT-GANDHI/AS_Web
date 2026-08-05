@@ -6,6 +6,7 @@ import Header from '@/components/Header';
 import Loader from '@/components/Loader';
 import LoadMoreButton from '@/components/shared/LoadMoreButton';
 import { FilmEntry, FilmSeries } from './CLFilmsMocks';
+import FilmPopupModal, { type FilmPopupData } from './FilmPopupModal';
 import '@/styles/CustomStyle.css';
 import '@/components/Songs/CLSongs.css';
 import './CLFilms.css';
@@ -13,6 +14,8 @@ import RepeatingPageBackground from '@/components/shared/RepeatingPageBackground
 import { FILMS_LISTING_BG } from '@/lib/pageBackgroundTiles';
 import { getFilmListingBlurb, formatFilmDirector } from './filmFieldUtils';
 import { AJAB_API_BASE } from '@/lib/ajabEnv';
+import { resolveCmsAssetUrl } from '@/lib/resolveCmsAssetUrl';
+import { extractYouTubeId } from '@/lib/youtube';
 import { FilmsNavCountContext } from '@/components/Films/FilmsNavCountContext';
 import { catalogHasMore, mergeCatalogById } from '@/lib/catalogPagination';
 import { parseCatalogTotal } from '@/lib/parseCatalogTotal';
@@ -20,12 +23,24 @@ import { parseCatalogTotal } from '@/lib/parseCatalogTotal';
 const FILMS_API_PAGE_SIZE = 10;
 const FILMS_VISIBLE_STEP = 10;
 const SERIES_ORDER = ['Journeys with Kabir', 'Ajab Mulakatein'];
+/** PDF-length placeholder when CMS has no listing blurb. */
+const FILM_LISTING_BLURB_FALLBACK =
+  'Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat.';
 
 type FilmRow = { entry: FilmEntry; raw: Record<string, unknown> };
 
 function thumbUrl(raw: string | null | undefined): string {
   if (!raw) return '';
   return raw.startsWith('/') ? `${AJAB_API_BASE}${raw}` : `${AJAB_API_BASE}/${raw}`;
+}
+
+/** Listing media: YouTube poster first, then CMS thumbnail, else blank (no pink play SVG). */
+function listingThumbUrl(it: Record<string, unknown>): string {
+  const videoId = extractYouTubeId(
+    String(it.youtube_video_id || it.film_youtube_id || '')
+  );
+  if (videoId) return `https://img.youtube.com/vi/${videoId}/hqdefault.jpg`;
+  return thumbUrl(it.thumbnail_url as string | undefined);
 }
 
 function mapFilmItem(it: Record<string, unknown>): FilmEntry {
@@ -36,9 +51,9 @@ function mapFilmItem(it: Record<string, unknown>): FilmEntry {
     director: formatFilmDirector(it.director_name_english || it.director_names_english),
     duration: String(it.duration || ''),
     year: String(it.year_of_production || it.year || ''),
-    languages: String(it.language || ''),
-    description: getFilmListingBlurb(it),
-    thumbnailUrl: thumbUrl(it.thumbnail_url as string | undefined),
+    languages: String(it.language || it.film_language || '').trim(),
+    description: getFilmListingBlurb(it) || FILM_LISTING_BLURB_FALLBACK,
+    thumbnailUrl: listingThumbUrl(it),
   };
 }
 
@@ -88,6 +103,19 @@ function buildSeries(rows: FilmRow[]): FilmSeries[] {
   return list;
 }
 
+function mapFilmPopupPayload(payload: unknown): FilmPopupData | null {
+  const root = payload as { status?: boolean; data?: Record<string, unknown> } | null;
+  if (!root?.status || !root.data || typeof root.data !== 'object') return null;
+  const videoId = extractYouTubeId(String(root.data.pop_video_url || ''));
+  if (!videoId) return null;
+  return {
+    id: String(root.data.id || videoId),
+    videoId,
+    title: String(root.data.title || ''),
+    thumbnailUrl: resolveCmsAssetUrl(String(root.data.thumbnail_url || '')),
+  };
+}
+
 export default function CLFilms() {
   const shellRef = useRef<HTMLDivElement>(null);
   const { setFilmsNavTotal } = useContext(FilmsNavCountContext);
@@ -97,6 +125,8 @@ export default function CLFilms() {
   const [apiPage, setApiPage] = useState(1);
   const [loading, setLoading] = useState(true);
   const [loadingMore, setLoadingMore] = useState(false);
+  const [filmPopup, setFilmPopup] = useState<FilmPopupData | null>(null);
+  const [filmPopupOpen, setFilmPopupOpen] = useState(false);
   const router = useRouter();
 
   const fetchFilmsPage = useCallback(async (page: number, reset: boolean) => {
@@ -141,6 +171,38 @@ export default function CLFilms() {
   useEffect(() => {
     if (totalFilms > 0) setFilmsNavTotal(totalFilms);
   }, [totalFilms, setFilmsNavTotal]);
+
+  useEffect(() => {
+    let cancelled = false;
+    const controller = new AbortController();
+
+    (async () => {
+      try {
+        const res = await fetch(`${AJAB_API_BASE}/Api/film_popup`, {
+          cache: 'no-store',
+          signal: controller.signal,
+        });
+        if (!res.ok) return;
+        const json = await res.json();
+        const mapped = mapFilmPopupPayload(json);
+        if (cancelled || !mapped) return;
+
+        setFilmPopup(mapped);
+        setFilmPopupOpen(true);
+      } catch {
+        /* ignore abort / network */
+      }
+    })();
+
+    return () => {
+      cancelled = true;
+      controller.abort();
+    };
+  }, []);
+
+  const closeFilmPopup = useCallback(() => {
+    setFilmPopupOpen(false);
+  }, []);
 
   const displayedRows = useMemo(() => rows.slice(0, visibleCount), [rows, visibleCount]);
   const visibleSeries = useMemo(() => buildSeries(displayedRows), [displayedRows]);
@@ -190,20 +252,19 @@ export default function CLFilms() {
                       onClick={() => router.push(`/films/details/${f.id}`)}
                     >
                       <div className="clf-entry-thumb">
-                        {f.thumbnailUrl && (
+                        {f.thumbnailUrl ? (
                           <img
                             src={f.thumbnailUrl}
                             alt={f.title}
                             onError={(e) => {
                               const t = e.currentTarget;
                               t.onerror = null;
-                              t.style.objectFit = 'contain';
-                              t.style.background = '#f0ece5';
-                              t.src =
-                                "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='280' height='158' viewBox='0 0 280 158'%3E%3Crect width='280' height='158' fill='%23f0ece5'/%3E%3Ccircle cx='140' cy='74' r='22' fill='none' stroke='%23E31E79' stroke-width='1.5' opacity='0.5'/%3E%3Cpath d='M132 74 L132 65 L150 74 L132 83 Z' fill='%23E31E79' opacity='0.5'/%3E%3C/svg%3E";
+                              t.removeAttribute('src');
+                              t.alt = '';
+                              t.style.display = 'none';
                             }}
                           />
-                        )}
+                        ) : null}
                       </div>
                       <div className="clf-entry-body">
                         <div className="clf-entry-titlerow">
@@ -250,6 +311,8 @@ export default function CLFilms() {
           </div>
         </main>
       </div>
+
+      <FilmPopupModal open={filmPopupOpen} data={filmPopup} onClose={closeFilmPopup} />
     </div>
   );
 }

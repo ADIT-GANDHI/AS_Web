@@ -13,11 +13,11 @@
 /* Detail — repeat-y layer via RepeatingPageBackground */
 .cl-songs-page-root:has(.clped-page) {
   --clped-artboard-w: 1920;
-  /* Content column — widen vs PDF 1027px so bio/related use more horizontal space */
-  --clped-content-max: min(1180px, calc(100vw * 1180 / var(--clped-artboard-w)));
-  --clped-side-pad: clamp(50px, 2.5vw, 32px);
-  /* PDF bio photos — wider float (≈420px @ 1920 artboard) */
-  --clped-photo-w: min(520px, calc(100vw * 520 / var(--clped-artboard-w)));
+  /* Client: detail content column 856px */
+  --clped-content-max: min(856px, calc(100vw - 48px));
+  --clped-side-pad: clamp(24px, 2.5vw, 32px);
+  /* PDF bio photos — wider float, capped to column */
+  --clped-photo-w: min(420px, calc(100vw * 420 / var(--clped-artboard-w)), 100%);
   /* Related row — larger thumbs than Songs detail default (PDF people page) */
   --cld-artboard-w: 1920;
   --cld-related-thumb-w: min(340px, calc(100vw * 340 / var(--cld-artboard-w)));
@@ -63,17 +63,26 @@ body:has(.clped-page) footer.footer-bg .footer-inner {
   box-sizing: border-box;
 }
 
-/* [Claude] these changes have been recommended by claude —
-   Measured from design artboard (1921px): content spans 443px–1471px = 1028px wide (53.5%).
-   950px max-width matches this proportion. Was wrongly using --ajab-grid-max-w (800px). */
+/* Client: All People listing content width 1000px */
 .clpe-list {
-  max-width: 950px;
+  max-width: min(1000px, 100%);
   margin: 30px auto 0;
   padding: 0 clamp(24px, 2vw, 40px);
   box-sizing: border-box;
   display: flex;
   flex-direction: column;
   gap: 0;
+}
+
+/* Align Filters | All under the "N People" count (same inset as count row). */
+.clpe-page .cl-filter-bar {
+  padding-left: clamp(80px, 16vw, 307px);
+  padding-right: clamp(80px, 16vw, 307px);
+}
+
+.clpe-page .cl-filter-bar::before {
+  left: clamp(80px, 16vw, 307px);
+  right: clamp(80px, 16vw, 307px);
 }
 
 .clpe-list-status {
@@ -92,7 +101,6 @@ body:has(.clped-page) footer.footer-bg .footer-inner {
   display: flex;
   gap: 32px;
   align-items: flex-start;
-  cursor: pointer;
   padding: 36px 0;
   border-bottom: none;
   background: transparent;
@@ -113,6 +121,18 @@ body:has(.clped-page) footer.footer-bg .footer-inner {
   border-radius: 2px;
   overflow: hidden;
   box-shadow: 0 4px 14px rgba(0, 0, 0, 0.12);
+  text-decoration: none;
+  color: inherit;
+  display: block;
+}
+
+.clpe-entry-thumb:hover {
+  opacity: 0.92;
+}
+
+.clpe-entry-thumb:focus-visible {
+  outline: 2px solid var(--ajab-pink-primary);
+  outline-offset: 2px;
 }
 
 .clpe-entry-thumb img {
@@ -135,6 +155,16 @@ body:has(.clped-page) footer.footer-bg .footer-inner {
   color: var(--ajab-ink-700);
   display: inline;
   margin-right: 10px;
+  text-decoration: none;
+}
+
+.clpe-entry-name:hover {
+  color: var(--ajab-pink-primary);
+}
+
+.clpe-entry-name:focus-visible {
+  outline: 2px solid var(--ajab-pink-primary);
+  outline-offset: 2px;
 }
 
 .clpe-entry-role {
@@ -166,11 +196,21 @@ body:has(.clped-page) footer.footer-bg .footer-inner {
   color: var(--ajab-pink-primary);
   font-family: var(--ajab-font-sans);
   font-weight: 400;
-  font-size: var(--ajab-fs-tag);
-  letter-spacing: 0.06em;
-  text-transform: uppercase;
+  font-size: inherit;
+  letter-spacing: 0;
+  text-transform: none;
   text-decoration: none;
   white-space: nowrap;
+  margin-left: 2px;
+}
+
+.clpe-entry-explore:hover {
+  text-decoration: underline;
+}
+
+.clpe-entry-explore:focus-visible {
+  outline: 2px solid var(--ajab-pink-primary);
+  outline-offset: 2px;
 }
 
 body:has(.clpe-page) .nav-link--people,
@@ -238,9 +278,10 @@ body:has(.clped-page) .nav-link--people .nav-link-people-count {
 }
 
 .clped-content {
+  width: var(--clped-content-max);
   max-width: var(--clped-content-max);
   margin: 0 auto;
-  padding: 0 var(--clped-side-pad);
+  padding: 0;
   box-sizing: border-box;
 }
 

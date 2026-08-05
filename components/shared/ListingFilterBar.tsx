@@ -11,6 +11,8 @@ type Props = {
   allActive?: boolean;
   /** When true, "All" is pink only while filters are active (client Reflections/People spec). */
   allPinkWhenFiltered?: boolean;
+  /** Label for the clear/all control. Defaults to "All" (Songs/Reflections); Poems uses "See All". */
+  allLabel?: string;
   /** Optional A–Z row (Songs, People). Omit for modules with All only (Reflections). */
   azRow?: ReactNode;
 };
@@ -21,6 +23,7 @@ export default function ListingFilterBar({
   onAllClick,
   allActive = false,
   allPinkWhenFiltered = false,
+  allLabel = 'All',
   azRow,
 }: Props) {
   const chips = buildFilterChips(
@@ -46,7 +49,7 @@ export default function ListingFilterBar({
           }`}
           onClick={onAllClick}
         >
-          All
+          {allLabel}
         </button>
         {azRow}
       </div>

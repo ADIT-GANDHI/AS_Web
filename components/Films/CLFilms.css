@@ -16,10 +16,8 @@
   --clf-listing-rule-width: calc(100vw * 1339.5 / var(--clf-artboard-w));
   /* Figma 366:7854 — film row content column */
   --clf-content-inset: calc(100vw * 396.72 / var(--clf-artboard-w));
-  --clf-content-width: min(
-    calc(100vw * 1134.36 / var(--clf-artboard-w)),
-    calc(100vw - var(--clf-content-inset) - 24px)
-  );
+  /* Client: All Films listing content width 1000px */
+  --clf-content-width: min(1000px, calc(100vw - var(--clf-content-inset) - 24px));
   /* Figma 366:7864 outer frame, scaled down ~10% for PDF text-column balance (padding unchanged) */
   --clf-thumb-scale: 0.9;
   --clf-thumb-w: min(
@@ -155,7 +153,7 @@ body:has(.clfd-page) footer.footer-bg .footer-inner {
   aspect-ratio: auto;
   flex-shrink: 0;
   padding: var(--clf-thumb-border);
-  background: #ffffff;
+  background: #f0ece5;
   border: 1px solid #d8d8d8;
   border-radius: 2px;
   box-sizing: border-box;
@@ -325,16 +323,10 @@ body:has(.clfd-page) .nav-link--films .nav-link-films-count {
   cursor: not-allowed;
 }
 
-/* ── Detail page — PDF 6.FilmMain+Detail page 3/4 (artboard 1920) ──
-   Content column: inset 448, width 1054.
-   Video: 1054×582. Related thumbs: 307×174. Glossary pill: 1008 wide. */
+/* ── Detail page — client content width 856px (player + column) ── */
 .clfd-page {
   --clfd-artboard-w: 1920;
-  --clfd-content-inset: calc(100vw * 448 / var(--clfd-artboard-w));
-  --clfd-content-width: min(
-    calc(100vw * 1054 / var(--clfd-artboard-w)),
-    calc(100vw - var(--clfd-content-inset) - 24px)
-  );
+  --clfd-content-width: min(856px, calc(100vw - 48px));
   /* Related uses song-detail tokens — override to PDF film sizes */
   --cld-related-max-width: 100%;
   --cld-related-thumb-w: min(307px, calc(100vw * 307 / var(--clfd-artboard-w)));
@@ -351,7 +343,7 @@ body:has(.clfd-page) .nav-link--films .nav-link-films-count {
 
 .clfd-content {
   width: var(--clfd-content-width);
-  margin: 0 0 0 var(--clfd-content-inset);
+  margin: 0 auto;
   padding: 0;
   box-sizing: border-box;
   overflow: visible;
@@ -461,7 +453,7 @@ body:has(.clfd-page) .nav-link--films .nav-link-films-count {
   z-index: 1;
   width: 100%;
   margin: 0;
-  aspect-ratio: 1054 / 582;
+  aspect-ratio: 16 / 9;
   background: #000;
   border-radius: 2px;
   overflow: hidden;
@@ -801,11 +793,16 @@ body:has(.clfd-page) .nav-link--films .nav-link-films-count {
     width: min(var(--clf-listing-rule-width), calc(100% - max(24px, var(--clf-listing-rule-inset)) - 24px));
   }
 
-  .clf-series,
-  .clfd-content {
+  .clf-series {
     width: auto;
-    margin-left: max(24px, var(--clfd-content-inset, var(--clf-content-inset)));
+    margin-left: max(24px, var(--clf-content-inset));
     margin-right: 24px;
+  }
+
+  .clfd-content {
+    width: min(856px, calc(100% - 48px));
+    margin-left: auto;
+    margin-right: auto;
   }
 
   .clf-entry {

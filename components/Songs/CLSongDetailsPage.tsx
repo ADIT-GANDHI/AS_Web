@@ -3,19 +3,15 @@
 import Header from '@/components/Header';
 import Link from 'next/link';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
-import { useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
+import { useLayoutEffect, useMemo, useRef, useState } from 'react';
 import YouTubeEmbedFrame from '@/components/Reusable/YouTubeEmbedFrame';
-import { GLOSSARY_TERMS_LINE_1, GLOSSARY_TERMS_LINE_2 } from './CLdetailMocks';
 import { CLGlossaryPopup } from '../Poems/CLPoemPopups';
-import GlossaryStrip from '@/components/shared/GlossaryStrip';
+import ExploreSection from '@/components/shared/ExploreSection';
 import WavyCard from '@/components/shared/WavyCard';
 import WavyPaperPopup from '@/components/shared/WavyPaperPopup';
 import './CLSongs.css'; // for the root marble bg + floating button overrides
 import './CLSongDetails.css';
 import SongDetailBackground from '@/components/Songs/SongDetailBackground';
-import { glossaryTermsFromKeywords } from '@/lib/parseKeywords';
-import { getRelatedDetailHref } from '@/lib/relatedDetailHref';
-import { sortRelatedByAdminFirst } from '@/lib/mapRelatedResponse';
 import { truncateAtWord, truncateToFitLines } from '@/lib/truncateAtWord';
 import { resolveCmsAssetUrl, withAppBasePath } from '@/lib/resolveCmsAssetUrl';
 
@@ -172,69 +168,6 @@ function firstLyricsField(...vals: any[]): string {
   return '';
 }
 
-function relatedBucket(data: Record<string, unknown>, key: string): any[] {
-  const arr = data[key];
-  return Array.isArray(arr) ? arr : [];
-}
-
-/** Display title for a related row — used for A→Z sort and rendering. */
-function getRelatedItemTitle(item: any): string {
-  if (!item || typeof item !== 'object') return 'Untitled';
-  for (const field of [
-    item.Songtitle_transliteration,
-    item.song_title_transliteration,
-    item.title,
-    item.word_transliteration,
-    item.original_title,
-    item.person_name,
-    item.english_transliteration,
-    item.english_translation,
-  ]) {
-    const t = typeof field === 'string' ? field.trim() : getText(field).trim();
-    if (t) return t;
-  }
-  return 'Untitled';
-}
-
-function getRelatedItemSubtitle(item: any): string {
-  if (item?.word_translation && typeof item.word_translation === 'string') {
-    return item.word_translation.trim();
-  }
-  const sub = item?.songtitletraan || item?.subtitle;
-  return typeof sub === 'string' ? sub.trim() : getText(sub).trim();
-}
-
-function getRelatedItemDescription(item: any): string {
-  return htmlToPlainText(
-    String(item?.about || item?.description || item?.meta_description || '')
-  );
-}
-
-type RelatedListEntry = { bucket: string; item: any };
-
-/** Stable React key — CMS ids overlap across buckets (e.g. song id 5 vs poem id 5). */
-function relatedEntryKey(bucket: string, item: any, index: number): string {
-  const id = item?.id != null && item?.id !== '' ? String(item.id) : 'noid';
-  return `${bucket}-${id}-${index}`;
-}
-
-function buildAllRelatedEntries(buckets: {
-  songs: any[];
-  poems: any[];
-  reflections: any[];
-  other: any[];
-}): RelatedListEntry[] {
-  const { songs, poems, reflections, other } = buckets;
-  // Keywords are shown in the GlossaryStrip — exclude them from the related list.
-  const blocks: Array<[string, any[]]> = [
-    ['songs', songs],
-    ['poems', poems],
-    ['reflections', reflections],
-    ['other', other],
-  ];
-  return blocks.flatMap(([bucket, items]) => items.map((item) => ({ bucket, item })));
-}
-
 export default function CLSongDetailsPage({
   data,
   songVersions = [],
@@ -243,14 +176,7 @@ export default function CLSongDetailsPage({
   const sliderRef = useRef<HTMLDivElement | null>(null);
   const [script, setScript] = useState<Script>('transliteration');
   const [showNotes, setShowNotes] = useState(false);
-  const [activeTab, setActiveTab] = useState<'all' | 'songs' | 'poems' | 'reflections' | 'other'>('songs');
   const [showGlossary, setShowGlossary] = useState(false);
-  const [relatedExpanded, setRelatedExpanded] = useState<Record<string, boolean>>({});
-  const [relatedListExpanded, setRelatedListExpanded] = useState(false);
-
-  useEffect(() => {
-    setRelatedListExpanded(false);
-  }, [activeTab]);
 
   const scrollVersions = (direction: 'left' | 'right') => {
     if (!sliderRef.current) return;
@@ -384,73 +310,10 @@ export default function CLSongDetailsPage({
     return 0;
   })();
 
-  const relatedData = related?.data || {};
-  const relatedCounts = related?.counts || {};
-
-  const relatedBuckets = useMemo(() => {
-    const keywords = sortRelatedByAdminFirst(relatedBucket(relatedData, 'keywords'));
-    const songs = sortRelatedByAdminFirst(relatedBucket(relatedData, 'songs'));
-    const poems = sortRelatedByAdminFirst(relatedBucket(relatedData, 'poems'));
-    const reflections = sortRelatedByAdminFirst(relatedBucket(relatedData, 'reflections'));
-    // Merge people + films + any legacy "other" key into the OTHER tab
-    const other = sortRelatedByAdminFirst([
-      ...relatedBucket(relatedData, 'people'),
-      ...relatedBucket(relatedData, 'films'),
-      ...relatedBucket(relatedData, 'other'),
-    ]);
-    return { keywords, songs, poems, reflections, other };
-  }, [relatedData]);
-
-  // GlossaryStrip terms — live API keywords with { term, meaning } pairs.
-  // Falls back to the hardcoded mock when the API returns no usable keywords.
-  const glossaryTerms = useMemo(
-    () => glossaryTermsFromKeywords(relatedBuckets.keywords as unknown[]),
-    [relatedBuckets.keywords]
-  );
-
-  // Build the tab list dynamically by counts
-  // [Claude] these changes have been recommended by claude — ALL count falls back to sum of arrays when relatedCounts.all is absent/0
-  const keywordsCount = relatedBuckets.keywords.length;
-  const songsCount = relatedCounts.songs || relatedBuckets.songs.length;
-  const poemsCount = relatedCounts.poems || relatedBuckets.poems.length;
-  const reflectionsCount = relatedCounts.reflections || relatedBuckets.reflections.length;
-  const otherCount =
-    relatedCounts.other ||
-    (relatedCounts.people || 0) + (relatedCounts.films || 0) ||
-    relatedBuckets.other.length;
-  const tabs: Array<{ key: typeof activeTab; label: string; count: number }> = [
-    {
-      key: 'all',
-      label: 'ALL',
-      count:
-        relatedCounts.all ||
-        songsCount + poemsCount + reflectionsCount + otherCount,
-    },
-    { key: 'songs', label: 'SONGS', count: songsCount },
-    { key: 'poems', label: 'POEMS', count: poemsCount },
-    { key: 'reflections', label: 'REFLECTIONS', count: reflectionsCount },
-    { key: 'other', label: 'OTHER', count: otherCount },
-  ];
-
-  const visibleRelatedEntries = useMemo((): RelatedListEntry[] => {
-    if (activeTab === 'all') {
-      const { songs, poems, reflections, other } = relatedBuckets;
-      return buildAllRelatedEntries({ songs, poems, reflections, other });
-    }
-    const items = relatedBuckets[activeTab] || [];
-    return items.map((item) => ({ bucket: activeTab, item }));
-  }, [activeTab, relatedBuckets]);
-
-  const RELATED_INITIAL_COUNT = 3;
-  const displayedRelatedEntries = useMemo(() => {
-    if (relatedListExpanded || visibleRelatedEntries.length <= RELATED_INITIAL_COUNT) {
-      return visibleRelatedEntries;
-    }
-    return visibleRelatedEntries.slice(0, RELATED_INITIAL_COUNT);
-  }, [visibleRelatedEntries, relatedListExpanded]);
-
-  const hasMoreRelated =
-    visibleRelatedEntries.length > RELATED_INITIAL_COUNT;
+  const relatedData =
+    (related?.data as Record<string, unknown> | undefined) ||
+    (related as Record<string, unknown> | null) ||
+    {};
 
   const pageShellRef = useRef<HTMLDivElement>(null);
 
@@ -685,120 +548,9 @@ export default function CLSongDetailsPage({
             )}
             </div>
 
-            {/* ===== Related section — aligned with video column ===== */}
+            {/* ===== Explore section — theme strip + mixed list ===== */}
             <div className="cld-detail-body-align">
-            <section className="cld-related">
-              <h2 className="cld-related-title">Related</h2>
-              <div className="cld-related-tabs">
-                {tabs.map((t, i) => (
-                  <span key={t.key} style={{ display: 'inline-flex', alignItems: 'center', gap: 16 }}>
-                    <button
-                      className={`cld-related-tab${activeTab === t.key ? ' active' : ''}`}
-                      onClick={() => setActiveTab(t.key)}
-                    >
-                        {t.label}
-                        <span className="cld-related-tab-count">({t.count})</span>
-                    </button>
-                    {i < tabs.length - 1 && <span className="cld-related-tab-sep">|</span>}
-                  </span>
-                ))}
-              </div>
-              <div className="cld-related-list">
-                  {visibleRelatedEntries.length > 0 ? (
-                    displayedRelatedEntries.map((entry, idx) => {
-                      const { bucket, item } = entry;
-                      // Figma 361:1514: certain related items (poems / written
-                      // works) use a DARK title and a calligraphic handwritten
-                      // thumb instead of the default pink title + photo.
-                      const titleClass =
-                        `cld-related-itemtitle${item?.titleStyle === 'dark' ? ' cld-related-itemtitle--dark' : ''}`;
-                      const thumbClass =
-                        `cld-related-thumb${item?.thumbStyle === 'handwritten' ? ' cld-related-thumb--handwritten' : ''}`;
-                      const relKey = relatedEntryKey(bucket, item, idx);
-                      const itemTitle = getRelatedItemTitle(item);
-                      const itemSubtitle = getRelatedItemSubtitle(item);
-                      const descPlain = getRelatedItemDescription(item);
-                      const expanded = !!relatedExpanded[relKey];
-                      const newlineCount = (descPlain.match(/\n/g) || []).length;
-                      const needsClamp = descPlain.length > 140 || newlineCount >= 2;
-                      const detailHref = getRelatedDetailHref(bucket, item);
-                      const itemInner = (
-                        <>
-                          <div className={thumbClass}>
-                            <img
-                              src={resolveCmsAssetUrl(item.thumbnailUrl || item.thumbnail_url)}
-                              alt={itemTitle}
-                            />
-                          </div>
-                          <div className="cld-related-body">
-                            <div className="cld-related-titlerow">
-                              <span className={titleClass}>{itemTitle}</span>
-                              {itemSubtitle && (
-                                <span className="cld-related-itemsubtitle">{itemSubtitle}</span>
-                              )}
-                            </div>
-                            <p className="cld-related-itemdesc">
-                              {needsClamp && !expanded
-                                ? truncateAtWord(descPlain, 140)
-                                : descPlain}
-                              {needsClamp && (
-                                <button
-                                  type="button"
-                                  className="cld-related-readmore"
-                                  onClick={(e) => {
-                                    e.preventDefault();
-                                    e.stopPropagation();
-                                    setRelatedExpanded((prev) => ({ ...prev, [relKey]: !prev[relKey] }));
-                                  }}
-                                >
-                                  {expanded ? ' read less' : '...more'}
-                                </button>
-                              )}
-                            </p>
-                          </div>
-                        </>
-                      );
-                      return detailHref ? (
-                        <Link
-                          key={relKey}
-                          href={withAppBasePath(detailHref)}
-                          className="cld-related-item cld-related-item--link"
-                        >
-                          {itemInner}
-                        </Link>
-                      ) : (
-                        <div key={relKey} className="cld-related-item">
-                          {itemInner}
-                        </div>
-                      );
-                    })
-                ) : (
-                  <div style={{ padding: 16, color: '#828282' }}>No related items.</div>
-                )}
-              </div>
-                {hasMoreRelated && (
-                  <button
-                    type="button"
-                    className="cld-related-seemore"
-                    onClick={() => setRelatedListExpanded((v) => !v)}
-                  >
-                    {relatedListExpanded ? 'SEE LESS' : 'SEE MORE'}
-                  </button>
-                )}
-
-
-            </section>
-            </div>
-
-            {/* ===== Glossary strip — aligned to video/related column (Figma 361:1569) ===== */}
-            <div className="cld-detail-body-align cld-glossary-align">
-              <GlossaryStrip
-                terms={
-                  glossaryTerms.length > 0
-                    ? glossaryTerms
-                    : [...GLOSSARY_TERMS_LINE_1, ...GLOSSARY_TERMS_LINE_2]
-                }
-              />
+              <ExploreSection data={relatedData} className="cld-related" />
             </div>
           </div>
         </main>

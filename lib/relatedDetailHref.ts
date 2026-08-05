@@ -14,7 +14,8 @@ export function getRelatedDetailHref(
     case 'songs':
       return `/songs/details/${id}`;
     case 'poems':
-      return `/poems/${id}`;
+      // Single Poems page (no detail route) — open main page with selection.
+      return `/poems?id=${id}`;
     case 'reflections':
       return `/reflections/details/${id}`;
     case 'people':

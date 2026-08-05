@@ -3,7 +3,7 @@
    glossary terms with their meanings (e.g. "Shoonya void", "Ulat reverse").
 
    Background: /glossary-pill-bg.png — the wavy pill artwork from Figma's
-   "Rectangle 361:1569" image-fill (1015 × 180).
+   "Rectangle 361:1569" image-fill (scaled to 856px detail content width).
 
    Typography:
      word    → Lora Regular 24, var(--ajab-ink-900); pink on hover; links to /searche
@@ -18,7 +18,7 @@
 
 .gs-strip {
   position: relative;
-  max-width: 1015px;
+  max-width: 856px;
   margin: 56px auto 80px;
   padding: 48px 40px;
   font-family: var(--ajab-font-serif);
@@ -31,7 +31,8 @@
   display: flex;
   justify-content: center;
   flex-wrap: wrap;
-  gap: 36px;
+  /* row-gap 8px matches .gs-row + .gs-row so wrapped lines match explicit rows */
+  gap: 8px 36px;
 }
 
 .gs-row + .gs-row {
@@ -89,6 +90,6 @@ a.gs-term {
   }
   .gs-row {
     flex-wrap: wrap;
-    gap: 18px 24px;
+    gap: 8px 24px;
   }
 }

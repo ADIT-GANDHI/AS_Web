@@ -8,7 +8,7 @@ import { useEffect, useMemo, useState } from 'react';
 import { usePathname } from 'next/navigation';
 import { AJAB_API_BASE } from '@/lib/ajabEnv';
 import { CLGlossaryPopup, CLPlayerPopup } from '@/components/Poems/CLPoemPopups';
-import GlossaryStrip from '@/components/shared/GlossaryStrip';
+import ExploreSection from '@/components/shared/ExploreSection';
 import WavyPaperPopup from '@/components/shared/WavyPaperPopup';
 import {
   findMockPoemById,
@@ -106,9 +106,6 @@ export default function CLPoemDetailClient({ id: idProp }: { id: string }) {
   const [showNotes, setShowNotes] = useState(false);
   const [showGlossary, setShowGlossary] = useState(false);
   const [showPlayer, setShowPlayer] = useState(false);
-  const [activeRelatedTab, setActiveRelatedTab] = useState<
-    'all' | 'songs' | 'poems' | 'reflections' | 'other'
-  >('songs');
   const [related, setRelated] = useState<RelatedContent>(EMPTY_RELATED);
 
   useEffect(() => {
@@ -120,10 +117,12 @@ export default function CLPoemDetailClient({ id: idProp }: { id: string }) {
         });
         if (!res.ok) throw new Error('API error');
         const data = await res.json();
-        const item = Array.isArray(data?.data)
-          ? data.data.find((row: { id?: string | number }) => String(row.id) === String(id)) ??
-            null
-          : null;
+        const raw = data?.data;
+        const item = Array.isArray(raw)
+          ? raw.find((row: { id?: string | number }) => String(row.id) === String(id)) ?? null
+          : raw && typeof raw === 'object'
+            ? raw
+            : null;
         if (item) {
           setPoem(mapApiItem(item));
           return;
@@ -164,28 +163,6 @@ export default function CLPoemDetailClient({ id: idProp }: { id: string }) {
   const glossaryBody =
     poem?.glossary ||
     POEMS_GLOSSARY.map((g) => `${g.term} — ${g.meaning}`).join('\n\n');
-
-  const counts = related.counts;
-  const tabs = [
-    { key: 'all' as const, label: 'ALL', count: counts.all },
-    { key: 'songs' as const, label: 'SONGS', count: counts.songs },
-    { key: 'poems' as const, label: 'POEMS', count: counts.poems },
-    { key: 'reflections' as const, label: 'REFLECTIONS', count: counts.reflections },
-    { key: 'other' as const, label: 'OTHER', count: counts.other },
-  ];
-
-  const visibleItems = useMemo(() => {
-    const data = related.data as any;
-    if (activeRelatedTab === 'all') {
-      return [
-        ...(data.songs || []),
-        ...(data.poems || []),
-        ...(data.reflections || []),
-        ...(data.other || []),
-      ];
-    }
-    return data[activeRelatedTab] || [];
-  }, [activeRelatedTab, related]);
 
   if (loading) return <PoemsLoadingShell />;
 
@@ -321,57 +298,7 @@ export default function CLPoemDetailClient({ id: idProp }: { id: string }) {
               </div>
             </div>
 
-            <section className="clp-related">
-              <h2 className="clp-related-title">Related</h2>
-              <div className="clp-related-tabs">
-                {tabs.map((t, i) => (
-                  <span
-                    key={t.key}
-                    style={{ display: 'inline-flex', alignItems: 'center', gap: 16 }}
-                  >
-                    <button
-                      className={`clp-related-tab${activeRelatedTab === t.key ? ' active' : ''}`}
-                      onClick={() => setActiveRelatedTab(t.key)}
-                    >
-                      {t.label}
-                      <span className="clp-related-tab-count">({t.count})</span>
-                    </button>
-                    {i < tabs.length - 1 && (
-                      <span className="clp-related-tab-sep">|</span>
-                    )}
-                  </span>
-                ))}
-              </div>
-              <div className="clp-related-list">
-                {visibleItems.length ? (
-                  visibleItems.map((item: any) => (
-                    <div key={item.id || item.title} className="clp-related-item">
-                      <div className="clp-related-thumb">
-                        {item.thumbnailUrl && (
-                          <img src={item.thumbnailUrl} alt={item.title} />
-                        )}
-                      </div>
-                      <div className="clp-related-body">
-                        <div className="clp-related-titlerow">
-                          <span className="clp-related-itemtitle">{item.title}</span>
-                          {item.subtitle && (
-                            <span className="clp-related-itemsubtitle">
-                              {item.subtitle}
-                            </span>
-                          )}
-                        </div>
-                        <div className="clp-related-itemdesc">{item.about}</div>
-                      </div>
-                    </div>
-                  ))
-                ) : (
-                  <div style={{ padding: 16, color: '#828282' }}>No related items.</div>
-                )}
-              </div>
-              <a className="clp-related-seemore">SEE MORE</a>
-            </section>
-
-            <GlossaryStrip terms={POEMS_GLOSSARY} />
+            <ExploreSection data={related.data} className="clp-related" />
           </div>
         </main>
         <WavyPaperPopup

@@ -1,13 +1,8 @@
 'use client';
 
-import { useCallback, useContext, useEffect, useMemo, useState } from 'react';
+import { useCallback, useContext, useEffect, useMemo, useRef, useState } from 'react';
+import { useSearchParams } from 'next/navigation';
 import Header from '@/components/Header';
-import Link from 'next/link';
-import {
-  ChevronLeft,
-  ChevronRight,
-  Volume2,
-} from 'lucide-react';
 
 import {
   POEMS_INTRO,
@@ -18,21 +13,29 @@ import {
   PoemData,
 } from './CLPoemMocks';
 import { PoemsNavCountContext } from './PoemsNavCountContext';
-import CLPoemFilterPanel from './CLPoemFilterPanel';
 import { CLGlossaryPopup, CLPlayerPopup } from './CLPoemPopups';
-import GlossaryStrip from '@/components/shared/GlossaryStrip';
+import ExploreSection from '@/components/shared/ExploreSection';
+import CLFilterPanel from '@/components/Fillter/CLFilterPanel';
+import type {
+  ListingFilterCategory,
+  ListingFilterOption,
+} from '@/components/shared/listingFilterTypes';
 import WavyPaperPopup from '@/components/shared/WavyPaperPopup';
 import Loader from '@/components/Loader';
+import Link from 'next/link';
 import '@/styles/CustomStyle.css';
-import '@/components/Songs/CLSongs.css'; // for marble bg root + floating buttons
-import '@/components/Songs/CLSongDetails.css'; // sidebar styles
+import '@/components/Songs/CLSongs.css';
+import '@/components/Songs/CLSongDetails.css';
 import './CLPoems.css';
 import { AJAB_API_BASE } from '@/lib/ajabEnv';
-import { mergeCatalogById } from '@/lib/catalogPagination';
 import { mapPoemListItem } from '@/lib/mapPoemListItem';
 import { parseCatalogTotal } from '@/lib/parseCatalogTotal';
-
-const POEMS_PAGE_SIZE = 10;
+import { fetchPoemFilterOptions } from '@/lib/poemFilters';
+import {
+  fetchPublishedPoemAudio,
+  toAudioVersions,
+} from '@/lib/poemAudio';
+import type { AudioVersion } from './CLPoemPopups';
 import {
   EMPTY_RELATED,
   fetchRelatedByParam,
@@ -42,152 +45,228 @@ import {
 
 type Script = 'devanagari' | 'transliteration' | 'english';
 
-function normalizeFilterToken(value: string): string {
-  return String(value || '').toLowerCase().replace(/\s+/g, ' ').trim();
-}
-
-function fieldMatchesFilters(field: string, names: string[]): boolean {
-  if (!names.length) return true;
-  const parts = String(field || '')
-    .split(/[&,]/)
-    .map((part) => normalizeFilterToken(part))
-    .filter(Boolean);
-  if (!parts.length) return false;
-  return names.some((name) => {
-    const needle = normalizeFilterToken(name);
-    return parts.some((part) => part.includes(needle) || needle.includes(part));
-  });
-}
+const CATALOG_LIMIT = 300;
 
 export default function CLPoems() {
+  const searchParams = useSearchParams();
+  const deepLinkId = searchParams.get('id') || '';
   const { setPoemsNavTotal } = useContext(PoemsNavCountContext);
   const [poems, setPoems] = useState<PoemData[]>([]);
   const [activeIdx, setActiveIdx] = useState(0);
   const [script, setScript] = useState<Script>('transliteration');
-  const [activeRelatedTab, setActiveRelatedTab] = useState<
-    'all' | 'songs' | 'poems' | 'reflections' | 'other'
-  >('songs');
   const [related, setRelated] = useState<RelatedContent>(EMPTY_RELATED);
   const [totalPoems, setTotalPoems] = useState(0);
   const [poemsLoading, setPoemsLoading] = useState(true);
-  const [loadingMorePoems, setLoadingMorePoems] = useState(false);
-  const [apiPage, setApiPage] = useState(1);
 
-  // Filter + sidebar state
-  const [selectedPoets, setSelectedPoets] = useState<string[]>([]);
-  const [selectedThemes, setSelectedThemes] = useState<string[]>([]);
+  const [poetOptions, setPoetOptions] = useState<ListingFilterOption[]>([]);
+  const [themeOptions, setThemeOptions] = useState<ListingFilterOption[]>([]);
+  const [selectedPoetIds, setSelectedPoetIds] = useState<string[]>([]);
+  const [selectedThemeIds, setSelectedThemeIds] = useState<string[]>([]);
+  const [filterOrder, setFilterOrder] = useState<Array<'Poet' | 'Theme'>>([]);
+  const [poetFetchPoems, setPoetFetchPoems] = useState<PoemData[]>([]);
+
   const [showNotes, setShowNotes] = useState(false);
   const [showGlossary, setShowGlossary] = useState(false);
   const [showPlayer, setShowPlayer] = useState(false);
+  const [filterPanelOpen, setFilterPanelOpen] = useState(false);
+  const [listenVersions, setListenVersions] = useState<AudioVersion[]>([]);
+  const skipFilterResetRef = useRef(false);
 
-  const togglePoet = (v: string) =>
-    setSelectedPoets((prev) =>
-      prev.includes(v) ? prev.filter((x) => x !== v) : [...prev, v]
-    );
-  const toggleTheme = (v: string) =>
-    setSelectedThemes((prev) =>
-      prev.includes(v) ? prev.filter((x) => x !== v) : [...prev, v]
-    );
-  const [showPoemList, setShowPoemList] = useState(false);
-  const [filterPanelKey, setFilterPanelKey] = useState(0);
+  const primaryFilter = filterOrder[0] ?? null;
 
-  const clearAllFilters = () => {
-    setSelectedPoets([]);
-    setSelectedThemes([]);
-  };
+  const poetNameById = useMemo(() => {
+    const map = new Map<string, string>();
+    for (const p of poetOptions) map.set(p.id, p.label);
+    return map;
+  }, [poetOptions]);
 
-  const handleSeeAll = () => {
-    clearAllFilters();
-    setShowPoemList(true);
-    setActiveIdx(0);
-    setShowNotes(false);
-    setShowGlossary(false);
-    setShowPlayer(false);
-    setFilterPanelKey((k) => k + 1);
-    void fetchPoemsPage(1, true);
-  };
+  const clearAllFilters = useCallback(() => {
+    setSelectedPoetIds([]);
+    setSelectedThemeIds([]);
+    setFilterOrder([]);
+    setPoetFetchPoems([]);
+  }, []);
 
-  const fetchPoemsPage = useCallback(async (page: number, reset: boolean) => {
-    if (reset) setPoemsLoading(true);
-    else setLoadingMorePoems(true);
-
-    const controller = new AbortController();
-    const timeoutId = setTimeout(() => controller.abort(), 15000);
-
-    try {
-      const res = await fetch(
-        `${AJAB_API_BASE}/Api/poems?page=${page}&limit=${POEMS_PAGE_SIZE}`,
-        { cache: 'no-store', signal: controller.signal }
-      );
-      clearTimeout(timeoutId);
-      if (!res.ok) return;
-
-      const data = await res.json();
-      if (data?.data && Array.isArray(data.data) && data.data.length) {
-        const list = data.data.map((it: Record<string, unknown>) => mapPoemListItem(it));
-        setPoems((prev) => (reset ? list : mergeCatalogById(prev, list)));
-        if (reset) setActiveIdx(0);
+  const handleFilterSelect = (type: ListingFilterCategory, value: string) => {
+    if (type === 'Poet') {
+      const removing = selectedPoetIds.includes(value);
+      if (removing) {
+        const next = selectedPoetIds.filter((x) => x !== value);
+        setSelectedPoetIds(next);
+        if (!next.length) setFilterOrder((order) => order.filter((d) => d !== 'Poet'));
+      } else {
+        setSelectedPoetIds([...selectedPoetIds, value]);
+        setFilterOrder((order) => (order.includes('Poet') ? order : [...order, 'Poet']));
       }
+      return;
+    }
+    if (type === 'Theme') {
+      const removing = selectedThemeIds.includes(value);
+      if (removing) {
+        const next = selectedThemeIds.filter((x) => x !== value);
+        setSelectedThemeIds(next);
+        if (!next.length) setFilterOrder((order) => order.filter((d) => d !== 'Theme'));
+      } else {
+        setSelectedThemeIds([...selectedThemeIds, value]);
+        setFilterOrder((order) => (order.includes('Theme') ? order : [...order, 'Theme']));
+      }
+    }
+  };
 
-      const apiTotal = parseCatalogTotal(data.total);
-      if (apiTotal != null) setTotalPoems(apiTotal);
-      setApiPage(page);
+  const handleRemoveFilter = (type: ListingFilterCategory, value: string) => {
+    if (type === 'Poet') {
+      setSelectedPoetIds((prev) => {
+        const next = prev.filter((x) => x !== value);
+        if (!next.length) setFilterOrder((order) => order.filter((d) => d !== 'Poet'));
+        return next;
+      });
+      return;
+    }
+    if (type === 'Theme') {
+      setSelectedThemeIds((prev) => {
+        const next = prev.filter((x) => x !== value);
+        if (!next.length) setFilterOrder((order) => order.filter((d) => d !== 'Theme'));
+        return next;
+      });
+    }
+  };
+
+  const fetchCatalog = useCallback(async () => {
+    setPoemsLoading(true);
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 20000);
+    try {
+      const [{ poets, themes }, poemsRes] = await Promise.all([
+        fetchPoemFilterOptions(),
+        fetch(`${AJAB_API_BASE}/Api/poems?page=1&limit=${CATALOG_LIMIT}`, {
+          cache: 'no-store',
+          signal: controller.signal,
+        }),
+      ]);
+      clearTimeout(timeoutId);
+
+      setPoetOptions(poets);
+      setThemeOptions(themes);
+      const nameMap = new Map(poets.map((p) => [p.id, p.label]));
+
+      if (poemsRes.ok) {
+        const data = await poemsRes.json();
+        if (data?.data && Array.isArray(data.data) && data.data.length) {
+          setPoems(
+            data.data.map((it: Record<string, unknown>) => mapPoemListItem(it, nameMap))
+          );
+        }
+        const apiTotal = parseCatalogTotal(data.total);
+        if (apiTotal != null) setTotalPoems(apiTotal);
+        else if (Array.isArray(data?.data)) setTotalPoems(data.data.length);
+      }
     } catch {
       clearTimeout(timeoutId);
-      if (reset) {
-        setPoems(MOCK_POEMS);
-        setTotalPoems(TOTAL_POEMS);
-      }
+      setPoems(MOCK_POEMS);
+      setTotalPoems(TOTAL_POEMS);
     } finally {
       setPoemsLoading(false);
-      setLoadingMorePoems(false);
     }
   }, []);
 
   useEffect(() => {
-    void fetchPoemsPage(1, true);
-  }, [fetchPoemsPage]);
+    void fetchCatalog();
+  }, [fetchCatalog]);
 
-  // [Claude] these changes have been recommended by claude — push live count to nav via context
+  useEffect(() => {
+    let cancelled = false;
+    fetchPublishedPoemAudio(12).then((tracks) => {
+      if (cancelled) return;
+      setListenVersions(toAudioVersions(tracks));
+    });
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
   useEffect(() => {
     if (totalPoems > 0) setPoemsNavTotal(totalPoems);
   }, [totalPoems, setPoemsNavTotal]);
 
+  useEffect(() => {
+    if (!selectedPoetIds.length) {
+      setPoetFetchPoems([]);
+      return;
+    }
+    let cancelled = false;
+    (async () => {
+      const nameMap = poetNameById;
+      const chunks = await Promise.all(
+        selectedPoetIds.map(async (id) => {
+          try {
+            const res = await fetch(
+              `${AJAB_API_BASE}/Api/poems?page=1&limit=${CATALOG_LIMIT}&poet=${encodeURIComponent(id)}`,
+              { cache: 'no-store' }
+            );
+            if (!res.ok) return [] as PoemData[];
+            const data = await res.json();
+            if (!Array.isArray(data?.data)) return [] as PoemData[];
+            return data.data.map((it: Record<string, unknown>) => mapPoemListItem(it, nameMap));
+          } catch {
+            return [] as PoemData[];
+          }
+        })
+      );
+      if (cancelled) return;
+      const byId = new Map<string, PoemData>();
+      for (const list of chunks) {
+        for (const poem of list) {
+          if (poem.id) byId.set(poem.id, poem);
+        }
+      }
+      setPoetFetchPoems([...byId.values()]);
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, [selectedPoetIds, poetNameById]);
+
+  const catalogForFilter = useMemo(() => {
+    if (!selectedPoetIds.length) return poems;
+    if (poetFetchPoems.length) return poetFetchPoems;
+    return poems.filter(
+      (poem) => poem.poetId && selectedPoetIds.includes(poem.poetId)
+    );
+  }, [poems, selectedPoetIds, poetFetchPoems]);
+
   const filteredPoems = useMemo(() => {
-    if (!selectedPoets.length && !selectedThemes.length) return poems;
-    return poems.filter((poem) => {
-      const poetOk = fieldMatchesFilters(poem.poet || '', selectedPoets);
-      const themeOk = fieldMatchesFilters(poem.glossary || '', selectedThemes);
-      return poetOk && themeOk;
-    });
-  }, [poems, selectedPoets, selectedThemes]);
+    if (!selectedPoetIds.length && !selectedThemeIds.length) return poems;
+    if (!selectedThemeIds.length) return catalogForFilter;
+    return catalogForFilter.filter((poem) =>
+      (poem.keywordIds || []).some((kid) => selectedThemeIds.includes(kid))
+    );
+  }, [poems, catalogForFilter, selectedPoetIds, selectedThemeIds]);
 
   useEffect(() => {
-    if (poemsLoading || loadingMorePoems) return;
-    if (totalPoems > 0 && poems.length >= totalPoems) return;
-    if (filteredPoems.length === 0) return;
-    if (activeIdx < Math.max(0, filteredPoems.length - 2)) return;
-    void fetchPoemsPage(apiPage + 1, false);
-  }, [
-    activeIdx,
-    apiPage,
-    fetchPoemsPage,
-    filteredPoems.length,
-    loadingMorePoems,
-    poems.length,
-    poemsLoading,
-    totalPoems,
-  ]);
-
-  useEffect(() => {
+    if (skipFilterResetRef.current) {
+      skipFilterResetRef.current = false;
+      return;
+    }
     setActiveIdx(0);
-  }, [selectedPoets, selectedThemes]);
+  }, [selectedPoetIds, selectedThemeIds]);
 
   useEffect(() => {
     if (activeIdx >= filteredPoems.length && filteredPoems.length > 0) {
       setActiveIdx(0);
     }
   }, [activeIdx, filteredPoems.length]);
+
+  useEffect(() => {
+    if (!deepLinkId || poemsLoading || !poems.length) return;
+    const idx = poems.findIndex((p) => p.id === deepLinkId);
+    if (idx < 0) return;
+    skipFilterResetRef.current = true;
+    setSelectedPoetIds([]);
+    setSelectedThemeIds([]);
+    setFilterOrder([]);
+    setPoetFetchPoems([]);
+    setActiveIdx(idx);
+  }, [deepLinkId, poemsLoading, poems]);
 
   const activePoem = filteredPoems[activeIdx] || filteredPoems[0];
 
@@ -206,6 +285,31 @@ export default function CLPoems() {
     };
   }, [activePoem?.id]);
 
+  const playerVersions = useMemo(() => {
+    if (!listenVersions.length) return listenVersions;
+    const poemTrack = activePoem?.audioUrl?.trim();
+    if (!poemTrack) return listenVersions;
+    const matchIdx = listenVersions.findIndex(
+      (v) => v.audioUrl === poemTrack || v.id === poemTrack
+    );
+    if (matchIdx <= 0) {
+      if (matchIdx === 0) return listenVersions;
+      return [
+        {
+          id: activePoem?.id,
+          singer: activePoem?.poet || 'Poem recording',
+          duration: '',
+          audioUrl: poemTrack,
+          thumbnailUrl: activePoem?.thumbnailUrl || '/poems-listen-1.png',
+        },
+        ...listenVersions,
+      ];
+    }
+    const copy = [...listenVersions];
+    const [hit] = copy.splice(matchIdx, 1);
+    return [hit, ...copy];
+  }, [listenVersions, activePoem]);
+
   const goPrev = () =>
     setActiveIdx((i) =>
       filteredPoems.length ? (i === 0 ? filteredPoems.length - 1 : i - 1) : 0
@@ -220,32 +324,39 @@ export default function CLPoems() {
     return activePoem.text;
   }, [script, activePoem]);
 
-  // Tabs config
-  const counts = related.counts;
-  const tabs = [
-    { key: 'all' as const, label: 'ALL', count: counts.all },
-    { key: 'songs' as const, label: 'SONGS', count: counts.songs },
-    { key: 'poems' as const, label: 'POEMS', count: counts.poems },
-    { key: 'reflections' as const, label: 'REFLECTIONS', count: counts.reflections },
-    { key: 'other' as const, label: 'OTHER', count: counts.other },
-  ];
-
-  const visibleItems = useMemo(() => {
-    const data = related.data as any;
-    if (activeRelatedTab === 'all') {
-      return [
-        ...(data.songs || []),
-        ...(data.poems || []),
-        ...(data.reflections || []),
-        ...(data.other || []),
-      ];
-    }
-    return data[activeRelatedTab] || [];
-  }, [activeRelatedTab, related]);
-
   const glossaryBody =
     activePoem?.glossary ||
     POEMS_GLOSSARY.map((g) => `${g.term} — ${g.meaning}`).join('\n\n');
+
+  const notesBody =
+    activePoem?.noteText ||
+    'Notes for this poem will appear here when available.';
+
+  const displayCount =
+    selectedPoetIds.length || selectedThemeIds.length
+      ? filteredPoems.length
+      : totalPoems || poems.length;
+
+  const catalogEntries = useMemo(
+    () =>
+      filteredPoems.map((poem) => ({
+        id: poem.id,
+        label: poem.title || poem.text.split('\n')[0] || 'Untitled',
+        sublabel: poem.translationTitle || undefined,
+      })),
+    [filteredPoems]
+  );
+
+  const selectPoemById = useCallback(
+    (id: string) => {
+      const idx = filteredPoems.findIndex((poem) => poem.id === id);
+      if (idx < 0) return;
+      skipFilterResetRef.current = true;
+      setActiveIdx(idx);
+      setFilterPanelOpen(false);
+    },
+    [filteredPoems]
+  );
 
   if (poemsLoading) {
     return <Loader />;
@@ -253,7 +364,6 @@ export default function CLPoems() {
 
   return (
     <div className="cl-songs-page-root clp-page-root-wrap">
-      {/* Header outside .clp-page-root (z-index: 1) so portaled filter (9999) stacks behind it — same as /songs */}
       <Header />
       <div className="clp-page-root">
         <main className="relative z-10">
@@ -261,255 +371,179 @@ export default function CLPoems() {
             className="clp-page"
             style={{ '--clp-nav-count': String(totalPoems) } as React.CSSProperties}
           >
-            {/* Intro paragraph */}
             <p className="clp-intro">{POEMS_INTRO}</p>
 
-            {/* Count row */}
-            <div className="clp-count-row">
-              <h1 className="clp-count">
-                {selectedPoets.length || selectedThemes.length
-                  ? `${filteredPoems.length} Poems`
-                  : `${totalPoems} Poems`}
-              </h1>
+            <div className="clp-toolbar">
+              <h1 className="clp-count">{displayCount} Poems</h1>
+              <div className="clp-toolbar-right">
+                <CLFilterPanel
+                  hideTrigger
+                  open={filterPanelOpen}
+                  onOpenChange={setFilterPanelOpen}
+                  onFilterSelect={handleFilterSelect}
+                  onRemoveFilter={handleRemoveFilter}
+                  onClearAll={clearAllFilters}
+                  selectedPoets={selectedPoetIds}
+                  selectedThemes={selectedThemeIds}
+                  availablePoets={poetOptions}
+                  availableThemes={themeOptions}
+                  categoryLabels={{ Poet: 'Poet', Theme: 'Theme' }}
+                  categoryOrder={['Poet', 'Theme']}
+                  filterTriggerAlwaysPink
+                  catalogList={{
+                    items: catalogEntries,
+                    onSelect: selectPoemById,
+                    activeId: activePoem?.id,
+                    emptyLabel: 'No poems match the active filters.',
+                  }}
+                  categoryFooter={{
+                    Poet: (
+                      <p className="clp-oral-note">
+                        Most couplets cannot be attributed to a particular poet due to lack of
+                        historic evidence. This authorial ambiguity is in a sense the beauty of
+                        the{' '}
+                        <Link href="/reflections" className="clp-oral-link">
+                          ORAL TRADITIONS
+                        </Link>
+                        .
+                      </p>
+                    ),
+                  }}
+                />
+                <button
+                  type="button"
+                  className="clp-see-all"
+                  onClick={() => setFilterPanelOpen(true)}
+                  aria-expanded={filterPanelOpen}
+                >
+                  See All
+                </button>
+              </div>
             </div>
 
-            {/* Filters trigger + See All row + filtered-by indicator */}
-            <div className="clp-seeall-row">
-              <CLPoemFilterPanel
-                key={filterPanelKey}
-                onSelectPoet={togglePoet}
-                onSelectTheme={toggleTheme}
-                onClearAll={clearAllFilters}
-                selectedPoets={selectedPoets}
-                selectedThemes={selectedThemes}
-                matchingPoems={filteredPoems}
-              />
-              <span style={{ color: '#828282', margin: '0 14px' }}>|</span>
-              <button type="button" className="clp-seeall" onClick={handleSeeAll}>
-                See All
+            {(selectedPoetIds.length > 0 || selectedThemeIds.length > 0) && (
+              <div className="clp-filtered-by" aria-live="polite">
+                Filtered by{' '}
+                <span className={primaryFilter === 'Poet' ? 'is-on' : ''}>Poet</span>
+                {' | '}
+                <span className={primaryFilter === 'Theme' ? 'is-on' : ''}>Theme</span>
+              </div>
+            )}
+
+            <div className="clp-nav-row">
+              <button type="button" className="clp-prevnext" onClick={goPrev}>
+                <span className="clp-prevnext-arrow clp-prevnext-arrow--prev" aria-hidden />
+                Previous
               </button>
-              {(selectedPoets.length > 0 || selectedThemes.length > 0) && (
-                <span
-                  style={{
-                    marginLeft: 24,
-                    fontFamily: "'Merriweather Sans', sans-serif",
-                    fontWeight: 300,
-                    fontSize: '15px',
-                    color: '#828282',
+              <button type="button" className="clp-prevnext clp-prevnext--next" onClick={goNext}>
+                Next
+                <span className="clp-prevnext-arrow clp-prevnext-arrow--next" aria-hidden />
+              </button>
+            </div>
+
+            <div className="clp-poem-stage">
+              {!activePoem ? (
+                <div className="clp-poem-text">No poems match the active filters.</div>
+              ) : (
+                <>
+                  <div className="clp-poem-text">{poemText}</div>
+                  {activePoem.poet ? (
+                    <div className="clp-poem-poet">{activePoem.poet.toUpperCase()}</div>
+                  ) : (
+                    <div className="clp-poem-poet clp-poem-poet--empty" aria-hidden="true">
+                      &nbsp;
+                    </div>
+                  )}
+                  <div className="clp-translator">
+                    {activePoem.translator
+                      ? `Translation by ${activePoem.translator.toUpperCase()}`
+                      : '\u00a0'}
+                  </div>
+                </>
+              )}
+
+              <div className="clp-lang-toggle" role="tablist" aria-label="Script">
+                <button
+                  type="button"
+                  className={`clp-lang-btn${script === 'devanagari' ? ' active' : ''}`}
+                  onClick={() => setScript('devanagari')}
+                  aria-label="Devanagari"
+                >
+                  अ
+                </button>
+                <button
+                  type="button"
+                  className={`clp-lang-btn${script === 'transliteration' ? ' active' : ''}`}
+                  onClick={() => setScript('transliteration')}
+                  aria-label="Transliteration"
+                >
+                  ā
+                </button>
+                <button
+                  type="button"
+                  className={`clp-lang-btn${script === 'english' ? ' active' : ''}`}
+                  onClick={() => setScript('english')}
+                  aria-label="English"
+                >
+                  a
+                </button>
+              </div>
+
+              <div className="clp-actions">
+                <button
+                  type="button"
+                  className={showPlayer ? 'is-active' : undefined}
+                  onClick={() => {
+                    setShowPlayer((v) => !v);
+                    setShowGlossary(false);
+                    setShowNotes(false);
                   }}
                 >
-                  Filtered by{' '}
-                  <span style={{ color: selectedPoets.length ? '#E31E79' : '#333' }}>Poet</span>
-                  {' | '}
-                  <span style={{ color: selectedThemes.length ? '#E31E79' : '#333' }}>Theme</span>
-                </span>
-              )}
+                  LISTEN
+                </button>
+                <span className="sep">|</span>
+                <button
+                  type="button"
+                  className={showNotes ? 'is-active' : undefined}
+                  onClick={() => {
+                    setShowNotes((v) => !v);
+                    setShowGlossary(false);
+                    setShowPlayer(false);
+                  }}
+                >
+                  NOTES
+                </button>
+                <span className="sep">|</span>
+                <button
+                  type="button"
+                  className={showGlossary ? 'is-active' : undefined}
+                  onClick={() => {
+                    setShowGlossary((v) => !v);
+                    setShowNotes(false);
+                    setShowPlayer(false);
+                  }}
+                >
+                  GLOSSARY
+                </button>
+              </div>
             </div>
 
-            {/* Centered poem slider */}
-            <div className="clp-slider-wrap">
-              <button
-                className="clp-slider-nav left"
-                aria-label="Previous poem"
-                onClick={goPrev}
-              >
-                <ChevronLeft size={28} strokeWidth={1.6} />
-              </button>
+            <div className="clp-explore-divider" aria-hidden="true" />
 
-              <div className="clp-poem-center">
-                <div className="clp-halo-circle">
-                  <button
-                    className="clp-audio-btn"
-                    aria-label="Open audio player"
-                    onClick={() => {
-                      setShowPlayer(true);
-                      setShowGlossary(false);
-                      setShowNotes(false);
-                    }}
-                  >
-                    <Volume2 size={24} />
-                  </button>
-
-                  { !activePoem ? (
-                    <div className="clp-poem-text">No poems match the active filters.</div>
-                  ) : (
-                  <>
-                  <Link
-                    href={`/poems/${activePoem.id}`}
-                    style={{ textDecoration: 'none', color: 'inherit' }}
-                  >
-                    <div className="clp-poem-text">{poemText}</div>
-                  </Link>
-
-                  {activePoem.poet && (
-                    <div className="clp-poem-poet">
-                      poet <span className="name">{activePoem.poet}</span>
-                    </div>
-                  )}
-                  </>
-                  )}
-
-                  {/* Language toggle + notes — inside baked circle (Figma 362:3352 / 362:3350) */}
-                  <div className="clp-halo-controls">
-                    <div className="clp-lang-toggle" role="tablist">
-                      <button
-                        className={`clp-lang-btn${script === 'devanagari' ? ' active' : ''}`}
-                        onClick={() => setScript('devanagari')}
-                        aria-label="Devanagari"
-                      >
-                        अ
-                      </button>
-                      <button
-                        className={`clp-lang-btn${script === 'transliteration' ? ' active' : ''}`}
-                        onClick={() => setScript('transliteration')}
-                        aria-label="Transliteration"
-                      >
-                        ā
-                      </button>
-                      <button
-                        className={`clp-lang-btn${script === 'english' ? ' active' : ''}`}
-                        onClick={() => setScript('english')}
-                        aria-label="English"
-                      >
-                        a
-                      </button>
-                    </div>
-
-                    {(activePoem?.noteText || activePoem?.glossary) && (
-                      <div className="clp-notes-glossary">
-                        {activePoem?.noteText && (
-                          <button
-                            className={showNotes ? 'is-active' : undefined}
-                            onClick={() => {
-                              setShowNotes((v) => !v);
-                              setShowGlossary(false);
-                              setShowPlayer(false);
-                            }}
-                          >
-                            NOTES
-                          </button>
-                        )}
-                        {activePoem?.noteText && activePoem?.glossary && (
-                          <span className="sep">|</span>
-                        )}
-                        {activePoem?.glossary && (
-                          <button
-                            className={showGlossary ? 'is-active' : undefined}
-                            onClick={() => {
-                              setShowGlossary((v) => !v);
-                              setShowNotes(false);
-                              setShowPlayer(false);
-                            }}
-                          >
-                            GLOSSARY
-                          </button>
-                        )}
-                      </div>
-                    )}
-                  </div>
-                </div>
-              </div>
-
-              <button
-                className="clp-slider-nav right"
-                aria-label="Next poem"
-                onClick={goNext}
-              >
-                <ChevronRight size={28} strokeWidth={1.6} />
-              </button>
-            </div>
-
-            {showPoemList && poems.length > 0 && (
-              <section className="clp-poem-catalog" aria-label="All poems">
-                {poems.map((poem, idx) => (
-                  <Link
-                    key={poem.id || idx}
-                    href={poem.id ? `/poems/${poem.id}` : '/poems'}
-                    className="clp-poem-catalog-item"
-                    onClick={() => setActiveIdx(idx)}
-                  >
-                    <span className="clp-poem-catalog-title">
-                      {(poem.text || '').split('\n')[0]?.trim() || poem.english || `Poem ${idx + 1}`}
-                    </span>
-                    {poem.poet && <span className="clp-poem-catalog-poet">{poem.poet}</span>}
-                  </Link>
-                ))}
-              </section>
-            )}
-
-            {/* Related section — [Claude] these changes have been recommended by claude:
-                hidden entirely when the current poem has no related content
-                (an all-zero tab row + "No related items" + SEE MORE reads as clutter) */}
-            {counts.all > 0 && (
-            <section className="clp-related">
-              <h2 className="clp-related-title">Related</h2>
-              <div className="clp-related-tabs">
-                {tabs.map((t, i) => (
-                  <span
-                    key={t.key}
-                    style={{
-                      display: 'inline-flex',
-                      alignItems: 'center',
-                      gap: 16,
-                    }}
-                  >
-                    <button
-                      className={`clp-related-tab${activeRelatedTab === t.key ? ' active' : ''}`}
-                      onClick={() => setActiveRelatedTab(t.key)}
-                    >
-                      {t.label}
-                      <span className="clp-related-tab-count">({t.count})</span>
-                    </button>
-                    {i < tabs.length - 1 && (
-                      <span className="clp-related-tab-sep">|</span>
-                    )}
-                  </span>
-                ))}
-              </div>
-              <div className="clp-related-list">
-                {visibleItems.length ? (
-                  visibleItems.map((item: any) => (
-                    <div key={item.id || item.title} className="clp-related-item">
-                      <div className="clp-related-thumb">
-                        {item.thumbnailUrl && (
-                          <img src={item.thumbnailUrl} alt={item.title} />
-                        )}
-                      </div>
-                      <div className="clp-related-body">
-                        <div className="clp-related-titlerow">
-                          <span className="clp-related-itemtitle">
-                            {item.title}
-                          </span>
-                          {item.subtitle && (
-                            <span className="clp-related-itemsubtitle">
-                              {item.subtitle}
-                            </span>
-                          )}
-                        </div>
-                        <div className="clp-related-itemdesc">{item.about}</div>
-                      </div>
-                    </div>
-                  ))
-                ) : (
-                  <div style={{ padding: 16, color: '#828282' }}>
-                    No related items.
-                  </div>
-                )}
-              </div>
-              <a className="clp-related-seemore">SEE MORE</a>
-            </section>
-            )}
-
-            {/* Glossary strip — shared GlossaryStrip primitive (2+3 split). */}
-            <GlossaryStrip terms={POEMS_GLOSSARY} />
+            <ExploreSection
+              data={related.data}
+              className="clp-related"
+              initialCount={5}
+              descriptionLines={3}
+            />
           </div>
         </main>
-        {/* Notes — anchored wavy paper popup (left of poem) */}
+
         <WavyPaperPopup
           variant="anchored"
           isOpen={showNotes}
           onClose={() => setShowNotes(false)}
-          title="Poem Notes"
+          title="Notes"
           style={{
             right: 'auto',
             left: 'clamp(72px, 8vw, 120px)',
@@ -517,10 +551,9 @@ export default function CLPoems() {
             transform: 'translateY(-50%)',
           }}
         >
-          {activePoem?.noteText || 'No notes available.'}
+          {notesBody}
         </WavyPaperPopup>
 
-        {/* Glossary — anchored wavy paper popup (Figma 362:3975) */}
         <CLGlossaryPopup
           isOpen={showGlossary}
           onClose={() => setShowGlossary(false)}
@@ -528,7 +561,11 @@ export default function CLPoems() {
           rightAnchor="clamp(160px, 14vw, 300px)"
         />
 
-        <CLPlayerPopup isOpen={showPlayer} onClose={() => setShowPlayer(false)} />
+        <CLPlayerPopup
+          isOpen={showPlayer}
+          onClose={() => setShowPlayer(false)}
+          versions={playerVersions}
+        />
       </div>
     </div>
   );

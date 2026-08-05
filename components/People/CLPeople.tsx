@@ -29,18 +29,24 @@ import { mapPersonRole } from '@/lib/mapPersonDetail';
 import { parseCatalogTotal } from '@/lib/parseCatalogTotal';
 import { PeopleNavCountContext } from '@/components/People/PeopleNavCountContext';
 
-const PEOPLE_PER_PAGE = 50;
+/** Full catalog is small (~144); load enough for A–Z / occupation filters. */
+const PEOPLE_PER_PAGE = 200;
 const PEOPLE_VISIBLE_STEP = 20;
 const A_Z = ['All', ...Array.from({ length: 26 }, (_, i) => String.fromCharCode(65 + i))];
 
 type FilterType = 'Singer' | 'Poet' | 'Theme';
 
+/**
+ * Occupation filter matches CMS `occupation_text` (after mapPersonRole).
+ * Legendary Figures must include "legendary" — CMS label is already that phrase,
+ * not saint/mystic keywords.
+ */
 const CATEGORY_KEYWORDS: Record<string, string[]> = {
   Poets: ['poet', 'kavi'],
   Singers: ['singer', 'vocalist', 'baul', 'gayak'],
   Writers: ['writer', 'author', 'scholar', 'translator'],
   Artists: ['artist', 'painter', 'musician'],
-  'Legendary Figures': ['saint', 'mystic', 'sufi', 'bhakti'],
+  'Legendary Figures': ['legendary', 'saint', 'mystic', 'sufi', 'bhakti'],
   Other: [],
 };
 
@@ -55,10 +61,15 @@ const PEOPLE_CATEGORIES = [
 
 const PEOPLE_DESC_MAX_LINES = 4;
 
-function PersonListingExcerpt({ description }: { description: string }) {
+function PersonListingExcerpt({
+  description,
+  href,
+}: {
+  description: string;
+  href: string;
+}) {
   const hostRef = useRef<HTMLDivElement>(null);
   const [visibleText, setVisibleText] = useState(description);
-  const [truncated, setTruncated] = useState(false);
 
   const remeasure = useCallback(() => {
     const host = hostRef.current;
@@ -70,7 +81,6 @@ function PersonListingExcerpt({ description }: { description: string }) {
     const plain = description.replace(/\s+/g, ' ').trim();
     if (!plain) {
       setVisibleText('');
-      setTruncated(false);
       return;
     }
 
@@ -82,21 +92,19 @@ function PersonListingExcerpt({ description }: { description: string }) {
     const lineHeight = parseFloat(getComputedStyle(probe).lineHeight) || 25.6;
     const maxHeight = lineHeight * PEOPLE_DESC_MAX_LINES;
 
-    const fits = (text: string, withEllipsis: boolean) => {
+    const fits = (text: string) => {
       probe.replaceChildren();
       probe.append(document.createTextNode(text));
-      if (withEllipsis) probe.append(document.createTextNode('...'));
-      const explore = document.createElement('span');
-      explore.className = 'clpe-entry-explore';
-      explore.textContent = ' EXPLORE';
-      probe.append(explore);
+      const ellipsis = document.createElement('span');
+      ellipsis.className = 'clpe-entry-explore';
+      ellipsis.textContent = '...';
+      probe.append(ellipsis);
       return probe.scrollHeight <= maxHeight + 1;
     };
 
-    if (fits(plain, false)) {
+    if (fits(plain)) {
       document.body.removeChild(probe);
       setVisibleText(plain);
-      setTruncated(false);
       return;
     }
 
@@ -105,14 +113,13 @@ function PersonListingExcerpt({ description }: { description: string }) {
     while (lo < hi) {
       const mid = Math.ceil((lo + hi) / 2);
       const candidate = plain.slice(0, mid).replace(/\s+\S*$/, '').trimEnd();
-      if (fits(candidate, true)) lo = mid;
+      if (fits(candidate)) lo = mid;
       else hi = mid - 1;
     }
 
     const finalText = plain.slice(0, lo).replace(/\s+\S*$/, '').trimEnd();
     document.body.removeChild(probe);
     setVisibleText(finalText);
-    setTruncated(true);
   }, [description]);
 
   useLayoutEffect(() => {
@@ -129,19 +136,29 @@ function PersonListingExcerpt({ description }: { description: string }) {
 
   return (
     <div ref={hostRef} className="clpe-entry-desc-host">
-      {visibleText ? (
-        <p className="clpe-entry-desc">
-          {visibleText}
-          {truncated && '...'}
-          <span className="clpe-entry-explore"> EXPLORE</span>
-        </p>
-      ) : (
-        <p className="clpe-entry-desc">
-          <span className="clpe-entry-explore">EXPLORE</span>
-        </p>
-      )}
+      <p className="clpe-entry-desc">
+        {visibleText ? <>{visibleText}</> : null}
+        <Link href={href} className="clpe-entry-explore" aria-label="View person">
+          ...
+        </Link>
+      </p>
     </div>
   );
+}
+
+function roleMatchesCategory(roleLC: string, category: string): boolean {
+  if (category === 'Other') {
+    const allKeywords = Object.entries(CATEGORY_KEYWORDS)
+      .filter(([k]) => k !== 'Other')
+      .flatMap(([, v]) => v);
+    return !allKeywords.some((kw) => roleLC.includes(kw));
+  }
+  const keywords = CATEGORY_KEYWORDS[category] || [];
+  const catLC = category.toLowerCase();
+  if (roleLC.includes(catLC) || roleLC.includes(catLC.replace(/s$/, ''))) {
+    return true;
+  }
+  return keywords.some((kw) => roleLC.includes(kw));
 }
 
 export default function CLPeople() {
@@ -236,19 +253,12 @@ export default function CLPeople() {
 
   const filtered = useMemo(() => {
     return people.filter((p) => {
-      if (activeLetter !== 'All' && !p.name.toUpperCase().startsWith(activeLetter)) return false;
+      if (activeLetter !== 'All' && !p.name.toUpperCase().startsWith(activeLetter)) {
+        return false;
+      }
       if (selectedCategories.length > 0) {
         const roleLC = (p.role || '').toLowerCase();
-        const matches = selectedCategories.some((cat) => {
-          const keywords = CATEGORY_KEYWORDS[cat] || [];
-          if (cat === 'Other') {
-            const allKeywords = Object.entries(CATEGORY_KEYWORDS)
-              .filter(([k]) => k !== 'Other')
-              .flatMap(([, v]) => v);
-            return !allKeywords.some((kw) => roleLC.includes(kw));
-          }
-          return keywords.some((kw) => roleLC.includes(kw));
-        });
+        const matches = selectedCategories.some((cat) => roleMatchesCategory(roleLC, cat));
         if (!matches) return false;
       }
       return true;
@@ -348,26 +358,23 @@ export default function CLPeople() {
 
             <div className="clpe-list">
               {displayedPeople.length > 0 ? (
-                displayedPeople.map((p) => (
-                  /* [Claude] these changes have been recommended by claude —
-                     entry is a real <Link> (was a div + router.push): enables
-                     middle-click/new-tab, keyboard focus and crawlable hrefs */
-                  <Link
-                    key={p.id}
-                    href={`/people/${p.id}`}
-                    className="clpe-entry"
-                    style={{ textDecoration: 'none', color: 'inherit' }}
-                  >
-                    <div className="clpe-entry-thumb">
-                      {p.thumbnailUrl && <img src={p.thumbnailUrl} alt={p.name} />}
-                    </div>
-                    <div className="clpe-entry-body">
-                      <span className="clpe-entry-name">{p.name}</span>
-                      {p.role ? <span className="clpe-entry-role">{p.role}</span> : null}
-                      <PersonListingExcerpt description={p.description} />
-                    </div>
-                  </Link>
-                ))
+                displayedPeople.map((p) => {
+                  const href = `/people/${p.id}`;
+                  return (
+                    <article key={p.id} className="clpe-entry">
+                      <Link href={href} className="clpe-entry-thumb" aria-label={p.name}>
+                        {p.thumbnailUrl && <img src={p.thumbnailUrl} alt="" />}
+                      </Link>
+                      <div className="clpe-entry-body">
+                        <Link href={href} className="clpe-entry-name">
+                          {p.name}
+                        </Link>
+                        {p.role ? <span className="clpe-entry-role">{p.role}</span> : null}
+                        <PersonListingExcerpt description={p.description} href={href} />
+                      </div>
+                    </article>
+                  );
+                })
               ) : (
                 <div className="clpe-list-status">No people match the filter.</div>
               )}
