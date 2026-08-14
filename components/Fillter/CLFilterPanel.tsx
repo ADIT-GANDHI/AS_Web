@@ -119,7 +119,9 @@ export default function CLFilterPanel({
   showClearAllAlways = false,
   categoryFooter,
   catalogList,
+  drawerWidth = 422,
 }: ListingFilterPanelProps) {
+  const panelWidthPx = `${drawerWidth}px`;
   // Derives whether any filter is currently active — used for trigger colour
   const hasActiveFilters = selectedSingers.length > 0 || selectedPoets.length > 0 || selectedThemes.length > 0;
   const triggerPink = filterTriggerAlwaysPink || hasActiveFilters;
@@ -412,11 +414,12 @@ export default function CLFilterPanel({
                   {/* Portaled drawer — wavy bg from top:0; header stacks above (z-index 10000). */}
                   <motion.div
                   ref={panelRef}
+                  className="ajab-filter-drawer"
                   style={{
                     position: 'fixed',
                     top: FILTER_DRAWER_TOP,
                     left: 0,
-                    width: '422px',
+                    width: panelWidthPx,
                     height: FILTER_DRAWER_HEIGHT,
                     minHeight: FILTER_DRAWER_HEIGHT,
                     boxSizing: 'border-box',
@@ -456,7 +459,7 @@ export default function CLFilterPanel({
                       style={{
                         position: 'absolute',
                         inset: 0,
-                        width: '422px',
+                        width: panelWidthPx,
                         height: '100%',
                         minHeight: '100%',
                         objectFit: 'fill',
@@ -528,9 +531,9 @@ export default function CLFilterPanel({
                                   fontSize: '18px',
                                   fontWeight: 300,
                                   color:
-                                    activeCategory === cat && !catalogMode
+                                    activeCategory === cat
                                       ? '#E31E79'
-                                      : '#333333',
+                                      : '#828282',
                                   background: 'none',
                                   border: 'none',
                                   cursor: 'pointer',

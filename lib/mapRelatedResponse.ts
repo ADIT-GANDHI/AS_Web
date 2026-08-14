@@ -1,4 +1,5 @@
 import { AJAB_API_BASE } from './ajabEnv';
+import { htmlToPlainText } from './mapPoemListItem';
 
 export interface RelatedContent {
   data: Record<string, any[]>;
@@ -100,6 +101,31 @@ function mapRelatedItem(it: any) {
     year_of_production: it.year_of_production,
     film_id: it.film_id,
     admin_related: isAdminRelatedItem(it),
+  };
+}
+
+function isUnpublished(value: unknown): boolean {
+  return value === 0 || value === '0' || value === false || value === 'false';
+}
+
+/** Related `data.glossary[]` — term + meaning for poem/song glossary popups. */
+function mapRelatedGlossaryItem(it: any) {
+  if (!it || typeof it !== 'object' || isUnpublished(it.is_published)) {
+    return { term: '', meaning: '' };
+  }
+  const term = String(it.glossary_term || it.term || it.word_transliteration || '')
+    .replace(/\s+/g, ' ')
+    .trim();
+  const meaning = htmlToPlainText(
+    String(it.glossary_meaning || it.meaning || it.word_translation || '')
+  );
+  return {
+    id: String(it.id || ''),
+    term,
+    meaning,
+    title: term,
+    glossary_term: term,
+    glossary_meaning: meaning,
   };
 }
 
@@ -235,6 +261,12 @@ export function normalizeRelatedResponse(json: any): RelatedContent | null {
     ? sortRelatedByAdminFirst(raw.keywords.map(mapRelatedKeyword))
     : [];
 
+  data.glossary = Array.isArray(raw.glossary)
+    ? raw.glossary
+        .map(mapRelatedGlossaryItem)
+        .filter((item) => item.term)
+    : [];
+
   if (Array.isArray(raw.people) && raw.people.length) {
     data.other = sortRelatedByAdminFirst([
       ...data.other,
@@ -319,9 +351,31 @@ export async function fetchRelatedByParam(
 }
 
 export const EMPTY_RELATED: RelatedContent = {
-  data: { songs: [], poems: [], reflections: [], other: [], films: [], keywords: [] },
+  data: {
+    songs: [],
+    poems: [],
+    reflections: [],
+    other: [],
+    films: [],
+    keywords: [],
+    glossary: [],
+  },
   counts: { all: 0, songs: 0, poems: 0, reflections: 0, other: 0, films: 0, people: 0 },
 };
+
+/** Related `/Api/related` glossary bucket → term/meaning pairs for Notes/Glossary popups. */
+export function relatedGlossaryTerms(
+  related: RelatedContent | null | undefined
+): Array<{ term: string; meaning: string }> {
+  const rows = related?.data?.glossary;
+  if (!Array.isArray(rows)) return [];
+  return rows
+    .map((item) => ({
+      term: String(item?.term || item?.glossary_term || '').trim(),
+      meaning: String(item?.meaning || item?.glossary_meaning || '').trim(),
+    }))
+    .filter((item) => item.term);
+}
 
 /** Coerce legacy mock related objects into RelatedContent. */
 export function asRelatedContent(mock: any): RelatedContent {

@@ -17,7 +17,13 @@ import {
   type RelatedContent,
 } from '@/lib/mapRelatedResponse';
 import RepeatingPageBackground from '@/components/shared/RepeatingPageBackground';
-import { PEOPLE_DETAIL_BG } from '@/lib/pageBackgroundTiles';
+// OLD single-plate detail bg (revert: restore PEOPLE_DETAIL_BG + commented usage below)
+// import { PEOPLE_DETAIL_BG } from '@/lib/pageBackgroundTiles';
+import {
+  PEOPLE_DETAIL_BG_TEXTURE,
+  PEOPLE_LISTING_MIDDLE_WHITE,
+  PEOPLE_LISTING_MIDDLE_WIDTH_RATIO,
+} from '@/lib/pageBackgroundTiles';
 import { getRelatedDetailHref } from '@/lib/relatedDetailHref';
 import {
   getRelatedCardDescription,
@@ -298,7 +304,18 @@ export default function CLPeopleDetail({ id: idProp }: { id?: string }) {
   return (
     <div className="cl-songs-page-root cl-songs-page-root--listing">
       <div className="cl-songs-page-shell" ref={shellRef}>
+        {/* OLD: single-plate people_detail.png
         <RepeatingPageBackground containerRef={shellRef} tile={PEOPLE_DETAIL_BG} />
+        */}
+        <RepeatingPageBackground
+          containerRef={shellRef}
+          tile={PEOPLE_DETAIL_BG_TEXTURE}
+          overlay={{
+            tile: PEOPLE_LISTING_MIDDLE_WHITE,
+            widthRatio: PEOPLE_LISTING_MIDDLE_WIDTH_RATIO,
+            singleSheet: true,
+          }}
+        />
         <Header />
         <main className="relative z-10">
           <div

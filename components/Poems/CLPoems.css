@@ -21,6 +21,7 @@ body:has(.clp-page-root-wrap) {
   background-image: none !important;
   height: auto;
   min-height: 100dvh;
+  overflow: visible;
 }
 
 .cl-songs-page-root.clp-page-root-wrap::before {
@@ -54,12 +55,13 @@ body:has(.clp-page) footer.footer-bg .footer-inner {
   font-weight: 300;
   min-height: 0;
   box-sizing: border-box;
+  overflow: visible;
 }
 
-/* Intro — AI Merriweather 17 */
+/* Intro — AI Merriweather 17 italic */
 .clp-intro {
   color: #6d6e71;
-  font-family: var(--ajab-font-serif);
+  font-family: var(--ajab-font-serif-poem, 'Merriweather', serif);
   font-style: italic;
   font-weight: 400;
   font-size: 17px;
@@ -157,13 +159,13 @@ body:has(.clp-page) footer.footer-bg .footer-inner {
   text-underline-offset: 3px;
 }
 
-/* Previous / Next — AI y≈414, x≈312 / x≈1084 */
+/* Previous / Next — AI y≈414; keep tight gap into poem (was 160px). */
 .clp-nav-row {
   display: flex;
   align-items: center;
   justify-content: space-between;
   width: min(var(--clp-content-w), calc(100% - 48px));
-  margin: 0 auto 160px;
+  margin: 0 auto 48px;
 }
 
 .clp-prevnext {
@@ -212,10 +214,12 @@ body:has(.clp-page) footer.footer-bg .footer-inner {
   width: min(var(--clp-content-w), calc(100% - 48px));
   margin: 0 auto 26px;
   min-height: 0;
+  position: relative;
+  overflow: visible;
 }
 
 .clp-poem-text {
-  font-family: var(--ajab-font-serif);
+  font-family: var(--ajab-font-serif-poem, 'Merriweather', serif);
   font-style: italic;
   font-weight: 400;
   font-size: 21px;
@@ -238,7 +242,8 @@ body:has(.clp-page) footer.footer-bg .footer-inner {
   font-size: 15px;
   color: var(--ajab-pink-primary);
   letter-spacing: 0.08em;
-  margin: 0 0 108px;
+  /* Was 108px — AI keeps poet close to translator / script toggles */
+  margin: 0 0 28px;
   text-transform: uppercase;
   min-height: 1.2em;
 }
@@ -253,7 +258,7 @@ body:has(.clp-page) footer.footer-bg .footer-inner {
   font-size: 14.4px;
   color: #828282;
   letter-spacing: 0.04em;
-  margin: 0 0 33px;
+  margin: 0 0 24px;
   text-transform: uppercase;
   min-height: 1.2em;
 }
@@ -411,6 +416,430 @@ body:has(.clp-page) footer.footer-bg .footer-inner {
   width: 307px;
   height: 173px;
   margin-left: -11px;
+  /* AI: thick white frame + soft outer edge + rounded corners */
+  border: 8px solid #ffffff;
+  border-radius: 10px;
+  overflow: hidden;
+  box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.06), 0 2px 10px rgba(0, 0, 0, 0.06);
+  box-sizing: border-box;
+  background: #fff;
+}
+
+.clp-page .clp-related .explore-thumb img {
+  border-radius: 2px;
+}
+
+/* AI: title + italic subtitle stay on one line */
+.clp-page .clp-related .explore-titlerow {
+  flex-wrap: nowrap;
+  align-items: baseline;
+  gap: 8px;
+}
+
+.clp-page .clp-related .explore-itemtitle {
+  flex: 0 0 auto;
+  max-width: 62%;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.clp-page .clp-related .explore-itemsubtitle {
+  font-family: var(--ajab-font-serif);
+  font-style: italic;
+  font-weight: 400;
+  font-size: 22px;
+  color: #828282;
+  margin-left: 0;
+  flex: 1 1 auto;
+  min-width: 0;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.clp-page .clp-related .explore-seemore {
+  display: inline-block;
+  margin-top: 28px;
+  font-family: var(--ajab-font-sans);
+  font-weight: 400;
+  font-size: 18px;
+  letter-spacing: 0.04em;
+  color: var(--ajab-pink-primary);
+  text-transform: uppercase;
+}
+
+/* Poems filter parda — AI ~446px wide */
+.clp-page-root-wrap .ajab-filter-drawer,
+body:has(.clp-page) .ajab-filter-drawer {
+  width: 446px !important;
+}
+
+body:has(.clp-page) .ajab-filter-drawer img[alt=''] {
+  width: 446px !important;
+}
+
+/* Poems filter chips — AI pink labels + × */
+body:has(.clp-page) .ajab-filter-selections button {
+  color: #e31e79 !important;
+}
+
+/* Notes / Glossary anchored sheets — Poems AI polish */
+.clp-page-root-wrap .wp-popup--anchored {
+  width: 341px;
+  min-height: 360px;
+  max-height: min(62vh, calc(100svh - 100px));
+  box-shadow: 0 8px 28px rgba(0, 0, 0, 0.12);
+}
+
+.clp-page-root-wrap .wp-popup--anchored .wp-popup-title {
+  font-size: 22px;
+  color: #828282;
+}
+
+.clp-page-root-wrap .wp-popup--anchored .wp-popup-body {
+  font-size: 15px;
+  line-height: 1.65;
+  color: #6d6f71;
+}
+
+/* Shared side slot — Listen / Notes / Glossary all occupy this one place.
+   Right inset at 1440 is (1440−856)/2 = 292px; keep panel+gap inside that rail. */
+.clp-side-slot {
+  position: absolute;
+  top: 0;
+  left: calc(100% + 12px);
+  width: 310px;
+  z-index: 40;
+  pointer-events: none;
+}
+
+.clp-side-slot > * {
+  pointer-events: auto;
+}
+
+.clp-player-popup,
+.clp-side-sheet {
+  position: relative !important;
+  top: auto !important;
+  left: auto !important;
+  right: auto !important;
+  bottom: auto !important;
+  width: 310px !important;
+  overflow: visible !important;
+  background: transparent;
+  box-shadow: none;
+  border: none;
+}
+
+/* Same anchor for Listen, Notes, and Glossary (AI player card). */
+.clp-side-slot .clp-player-popup,
+.clp-side-slot .clp-side-sheet {
+  transform: translateX(-161px) translateY(2px) !important;
+}
+
+.clp-player-popup {
+  background: #ffffff;
+  border-radius: 14px;
+  box-shadow: 0 8px 28px rgba(0, 0, 0, 0.15);
+  padding: 16px 16px 14px;
+  box-sizing: border-box;
+}
+
+/* Paper card sizes to its content (same width as Listen). No forced 401px
+   box — that was clipping Notes/Glossary and inventing a scroller. */
+.clp-side-slot .clp-side-sheet .wp-popup--inline {
+  width: 310px !important;
+  height: auto !important;
+  min-height: 0 !important;
+  max-height: none !important;
+  margin: 0;
+  padding: 28px 28px 56px 24px;
+  border-radius: 0 !important;
+  box-shadow: none !important;
+  overflow: visible !important;
+  background-color: transparent !important;
+  background-size: 100% 100%;
+  display: flex;
+  flex-direction: column;
+  box-sizing: border-box;
+}
+
+.clp-side-sheet .wp-popup-body {
+  flex: 0 1 auto;
+  min-height: 0;
+  overflow: visible;
+  white-space: pre-wrap;
+  font-family: var(--ajab-font-sans);
+  font-size: 14px;
+  font-weight: 300;
+  line-height: 1.55;
+  color: #6d6f71;
+}
+
+.clp-glossary-list {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.clp-glossary-term {
+  font-family: var(--ajab-font-serif);
+  font-size: 16px;
+  font-weight: 400;
+  color: var(--ajab-pink-primary);
+  margin-bottom: 4px;
+}
+
+.clp-glossary-meaning {
+  white-space: pre-wrap;
+}
+
+.clp-soundcloud-widget {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  opacity: 0;
+  pointer-events: none;
+  border: 0;
+  overflow: hidden;
+}
+
+.clp-player-popup__close {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  background: none;
+  border: none;
+  color: #e31e79;
+  cursor: pointer;
+  padding: 0;
+  line-height: 1;
+  opacity: 0.85;
+  z-index: 2;
+}
+
+.clp-player-popup__close:hover {
+  opacity: 1;
+}
+
+.clp-player-empty {
+  padding: 12px 4px 8px;
+  font-family: var(--ajab-font-sans);
+  font-size: 13px;
+  font-weight: 300;
+  color: #828282;
+}
+
+.clp-player-clip {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  height: 52px;
+  padding: 6px 4px;
+  box-sizing: border-box;
+  border: none;
+  border-radius: 3px;
+  background: transparent;
+  cursor: pointer;
+  text-align: left;
+  font: inherit;
+  color: inherit;
+}
+
+.clp-player-clip.is-active {
+  background: #fdf2f7;
+}
+
+.clp-player-clip-thumb {
+  width: 40px;
+  height: 40px;
+  border-radius: 3px;
+  overflow: hidden;
+  background: #f0f0f0;
+  flex-shrink: 0;
+  display: block;
+}
+
+.clp-player-clip-thumb img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+.clp-player-clip-meta {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.clp-player-clip-name {
+  font-family: 'Merriweather Sans', sans-serif;
+  font-weight: 300;
+  font-size: 15px;
+  color: #4f4f4f;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.clp-player-clip.is-active .clp-player-clip-name {
+  color: #e31e79;
+}
+
+.clp-player-clip-dur {
+  font-family: 'Merriweather Sans', sans-serif;
+  font-weight: 400;
+  font-size: 10.5px;
+  color: #828282;
+}
+
+.clp-player-timeline {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 12px;
+}
+
+.clp-player-time {
+  font-size: 11.5px;
+  color: #828282;
+  font-family: 'Merriweather Sans', sans-serif;
+  font-weight: 300;
+  min-width: 28px;
+}
+
+.clp-player-time:last-child {
+  text-align: right;
+}
+
+.clp-player-controls {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 16px;
+}
+
+.clp-player-icon-btn {
+  background: none;
+  border: none;
+  cursor: pointer;
+  color: #828282;
+  padding: 0;
+  line-height: 1;
+  display: inline-flex;
+}
+
+.clp-player-icon-btn:hover,
+.clp-player-icon-btn--pink {
+  color: #e31e79;
+}
+
+@media screen and (max-width: 1200px) {
+  .clp-side-slot {
+    left: auto;
+    right: 0;
+    top: auto;
+    bottom: calc(100% + 12px);
+  }
+}
+
+@media screen and (max-width: 1100px) {
+  .clp-side-slot {
+    right: 50%;
+    transform: translateX(50%);
+    left: auto;
+  }
+}
+
+.clp-player-progress {
+  position: relative;
+  flex: 1;
+  height: 3px;
+  background: #e0e0e0;
+  border-radius: 2px;
+  cursor: pointer;
+}
+
+.clp-player-progress__fill {
+  height: 100%;
+  background: #e31e79;
+  border-radius: 2px;
+  position: relative;
+}
+
+.clp-player-progress__knob {
+  position: absolute;
+  right: -6px;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  background: #e31e79;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
+}
+
+.clp-player-volume-wrap {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+}
+
+.clp-player-volume-slider {
+  position: absolute;
+  left: calc(100% + 10px);
+  top: 50%;
+  transform: translateY(-50%);
+  width: 72px;
+  height: 3px;
+  appearance: none;
+  background: #d0d0d0;
+  border-radius: 2px;
+  outline: none;
+  cursor: pointer;
+  z-index: 3;
+}
+
+.clp-player-volume-slider::-webkit-slider-thumb {
+  appearance: none;
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: #e31e79;
+  cursor: pointer;
+}
+
+.clp-player-volume-slider::-moz-range-thumb {
+  width: 10px;
+  height: 10px;
+  border: none;
+  border-radius: 50%;
+  background: #e31e79;
+  cursor: pointer;
+}
+
+.clp-player-play {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background: #fff;
+  color: #e31e79;
+  border: 2px solid #e31e79;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+}
+
+.clp-player-play.is-playing {
+  background: #e31e79;
+  color: #fff;
 }
 
 body:has(.clp-page) .nav-link--poems {

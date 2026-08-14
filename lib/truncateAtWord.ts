@@ -209,7 +209,22 @@ export function truncateToFitLinesLive(
     }
   }
 
-  const result = truncateAtWord(text, best);
+  let result = truncateAtWord(text, best);
+
+  // Safety pass: keep stepping back one word until "...more" is guaranteed
+  // to remain on the same final visible line (never wrapped below/mid-flow).
+  if (btn && result) {
+    let guard = 0;
+    while (guard < 30) {
+      textNode.textContent = `${result} `;
+      if (!moreButtonOnOwnLine(container) && container.scrollHeight <= maxHeight) break;
+      const shortened = result.replace(/\s+\S*$/, '').trimEnd();
+      if (!shortened || shortened === result) break;
+      result = shortened;
+      guard += 1;
+    }
+  }
+
   textNode.textContent = previous;
   return result;
 }

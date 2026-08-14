@@ -22,3 +22,24 @@
 .repeating-page-bg__sheet--b {
   opacity: 1;
 }
+
+/* Centered overlay (e.g. People middle white layer) — sits above the full-bleed sheets. */
+.repeating-page-bg__overlay {
+  position: absolute;
+  top: 0;
+  left: 50%;
+  transform: translateX(-50%);
+  height: 100%;
+  z-index: 1;
+  pointer-events: none;
+  overflow: hidden;
+}
+
+.repeating-page-bg__overlay-sheet {
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+}

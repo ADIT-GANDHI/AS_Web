@@ -1,0 +1,23 @@
+{
+  "listing": {
+    "intro": true,
+    "label": "FILM SERIES",
+    "titleColor": "rgb(227, 30, 121)",
+    "meta": "by SHABNAM VIRMANI | 1:34:24 mins, 2009",
+    "autoPopup": false
+  },
+  "popup": 0,
+  "detail": {
+    "explore": "Explore",
+    "year": false,
+    "gloss": false,
+    "contentW": 856,
+    "tabs": [
+      "All (7)",
+      "Songs (0)",
+      "Poems (0)",
+      "Reflections (1)",
+      "Others (6)"
+    ]
+  }
+}

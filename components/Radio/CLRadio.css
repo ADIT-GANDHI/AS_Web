@@ -6,6 +6,8 @@ html:has(.radio-page-root-wrap),
 body:has(.radio-page-root-wrap) {
   background-color: #f8f6f2 !important;
   min-height: 100dvh;
+  height: 100%;
+  overflow: hidden;
 }
 
 .cl-songs-page-root.radio-page-root-wrap {
@@ -35,37 +37,38 @@ body:has(.radio-page-root-wrap) {
 
 .cl-songs-page-root.radio-page-root-wrap--radio {
   background:
-    url(/radio-page-bg.png) center top / 100% auto no-repeat,
+    url(/radio-page-bg.png) center top / cover no-repeat,
     #f8f6f2;
-  height: max(var(--radio-artboard-h), 100dvh);
-  min-height: max(var(--radio-artboard-h), 100dvh);
-  overflow-x: hidden;
-  overflow-y: auto;
+  height: 100dvh;
+  min-height: 100dvh;
+  max-height: 100dvh;
+  overflow: hidden;
 }
 
 .cl-songs-page-root.radio-page-root-wrap--playlists {
   background:
-    url(/radio-playlist-bg.png) center top / 100% auto no-repeat,
+    url(/radio-playlist-bg.png) center top / cover no-repeat,
     #f8f6f2;
-  height: max(var(--radio-artboard-h), 100dvh);
-  min-height: max(var(--radio-artboard-h), 100dvh);
-  overflow-x: hidden;
-  overflow-y: auto;
+  height: 100dvh;
+  min-height: 100dvh;
+  max-height: 100dvh;
+  overflow: hidden;
 }
 
-body:has(.radio-page-root) footer.footer-bg {
-  position: relative;
-  z-index: 10;
+body:has(.radio-page-root-wrap) footer.footer-bg {
+  /* Radio artboard is full-bleed — no site footer (PDF / AI) */
+  display: none !important;
 }
 
-body:has(.radio-page-root) footer.footer-bg .footer-inner {
-  margin-top: 0 !important;
-  padding-top: 28px;
+body:has(.radio-page-root-wrap) .floating-actions .scroll-top-btn {
+  /* Page does not scroll past the artboard; share stays */
+  display: none !important;
 }
 
-body:has(.radio-page-root--radio) .floating-actions {
-  top: calc(100vw * 1081 / 1922 * 0.58) !important;
-  bottom: auto !important;
+body:has(.radio-page-root) .floating-actions {
+  /* PDF: share sits above the player strip on the right */
+  top: auto !important;
+  bottom: calc(var(--radio-player-h, 96px) + 28px) !important;
   transform: none !important;
   right: 16px !important;
   left: auto !important;
@@ -76,9 +79,6 @@ body:has(.radio-page-root--playlists) .floating-actions {
   top: 50% !important;
   bottom: auto !important;
   transform: translateY(-50%) !important;
-  right: 16px !important;
-  left: auto !important;
-  z-index: 99999 !important;
 }
 
 .radio-page-root {
@@ -89,13 +89,13 @@ body:has(.radio-page-root--playlists) .floating-actions {
 }
 
 .radio-page-root--radio {
-  height: max(var(--radio-artboard-h), 100dvh);
-  min-height: max(var(--radio-artboard-h), 100dvh);
+  height: 100%;
+  min-height: 100%;
 }
 
 .radio-page-root--playlists {
-  height: max(var(--radio-artboard-h), 100dvh);
-  min-height: max(var(--radio-artboard-h), 100dvh);
+  height: 100%;
+  min-height: 100%;
 }
 
 .radio-header-wrap {
@@ -543,7 +543,7 @@ body:has(.radio-page-root--playlists) .floating-actions {
   position: relative;
   z-index: 1;
   display: grid;
-  grid-template-columns: minmax(200px, 1fr) minmax(180px, 2fr) auto auto;
+  grid-template-columns: minmax(200px, 1fr) minmax(180px, 2fr) auto;
   align-items: center;
   gap: clamp(12px, 2vw, 28px);
   height: 100%;
@@ -613,6 +613,64 @@ body:has(.radio-page-root--playlists) .floating-actions {
   width: 20%;
   height: 100%;
   background: var(--ajab-pink-primary, #e31e79);
+  border-radius: 2px;
+}
+
+/* Interactive transport (replaces inert SVG sprite) */
+.radio-transport {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 14px;
+}
+
+.radio-transport-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: none;
+  border: none;
+  padding: 4px;
+  color: #828282;
+  cursor: pointer;
+  line-height: 1;
+}
+
+.radio-transport-btn:hover {
+  color: var(--ajab-pink-primary, #e31e79);
+}
+
+.radio-transport-btn--play {
+  color: var(--ajab-pink-primary, #e31e79);
+}
+
+.radio-transport-btn--play.is-playing {
+  color: var(--ajab-pink-primary, #e31e79);
+}
+
+.radio-queue-item-btn {
+  display: grid;
+  grid-template-columns: 40px minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 8px 12px;
+  width: 100%;
+  background: none;
+  border: none;
+  padding: 0;
+  cursor: pointer;
+  text-align: left;
+  font: inherit;
+  color: inherit;
+}
+
+.radio-soundcloud-hidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  opacity: 0;
+  pointer-events: none;
+  border: 0;
+  overflow: hidden;
 }
 
 .radio-player-controls-wrap {
@@ -738,5 +796,14 @@ body:has(.radio-page-root--playlists) .floating-actions {
 @media (max-width: 600px) {
   body:has(.radio-page-root) .floating-actions {
     right: 12px !important;
+  }
+
+  .cl-songs-page-root.radio-page-root-wrap--radio,
+  .cl-songs-page-root.radio-page-root-wrap--playlists {
+    height: auto;
+    max-height: none;
+    min-height: 100dvh;
+    overflow-x: hidden;
+    overflow-y: auto;
   }
 }

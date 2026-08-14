@@ -69,17 +69,17 @@ function htmlToPlainText(raw: string): string {
     .trim();
 }
 
-/** Preserve CMS HTML for the about field when present. */
+const SONG_ABOUT_LOREM =
+  'Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.';
+
+/** Preserve CMS HTML for about / song_description; lorem when both are empty. */
 function getAboutHtml(data: any): string {
-  for (const field of [
-    data?.about,
-    data?.meta_description,
-    data?.metaDescription,
-    data?.song_description,
-  ]) {
+  for (const field of [data?.about, data?.song_description]) {
     if (typeof field === 'string' && field.trim()) return field.trim();
+    const t = getText(field);
+    if (t.trim()) return t.trim();
   }
-  return getText(data?.about) || getText(data?.meta_description) || '';
+  return SONG_ABOUT_LOREM;
 }
 
 /** PDF/Figma: 3 lines when collapsed; "...more" inline right after the last word. */
@@ -168,11 +168,17 @@ function firstLyricsField(...vals: any[]): string {
   return '';
 }
 
+type CLSongDetailsPageProps = {
+  data: any;
+  songVersions?: any[];
+  related?: any;
+};
+
 export default function CLSongDetailsPage({
   data,
   songVersions = [],
   related = null,
-}) {
+}: CLSongDetailsPageProps) {
   const sliderRef = useRef<HTMLDivElement | null>(null);
   const [script, setScript] = useState<Script>('transliteration');
   const [showNotes, setShowNotes] = useState(false);
@@ -429,7 +435,7 @@ export default function CLSongDetailsPage({
             </div>
 
               {/* ===== Description — Figma 361:1473 ===== */}
-              {aboutHtml && <SongAboutClamp html={aboutHtml} />}
+              <SongAboutClamp html={aboutHtml} />
             </div>
 
             {/* ===== Language toggle — Figma 361:1480.

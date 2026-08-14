@@ -9,27 +9,26 @@
 
 .cl-songs-page-root:has(.clf-page),
 .cl-songs-page-root:has(.clfd-page) {
-  --clf-artboard-w: 1950;
-  /* Figma 366:7839 / 366:7840 — same count + rule rhythm as Poems listing */
-  --clf-listing-inset: calc(100vw * 314.89 / var(--clf-artboard-w));
-  --clf-listing-rule-inset: calc(100vw * 297.79 / var(--clf-artboard-w));
-  --clf-listing-rule-width: calc(100vw * 1339.5 / var(--clf-artboard-w));
-  /* Figma 366:7854 — film row content column */
-  --clf-content-inset: calc(100vw * 396.72 / var(--clf-artboard-w));
-  /* Client: All Films listing content width 1000px */
-  --clf-content-width: min(1000px, calc(100vw - var(--clf-content-inset) - 24px));
-  /* Figma 366:7864 outer frame, scaled down ~10% for PDF text-column balance (padding unchanged) */
-  --clf-thumb-scale: 0.9;
+  /* FILMS_27July2026.pdf / .ai artboard is 1440 wide */
+  --clf-artboard-w: 1440;
+  /* Count row + rule — keep ~220px inset so 1000px content sits centered @1440 */
+  --clf-listing-inset: max(24px, calc((100vw - 1000px) / 2));
+  --clf-listing-rule-inset: max(24px, calc((100vw - 1000px) / 2));
+  --clf-listing-rule-width: min(1000px, calc(100vw - 48px));
+  /* AI annotation: 1000px content column, centered */
+  --clf-content-inset: max(24px, calc((100vw - 1000px) / 2));
+  --clf-content-width: min(1000px, calc(100vw - 48px));
+  /* AI thumbs: thin white frame (not thick beige mat) */
+  --clf-thumb-scale: 1;
   --clf-thumb-w: min(
-    calc(100vw * 532.56 * var(--clf-thumb-scale) / var(--clf-artboard-w)),
-    calc(532px * var(--clf-thumb-scale))
+    calc(100vw * 360 / var(--clf-artboard-w)),
+    360px
   );
   --clf-thumb-h: min(
-    calc(100vw * 308.4 * var(--clf-thumb-scale) / var(--clf-artboard-w)),
-    calc(308px * var(--clf-thumb-scale))
+    calc(100vw * 202 / var(--clf-artboard-w)),
+    202px
   );
-  /* Figma 366:7864 outer frame; PDF inner image ≈502×278 → ~15px white mat per side */
-  --clf-thumb-border: clamp(6px, calc(100vw * 15 / var(--clf-artboard-w)), 15px);
+  --clf-thumb-border: clamp(3px, calc(100vw * 5 / var(--clf-artboard-w)), 6px);
   --clf-fs-title: clamp(24px, calc(100vw * 28 / var(--clf-artboard-w)), 28px);
   --clf-fs-subtitle: clamp(16px, calc(100vw * 18 / var(--clf-artboard-w)), 18px);
   --clf-fs-body: clamp(16px, calc(100vw * 18 / var(--clf-artboard-w)), 18px);
@@ -60,6 +59,21 @@ body:has(.clfd-page) footer.footer-bg .footer-inner {
   width: 100%;
   max-width: none;
   padding: var(--clf-pad-page-top) 0 var(--clf-pad-page-bottom);
+  box-sizing: border-box;
+}
+
+/* AI: page intro sits above the Films count */
+.clf-page-intro {
+  color: #6d6e71;
+  font-family: var(--ajab-font-serif);
+  font-style: italic;
+  font-weight: 400;
+  font-size: clamp(16px, calc(100vw * 17 / var(--clf-artboard-w)), 17px);
+  line-height: 1.55;
+  text-align: center;
+  max-width: min(730px, calc(100% - 48px));
+  margin: 0 auto 28px;
+  padding: 0 24px;
   box-sizing: border-box;
 }
 
@@ -110,6 +124,27 @@ body:has(.clfd-page) footer.footer-bg .footer-inner {
   color: var(--ajab-ink-800);
   text-align: center;
   margin: 0 0 14px;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  justify-content: center;
+  gap: 10px 14px;
+}
+
+.clf-series-title-text {
+  font: inherit;
+  color: inherit;
+}
+
+/* AI: small all-caps label beside series name */
+.clf-series-title-label {
+  font-family: var(--ajab-font-sans);
+  font-weight: 400;
+  font-size: clamp(12px, calc(100vw * 13 / var(--clf-artboard-w)), 14px);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: #828282;
+  line-height: 1.2;
 }
 
 .clf-series-intro {
@@ -136,8 +171,7 @@ body:has(.clfd-page) footer.footer-bg .footer-inner {
   align-items: flex-start;
   padding-bottom: 28px;
   border-bottom: 1px solid #e0e0e0;
-  cursor: pointer;
-  margin-left: calc(100vw * 42.06 / var(--clf-artboard-w));
+  margin-left: 0;
   padding-right: 0;
   box-sizing: border-box;
 }
@@ -153,12 +187,26 @@ body:has(.clfd-page) footer.footer-bg .footer-inner {
   aspect-ratio: auto;
   flex-shrink: 0;
   padding: var(--clf-thumb-border);
-  background: #f0ece5;
-  border: 1px solid #d8d8d8;
+  background: #ffffff;
+  border: 1px solid #d0d0d0;
   border-radius: 2px;
   box-sizing: border-box;
   overflow: hidden;
-  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.12);
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+  cursor: pointer;
+  display: block;
+  font: inherit;
+  color: inherit;
+  text-align: left;
+}
+
+.clf-entry-thumb:disabled {
+  cursor: default;
+  opacity: 0.85;
+}
+
+.clf-entry-thumb:not(:disabled):hover {
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.14);
 }
 
 .clf-entry-thumb img {
@@ -176,24 +224,29 @@ body:has(.clfd-page) footer.footer-bg .footer-inner {
   align-self: flex-start;
 }
 
-/* [Claude] these changes have been recommended by claude —
-   PDF shows the full title + italic subtitle inline ("Chalo Hamara Des
-   Journeys With Kabir And Friends"). Real CMS titles are longer than the
-   PDF mocks, so let the row wrap instead of cutting both off with "…". */
+/* PDF: title + italic subtitle inline; wrap when CMS titles are long. */
 .clf-entry-titlerow {
   display: flex;
   align-items: baseline;
   gap: 12px;
   flex-wrap: wrap;
   min-width: 0;
-  margin-bottom: 4px;
+  width: 100%;
+  margin: 0 0 4px;
+  padding: 0;
+  border: none;
+  background: none;
+  cursor: pointer;
+  text-align: left;
+  font: inherit;
+  color: inherit;
 }
 
 .clf-entry-title {
   font-family: var(--ajab-font-serif);
   font-weight: 400;
   font-size: var(--clf-fs-title);
-  color: var(--ajab-ink-600);
+  color: var(--ajab-pink-primary);
   min-width: 0;
 }
 
@@ -227,9 +280,8 @@ body:has(.clfd-page) footer.footer-bg .footer-inner {
   font-size: var(--clf-fs-meta);
   color: #6f6f72;
   margin-bottom: 10px;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
+  line-height: 1.45;
+  white-space: normal;
 }
 
 .clf-entry-desc {
@@ -258,8 +310,15 @@ body:has(.clfd-page) footer.footer-bg .footer-inner {
 .clf-entry-link {
   color: var(--ajab-pink-primary);
   cursor: pointer;
+  background: none;
+  border: none;
+  padding: 0;
+  font: inherit;
+  letter-spacing: inherit;
+  text-transform: inherit;
 }
 
+.clf-entry-link:disabled,
 .clf-entry-link--muted {
   color: #575756;
   cursor: default;
@@ -727,7 +786,22 @@ body:has(.clfd-page) .nav-link--films .nav-link-films-count {
   margin: 0;
 }
 
-/* Related sits inside .clfd-content — do NOT re-apply content inset */
+.clfd-page .cld-related-title {
+  font-size: clamp(26px, calc(100vw * 30 / var(--clfd-artboard-w)), 30px);
+  color: #4d4d4d;
+}
+
+.clfd-page .clfd-related-format {
+  font-family: var(--ajab-font-sans);
+  font-weight: 300;
+  font-size: clamp(12px, calc(100vw * 14 / var(--clfd-artboard-w)), 14px);
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: #828282;
+  margin-top: 6px;
+}
+
+/* Related / Explore sits inside .clfd-content — do NOT re-apply content inset */
 .clfd-page .cld-related {
   position: relative;
   z-index: 11;
@@ -735,11 +809,6 @@ body:has(.clfd-page) .nav-link--films .nav-link-films-count {
   max-width: 100%;
   margin: clamp(64px, calc(100vw * 100 / var(--clfd-artboard-w)), 100px) 0 32px;
   padding: 0;
-}
-
-.clfd-page .cld-related-title {
-  font-size: clamp(26px, calc(100vw * 30 / var(--clfd-artboard-w)), 30px);
-  color: #4d4d4d;
 }
 
 .clfd-related-tab-wrap {
@@ -756,16 +825,28 @@ body:has(.clfd-page) .nav-link--films .nav-link-films-count {
 }
 
 .clfd-page .cld-related-seemore {
+  position: relative;
+  z-index: 12;
   display: inline-block;
   margin-top: 12px;
   background: none;
   border: 0;
   padding: 0;
   cursor: pointer;
+  pointer-events: auto;
   font-family: var(--ajab-font-sans);
   font-weight: 400;
   font-size: clamp(16px, calc(100vw * 20 / var(--clfd-artboard-w)), 20px);
   color: var(--ajab-pink-primary);
+}
+
+/* Same as songs detail (.cld-page): footer wave overlaps Explore; disable
+   hit-testing on the transparent footer shell so SEE MORE remains clickable. */
+body:has(.clfd-page) footer.footer-bg {
+  pointer-events: none;
+}
+body:has(.clfd-page) footer.footer-bg * {
+  pointer-events: auto;
 }
 
 .clfd-glossary-align {

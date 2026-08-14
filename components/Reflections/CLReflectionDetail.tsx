@@ -18,7 +18,12 @@ import {
   REFLECTIONS_RELATED,
 } from './CLReflectionMocks';
 import { AJAB_API_BASE } from '@/lib/ajabEnv';
-import { truncateAtWord, truncateToFitLinesLive, moreButtonOnOwnLine } from '@/lib/truncateAtWord';
+import {
+  truncateAtWord,
+  truncateToFitLinesLive,
+  moreButtonOnOwnLine,
+  textExceedsLines,
+} from '@/lib/truncateAtWord';
 import { getSpeakerNameMap } from '@/lib/speakerNames';
 import { parseCatalogTotal } from '@/lib/parseCatalogTotal';
 import { ReflectionsNavCountContext } from '@/components/Reflections/ReflectionsNavCountContext';
@@ -33,10 +38,11 @@ import '@/components/Songs/CLSongs.css';
 import '@/components/Songs/CLSongDetails.css';
 import './CLReflections.css';
 
-const DESCRIPTION_MIN_CHARS = 180;
+/** PDF/AI: collapsed about is max 3 lines; "...more" must end line 3 (not wrap alone). */
 const DESCRIPTION_CLAMP_LINES = 3;
+/** Char gate before live line measurement (about is usually much longer). */
+const DESCRIPTION_MIN_CHARS = 160;
 
-// [Claude] Same HTML stripper used across all detail pages
 function htmlToPlainText(raw: string): string {
   if (!raw || typeof raw !== 'string') return '';
   return raw
@@ -48,8 +54,24 @@ function htmlToPlainText(raw: string): string {
     .replace(/&lt;/g, '<')
     .replace(/&gt;/g, '>')
     .replace(/&quot;/g, '"')
+    .replace(/&#39;/g, "'")
     .replace(/\n{3,}/g, '\n\n')
     .trim();
+}
+
+/** First non-empty CMS about-style field (HTML preserved for expand). */
+function pickAboutHtml(it: any): string {
+  for (const field of [
+    it?.about,
+    it?.interview_about,
+    it?.visual_story_desc,
+    it?.essay_content,
+    it?.reflection_excerpt,
+    it?.meta_description,
+  ]) {
+    if (typeof field === 'string' && field.trim()) return field.trim();
+  }
+  return '';
 }
 
 interface ReflectionDetail {
@@ -59,16 +81,17 @@ interface ReflectionDetail {
   location: string;
   year: string;
   videoId: string;
+  /** Plain text for 3-line clamp */
   description: string;
+  /** Raw CMS HTML for expanded about */
+  aboutHtml: string;
   format: string;
 }
 
-// [Claude] these changes have been recommended by claude —
-// Field order fixed: reflection_excerpt is the primary description field in the API
-// (interview_about is usually empty). meta_description added as final fallback.
 // saysBy resolves speaker_id via person_list (person_name_english on this payload
 // is the attributed poet, not the speaker — PDF shows the real speaker name).
 function mapApiItem(it: any, speakerNames: Record<string, string>): ReflectionDetail {
+  const aboutHtml = pickAboutHtml(it);
   return {
     id: String(it.id || ''),
     title: it.meta_title || it.title || '',
@@ -76,26 +99,43 @@ function mapApiItem(it: any, speakerNames: Record<string, string>): ReflectionDe
     location: it.interview_place || '',
     year: it.interview_year || '',
     videoId: it.youtube_video_id || it.interview_video || '',
-    description: htmlToPlainText(
-      it.reflection_excerpt || it.interview_about || it.visual_story_desc || it.essay_content || it.meta_description || ''
-    ),
+    description: htmlToPlainText(aboutHtml),
+    aboutHtml,
     format: (it.format || 'Interview'),
   };
 }
 
-function ReflectionDescription({ text }: { text: string }) {
+function ReflectionDescription({ text, html }: { text: string; html: string }) {
   const [expanded, setExpanded] = useState(false);
   const clampRef = useRef<HTMLParagraphElement>(null);
+  const measureRef = useRef<HTMLParagraphElement>(null);
   const normalized = useMemo(() => text.replace(/\s+/g, ' ').trim(), [text]);
-  const isLong = normalized.length > DESCRIPTION_MIN_CHARS;
-  const [clipped, setClipped] = useState(normalized);
+  const maybeLong = normalized.length > DESCRIPTION_MIN_CHARS;
+  const [needsClamp, setNeedsClamp] = useState(maybeLong);
+  const [clipped, setClipped] = useState(() =>
+    maybeLong ? truncateAtWord(normalized, DESCRIPTION_MIN_CHARS) : normalized
+  );
 
   useLayoutEffect(() => {
     setExpanded(false);
   }, [normalized]);
 
+  // Decide clamp from real line count (not char guess alone).
   useLayoutEffect(() => {
-    if (expanded || !isLong || !normalized) return;
+    if (expanded || !normalized) {
+      setNeedsClamp(false);
+      return;
+    }
+    const node = measureRef.current || clampRef.current;
+    if (!node || !node.getBoundingClientRect().width) {
+      setNeedsClamp(maybeLong);
+      return;
+    }
+    setNeedsClamp(textExceedsLines(node, normalized, DESCRIPTION_CLAMP_LINES));
+  }, [normalized, expanded, maybeLong]);
+
+  useLayoutEffect(() => {
+    if (expanded || !needsClamp || !normalized) return;
 
     let cancelled = false;
     const timers: number[] = [];
@@ -146,14 +186,31 @@ function ReflectionDescription({ text }: { text: string }) {
       timers.forEach((id) => window.clearTimeout(id));
       observer.disconnect();
     };
-  }, [normalized, expanded, isLong]);
+  }, [normalized, expanded, needsClamp]);
 
   if (!normalized) return null;
 
-  if (expanded || !isLong) {
+  if (expanded) {
     return (
       <div className="clrd-description">
-        <p className={`clrd-description-body${expanded ? ' is-expanded' : ''}`}>{normalized}</p>
+        {html.trim() ? (
+          <div
+            className="clrd-description-body is-expanded"
+            dangerouslySetInnerHTML={{ __html: html }}
+          />
+        ) : (
+          <p className="clrd-description-body is-expanded">{normalized}</p>
+        )}
+      </div>
+    );
+  }
+
+  if (!needsClamp) {
+    return (
+      <div className="clrd-description">
+        <p ref={measureRef} className="clrd-description-body">
+          {normalized}
+        </p>
       </div>
     );
   }
@@ -260,6 +317,7 @@ export default function CLReflectionDetail({ id: idProp }: { id?: string }) {
   }
 
   const description = data.description || '';
+  const aboutHtml = data.aboutHtml || '';
 
   return (
     <div className="cl-songs-page-root cl-songs-page-root--listing">
@@ -303,10 +361,8 @@ export default function CLReflectionDetail({ id: idProp }: { id?: string }) {
               )}
             </div>
 
-            {/* Description */}
-            {/* [Claude] these changes have been recommended by claude —
-                Location/year moved here (after description) to match PDF layout. */}
-            <ReflectionDescription text={description} />
+            {/* About — API `about` field, 3-line clamp + "...more" at end of line 3 */}
+            <ReflectionDescription text={description} html={aboutHtml} />
 
             <ExploreSection data={related.data} className="cld-related" />
             </div>

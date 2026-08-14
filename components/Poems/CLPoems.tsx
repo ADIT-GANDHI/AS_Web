@@ -8,19 +8,17 @@ import {
   POEMS_INTRO,
   MOCK_POEMS,
   POEMS_RELATED,
-  POEMS_GLOSSARY,
   TOTAL_POEMS,
   PoemData,
 } from './CLPoemMocks';
 import { PoemsNavCountContext } from './PoemsNavCountContext';
-import { CLGlossaryPopup, CLPlayerPopup } from './CLPoemPopups';
+import { CLGlossaryPopup, CLPlayerPopup, CLSideSheet } from './CLPoemPopups';
 import ExploreSection from '@/components/shared/ExploreSection';
 import CLFilterPanel from '@/components/Fillter/CLFilterPanel';
 import type {
   ListingFilterCategory,
   ListingFilterOption,
 } from '@/components/shared/listingFilterTypes';
-import WavyPaperPopup from '@/components/shared/WavyPaperPopup';
 import Loader from '@/components/Loader';
 import Link from 'next/link';
 import '@/styles/CustomStyle.css';
@@ -32,7 +30,7 @@ import { mapPoemListItem } from '@/lib/mapPoemListItem';
 import { parseCatalogTotal } from '@/lib/parseCatalogTotal';
 import { fetchPoemFilterOptions } from '@/lib/poemFilters';
 import {
-  fetchPublishedPoemAudio,
+  fetchPoemListen,
   toAudioVersions,
 } from '@/lib/poemAudio';
 import type { AudioVersion } from './CLPoemPopups';
@@ -40,12 +38,15 @@ import {
   EMPTY_RELATED,
   fetchRelatedByParam,
   asRelatedContent,
+  relatedGlossaryTerms,
   type RelatedContent,
 } from '@/lib/mapRelatedResponse';
 
 type Script = 'devanagari' | 'transliteration' | 'english';
 
 const CATALOG_LIMIT = 300;
+const NOTES_LOREM =
+  'Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat.';
 
 export default function CLPoems() {
   const searchParams = useSearchParams();
@@ -65,9 +66,23 @@ export default function CLPoems() {
   const [filterOrder, setFilterOrder] = useState<Array<'Poet' | 'Theme'>>([]);
   const [poetFetchPoems, setPoetFetchPoems] = useState<PoemData[]>([]);
 
-  const [showNotes, setShowNotes] = useState(false);
-  const [showGlossary, setShowGlossary] = useState(false);
-  const [showPlayer, setShowPlayer] = useState(false);
+  const [sidePanel, setSidePanel] = useState<'listen' | 'notes' | 'glossary' | null>(null);
+  const showPlayer = sidePanel === 'listen';
+  const showNotes = sidePanel === 'notes';
+  const showGlossary = sidePanel === 'glossary';
+  const closeSidePanel = useCallback(() => setSidePanel(null), []);
+  const toggleSidePanel = useCallback((panel: 'listen' | 'notes' | 'glossary') => {
+    setSidePanel((prev) => (prev === panel ? null : panel));
+  }, []);
+
+  useEffect(() => {
+    if (!sidePanel) return;
+    const onKey = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') closeSidePanel();
+    };
+    document.addEventListener('keydown', onKey);
+    return () => document.removeEventListener('keydown', onKey);
+  }, [sidePanel, closeSidePanel]);
   const [filterPanelOpen, setFilterPanelOpen] = useState(false);
   const [listenVersions, setListenVersions] = useState<AudioVersion[]>([]);
   const skipFilterResetRef = useRef(false);
@@ -174,17 +189,6 @@ export default function CLPoems() {
   }, [fetchCatalog]);
 
   useEffect(() => {
-    let cancelled = false;
-    fetchPublishedPoemAudio(12).then((tracks) => {
-      if (cancelled) return;
-      setListenVersions(toAudioVersions(tracks));
-    });
-    return () => {
-      cancelled = true;
-    };
-  }, []);
-
-  useEffect(() => {
     if (totalPoems > 0) setPoemsNavTotal(totalPoems);
   }, [totalPoems, setPoemsNavTotal]);
 
@@ -272,6 +276,21 @@ export default function CLPoems() {
 
   useEffect(() => {
     if (!activePoem?.id) {
+      setListenVersions([]);
+      return;
+    }
+    let cancelled = false;
+    fetchPoemListen(activePoem.id).then((tracks) => {
+      if (cancelled) return;
+      setListenVersions(toAudioVersions(tracks));
+    });
+    return () => {
+      cancelled = true;
+    };
+  }, [activePoem?.id]);
+
+  useEffect(() => {
+    if (!activePoem?.id) {
       setRelated(EMPTY_RELATED);
       return;
     }
@@ -284,31 +303,6 @@ export default function CLPoems() {
       cancelled = true;
     };
   }, [activePoem?.id]);
-
-  const playerVersions = useMemo(() => {
-    if (!listenVersions.length) return listenVersions;
-    const poemTrack = activePoem?.audioUrl?.trim();
-    if (!poemTrack) return listenVersions;
-    const matchIdx = listenVersions.findIndex(
-      (v) => v.audioUrl === poemTrack || v.id === poemTrack
-    );
-    if (matchIdx <= 0) {
-      if (matchIdx === 0) return listenVersions;
-      return [
-        {
-          id: activePoem?.id,
-          singer: activePoem?.poet || 'Poem recording',
-          duration: '',
-          audioUrl: poemTrack,
-          thumbnailUrl: activePoem?.thumbnailUrl || '/poems-listen-1.png',
-        },
-        ...listenVersions,
-      ];
-    }
-    const copy = [...listenVersions];
-    const [hit] = copy.splice(matchIdx, 1);
-    return [hit, ...copy];
-  }, [listenVersions, activePoem]);
 
   const goPrev = () =>
     setActiveIdx((i) =>
@@ -324,13 +318,10 @@ export default function CLPoems() {
     return activePoem.text;
   }, [script, activePoem]);
 
-  const glossaryBody =
-    activePoem?.glossary ||
-    POEMS_GLOSSARY.map((g) => `${g.term} — ${g.meaning}`).join('\n\n');
+  const glossaryTerms = useMemo(() => relatedGlossaryTerms(related), [related]);
 
   const notesBody =
-    activePoem?.noteText ||
-    'Notes for this poem will appear here when available.';
+    (activePoem?.noteText && activePoem.noteText.trim()) || NOTES_LOREM;
 
   const displayCount =
     selectedPoetIds.length || selectedThemeIds.length
@@ -387,9 +378,11 @@ export default function CLPoems() {
                   selectedThemes={selectedThemeIds}
                   availablePoets={poetOptions}
                   availableThemes={themeOptions}
-                  categoryLabels={{ Poet: 'Poet', Theme: 'Theme' }}
+                  categoryLabels={{ Poet: 'Poets', Theme: 'Themes' }}
                   categoryOrder={['Poet', 'Theme']}
                   filterTriggerAlwaysPink
+                  drawerWidth={446}
+                  showClearAllAlways
                   catalogList={{
                     items: catalogEntries,
                     onSelect: selectPoemById,
@@ -424,9 +417,9 @@ export default function CLPoems() {
             {(selectedPoetIds.length > 0 || selectedThemeIds.length > 0) && (
               <div className="clp-filtered-by" aria-live="polite">
                 Filtered by{' '}
-                <span className={primaryFilter === 'Poet' ? 'is-on' : ''}>Poet</span>
+                <span className={primaryFilter === 'Poet' ? 'is-on' : ''}>Poets</span>
                 {' | '}
-                <span className={primaryFilter === 'Theme' ? 'is-on' : ''}>Theme</span>
+                <span className={primaryFilter === 'Theme' ? 'is-on' : ''}>Themes</span>
               </div>
             )}
 
@@ -493,11 +486,7 @@ export default function CLPoems() {
                 <button
                   type="button"
                   className={showPlayer ? 'is-active' : undefined}
-                  onClick={() => {
-                    setShowPlayer((v) => !v);
-                    setShowGlossary(false);
-                    setShowNotes(false);
-                  }}
+                  onClick={() => toggleSidePanel('listen')}
                 >
                   LISTEN
                 </button>
@@ -505,11 +494,7 @@ export default function CLPoems() {
                 <button
                   type="button"
                   className={showNotes ? 'is-active' : undefined}
-                  onClick={() => {
-                    setShowNotes((v) => !v);
-                    setShowGlossary(false);
-                    setShowPlayer(false);
-                  }}
+                  onClick={() => toggleSidePanel('notes')}
                 >
                   NOTES
                 </button>
@@ -517,14 +502,33 @@ export default function CLPoems() {
                 <button
                   type="button"
                   className={showGlossary ? 'is-active' : undefined}
-                  onClick={() => {
-                    setShowGlossary((v) => !v);
-                    setShowNotes(false);
-                    setShowPlayer(false);
-                  }}
+                  onClick={() => toggleSidePanel('glossary')}
                 >
                   GLOSSARY
                 </button>
+              </div>
+
+              <div className="clp-side-slot">
+                <CLPlayerPopup
+                  isOpen={showPlayer}
+                  onClose={closeSidePanel}
+                  versions={listenVersions}
+                />
+
+                <CLSideSheet
+                  isOpen={showNotes}
+                  onClose={closeSidePanel}
+                  title="Notes"
+                  className="clp-notes-popup"
+                >
+                  {notesBody}
+                </CLSideSheet>
+
+                <CLGlossaryPopup
+                  isOpen={showGlossary}
+                  onClose={closeSidePanel}
+                  terms={glossaryTerms}
+                />
               </div>
             </div>
 
@@ -533,39 +537,11 @@ export default function CLPoems() {
             <ExploreSection
               data={related.data}
               className="clp-related"
-              initialCount={5}
+              initialCount={3}
               descriptionLines={3}
             />
           </div>
         </main>
-
-        <WavyPaperPopup
-          variant="anchored"
-          isOpen={showNotes}
-          onClose={() => setShowNotes(false)}
-          title="Notes"
-          style={{
-            right: 'auto',
-            left: 'clamp(72px, 8vw, 120px)',
-            top: '42%',
-            transform: 'translateY(-50%)',
-          }}
-        >
-          {notesBody}
-        </WavyPaperPopup>
-
-        <CLGlossaryPopup
-          isOpen={showGlossary}
-          onClose={() => setShowGlossary(false)}
-          body={glossaryBody}
-          rightAnchor="clamp(160px, 14vw, 300px)"
-        />
-
-        <CLPlayerPopup
-          isOpen={showPlayer}
-          onClose={() => setShowPlayer(false)}
-          versions={playerVersions}
-        />
       </div>
     </div>
   );

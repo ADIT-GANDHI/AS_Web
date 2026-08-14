@@ -7,6 +7,7 @@ import Loader from '@/components/Loader';
 import LoadMoreButton from '@/components/shared/LoadMoreButton';
 import { FilmEntry, FilmSeries } from './CLFilmsMocks';
 import FilmPopupModal, { type FilmPopupData } from './FilmPopupModal';
+import { FILMS_CONSTANTS } from './constants';
 import '@/styles/CustomStyle.css';
 import '@/components/Songs/CLSongs.css';
 import './CLFilms.css';
@@ -14,27 +15,33 @@ import RepeatingPageBackground from '@/components/shared/RepeatingPageBackground
 import { FILMS_LISTING_BG } from '@/lib/pageBackgroundTiles';
 import { getFilmListingBlurb, formatFilmDirector } from './filmFieldUtils';
 import { AJAB_API_BASE } from '@/lib/ajabEnv';
-import { resolveCmsAssetUrl } from '@/lib/resolveCmsAssetUrl';
 import { extractYouTubeId } from '@/lib/youtube';
 import { FilmsNavCountContext } from '@/components/Films/FilmsNavCountContext';
-import { catalogHasMore, mergeCatalogById } from '@/lib/catalogPagination';
+import {
+  DEFAULT_FILM_SERIES_TITLE,
+  mergeFilmListSeries,
+  normalizeFilmListSeries,
+  parseFilmPriority,
+  type NormalizedFilmSeries,
+} from '@/lib/filmListApi';
 import { parseCatalogTotal } from '@/lib/parseCatalogTotal';
 
+/** Matches CMS page size in the series-mixed film_list contract. */
 const FILMS_API_PAGE_SIZE = 10;
-const FILMS_VISIBLE_STEP = 10;
-const SERIES_ORDER = ['Journeys with Kabir', 'Ajab Mulakatein'];
 /** PDF-length placeholder when CMS has no listing blurb. */
 const FILM_LISTING_BLURB_FALLBACK =
   'Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat.';
+const SERIES_INTRO_FALLBACK =
+  'Here you will find the films that have been the seed of this archive, inquiring into mystic poetry and music through the medium of documentary, travelogue and animation.';
 
-type FilmRow = { entry: FilmEntry; raw: Record<string, unknown> };
+type MappedFilm = FilmEntry & { youtubeVideoId: string; priority: number };
 
 function thumbUrl(raw: string | null | undefined): string {
   if (!raw) return '';
   return raw.startsWith('/') ? `${AJAB_API_BASE}${raw}` : `${AJAB_API_BASE}/${raw}`;
 }
 
-/** Listing media: YouTube poster first, then CMS thumbnail, else blank (no pink play SVG). */
+/** Listing media: YouTube poster first, then CMS thumbnail, else blank. */
 function listingThumbUrl(it: Record<string, unknown>): string {
   const videoId = extractYouTubeId(
     String(it.youtube_video_id || it.film_youtube_id || '')
@@ -43,7 +50,9 @@ function listingThumbUrl(it: Record<string, unknown>): string {
   return thumbUrl(it.thumbnail_url as string | undefined);
 }
 
-function mapFilmItem(it: Record<string, unknown>): FilmEntry {
+function mapFilmItem(it: Record<string, unknown>): MappedFilm {
+  const youtubeVideoId =
+    extractYouTubeId(String(it.youtube_video_id || it.film_youtube_id || '')) || '';
   return {
     id: String(it.id || ''),
     title: String(it.english_transliteration || it.original_title || ''),
@@ -54,80 +63,52 @@ function mapFilmItem(it: Record<string, unknown>): FilmEntry {
     languages: String(it.language || it.film_language || '').trim(),
     description: getFilmListingBlurb(it) || FILM_LISTING_BLURB_FALLBACK,
     thumbnailUrl: listingThumbUrl(it),
+    youtubeVideoId,
+    priority: parseFilmPriority(it.priority),
   };
 }
 
-function mergeFilmRows(prev: FilmRow[], next: FilmRow[]): FilmRow[] {
-  const merged = mergeCatalogById(
-    prev.map((r) => r.entry),
-    next.map((r) => r.entry)
-  );
-  const rawById = new Map<string, Record<string, unknown>>();
-  for (const row of [...prev, ...next]) {
-    if (row.entry.id) rawById.set(row.entry.id, row.raw);
-  }
-  return merged.map((entry) => ({
-    entry,
-    raw: rawById.get(entry.id) || {},
-  }));
+function formatListingDuration(raw: string): string {
+  const t = raw.trim();
+  if (!t) return '';
+  if (/min/i.test(t)) return t;
+  return `${t} mins`;
 }
 
-function buildSeries(rows: FilmRow[]): FilmSeries[] {
-  const seriesMap = new Map<string, { films: FilmEntry[]; intro: string }>();
-  rows.forEach(({ entry, raw }) => {
-    const key = (String(raw.series_title || '').trim() || 'Journeys with Kabir');
-    if (!seriesMap.has(key)) {
-      seriesMap.set(key, {
-        films: [],
-        intro:
-          (String(raw.series_description || '').trim()) ||
-          'Here you will find the  films that have been the seed of this archive, inquiring into mystic poetry and music through the medium of documentary, travelogue and animation.',
-      });
-    }
-    seriesMap.get(key)!.films.push(entry);
-  });
-
-  const list: FilmSeries[] = Array.from(seriesMap.entries()).map(([title, bucket], i) => ({
-    id: `s${i}`,
-    title,
-    intro: bucket.intro,
-    films: bucket.films,
-  }));
-
-  list.sort((a, b) => {
-    const ai = SERIES_ORDER.indexOf(a.title);
-    const bi = SERIES_ORDER.indexOf(b.title);
-    return (ai === -1 ? SERIES_ORDER.length : ai) - (bi === -1 ? SERIES_ORDER.length : bi);
-  });
-
-  return list;
+/** AI listing meta: `by NAME | duration mins, year | languages` */
+function formatListingMeta(f: MappedFilm): string {
+  const parts: string[] = [];
+  if (f.director) parts.push(`by ${f.director.toUpperCase()}`);
+  const durYear = [formatListingDuration(f.duration), f.year].filter(Boolean).join(', ');
+  if (durYear) parts.push(durYear);
+  if (f.languages) parts.push(f.languages);
+  return parts.join(' | ');
 }
 
-function mapFilmPopupPayload(payload: unknown): FilmPopupData | null {
-  const root = payload as { status?: boolean; data?: Record<string, unknown> } | null;
-  if (!root?.status || !root.data || typeof root.data !== 'object') return null;
-  const videoId = extractYouTubeId(String(root.data.pop_video_url || ''));
-  if (!videoId) return null;
-  return {
-    id: String(root.data.id || videoId),
-    videoId,
-    title: String(root.data.title || ''),
-    thumbnailUrl: resolveCmsAssetUrl(String(root.data.thumbnail_url || '')),
-  };
+function toUiSeries(normalized: NormalizedFilmSeries[]): FilmSeries[] {
+  return normalized.map((s, i) => ({
+    id: `s${i}-${s.title}`,
+    title: s.title,
+    intro: s.intro,
+    films: s.films.map(mapFilmItem),
+  }));
 }
 
 export default function CLFilms() {
   const shellRef = useRef<HTMLDivElement>(null);
   const { setFilmsNavTotal } = useContext(FilmsNavCountContext);
-  const [rows, setRows] = useState<FilmRow[]>([]);
-  const [totalFilms, setTotalFilms] = useState(0);
-  const [visibleCount, setVisibleCount] = useState(FILMS_VISIBLE_STEP);
+  const [rawSeries, setRawSeries] = useState<NormalizedFilmSeries[]>([]);
+  const [apiTotal, setApiTotal] = useState(0);
   const [apiPage, setApiPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(1);
   const [loading, setLoading] = useState(true);
   const [loadingMore, setLoadingMore] = useState(false);
+  // Temporarily unused while TRAILER | FILM & MORE is hidden.
   const [filmPopup, setFilmPopup] = useState<FilmPopupData | null>(null);
   const [filmPopupOpen, setFilmPopupOpen] = useState(false);
   const router = useRouter();
+
+  const series = useMemo(() => toUiSeries(rawSeries), [rawSeries]);
 
   const fetchFilmsPage = useCallback(async (page: number, reset: boolean) => {
     if (reset) setLoading(true);
@@ -145,16 +126,20 @@ export default function CLFilms() {
       if (!res.ok) return;
 
       const data = await res.json();
-      if (Array.isArray(data?.data) && data.data.length) {
-        const nextRows: FilmRow[] = data.data.map((it: Record<string, unknown>) => ({
-          entry: mapFilmItem(it),
-          raw: it,
-        }));
-        setRows((prev) => (reset ? nextRows : mergeFilmRows(prev, nextRows)));
-      }
+      const pageSeries = normalizeFilmListSeries(
+        data?.data,
+        SERIES_INTRO_FALLBACK,
+        DEFAULT_FILM_SERIES_TITLE
+      );
 
-      const apiTotal = parseCatalogTotal(data.total);
-      if (apiTotal != null) setTotalFilms(apiTotal);
+      setRawSeries((prev) => (reset ? pageSeries : mergeFilmListSeries(prev, pageSeries)));
+
+      const total = parseCatalogTotal(data?.total);
+      if (total != null) setApiTotal(total);
+
+      const pages = Number(data?.total_pages);
+      if (Number.isFinite(pages) && pages > 0) setTotalPages(pages);
+
       setApiPage(page);
     } catch {
       clearTimeout(timeoutId);
@@ -169,59 +154,42 @@ export default function CLFilms() {
   }, [fetchFilmsPage]);
 
   useEffect(() => {
-    if (totalFilms > 0) setFilmsNavTotal(totalFilms);
-  }, [totalFilms, setFilmsNavTotal]);
-
-  useEffect(() => {
-    let cancelled = false;
-    const controller = new AbortController();
-
-    (async () => {
-      try {
-        const res = await fetch(`${AJAB_API_BASE}/Api/film_popup`, {
-          cache: 'no-store',
-          signal: controller.signal,
-        });
-        if (!res.ok) return;
-        const json = await res.json();
-        const mapped = mapFilmPopupPayload(json);
-        if (cancelled || !mapped) return;
-
-        setFilmPopup(mapped);
-        setFilmPopupOpen(true);
-      } catch {
-        /* ignore abort / network */
-      }
-    })();
-
-    return () => {
-      cancelled = true;
-      controller.abort();
-    };
-  }, []);
+    if (apiTotal > 0) setFilmsNavTotal(apiTotal);
+  }, [apiTotal, setFilmsNavTotal]);
 
   const closeFilmPopup = useCallback(() => {
     setFilmPopupOpen(false);
   }, []);
 
-  const displayedRows = useMemo(() => rows.slice(0, visibleCount), [rows, visibleCount]);
-  const visibleSeries = useMemo(() => buildSeries(displayedRows), [displayedRows]);
+  const openFilmTrailer = useCallback((film: MappedFilm | FilmEntry) => {
+    const videoId =
+      ('youtubeVideoId' in film && typeof film.youtubeVideoId === 'string'
+        ? film.youtubeVideoId
+        : '') || '';
+    if (!videoId) return;
+    setFilmPopup({
+      id: film.id,
+      videoId,
+      title: film.title,
+      thumbnailUrl: film.thumbnailUrl || '',
+    });
+    setFilmPopupOpen(true);
+  }, []);
 
-  const hasMore = catalogHasMore(rows.length, visibleCount, rows.length, totalFilms);
+  const loadedFilmSlots = useMemo(
+    () => series.reduce((n, s) => n + s.films.length, 0),
+    [series]
+  );
+
+  const hasMore = apiPage < totalPages;
 
   const handleLoadMore = () => {
-    if (loadingMore) return;
+    if (loadingMore || !hasMore) return;
+    void fetchFilmsPage(apiPage + 1, false);
+  };
 
-    if (visibleCount < rows.length) {
-      setVisibleCount((prev) => prev + FILMS_VISIBLE_STEP);
-      return;
-    }
-
-    if (totalFilms > 0 && rows.length < totalFilms) {
-      void fetchFilmsPage(apiPage + 1, false).then(() => {
-        setVisibleCount((prev) => prev + FILMS_VISIBLE_STEP);
-      });
-    }
+  const goToDetail = (filmId: string) => {
+    router.push(`/films/details/${filmId}`);
   };
 
   if (loading) {
@@ -235,68 +203,75 @@ export default function CLFilms() {
         <Header />
         <main className="relative z-10">
           <div className="clf-page cl-songs-page">
+            <p className="clf-page-intro">{FILMS_CONSTANTS.FILMS_DESCRIPTION.trim()}</p>
+
             <div className="clf-count-row">
-              <h1 className="clf-count">{totalFilms > 0 ? totalFilms : rows.length} Films</h1>
+              <h1 className="clf-count">
+                {apiTotal > 0 ? apiTotal : loadedFilmSlots} Films
+              </h1>
             </div>
 
-            {visibleSeries.map((s) => (
+            {series.map((s) => (
               <section key={s.id} className="clf-series">
-                <h2 className="clf-series-title">{s.title}</h2>
+                <h2 className="clf-series-title">
+                  <span className="clf-series-title-text">{s.title}</span>
+                  <span className="clf-series-title-label">FILM SERIES</span>
+                </h2>
                 <p className="clf-series-intro">{s.intro}</p>
 
                 <div className="clf-list">
-                  {s.films.map((f) => (
-                    <div
-                      key={f.id}
-                      className="clf-entry"
-                      onClick={() => router.push(`/films/details/${f.id}`)}
-                    >
-                      <div className="clf-entry-thumb">
+                  {(s.films as MappedFilm[]).map((f) => {
+                    const metaLine = formatListingMeta(f);
+                    return (
+                    <div key={`${s.id}-${f.id}`} className="clf-entry">
+                      <button
+                        type="button"
+                        className="clf-entry-thumb"
+                        aria-label={f.title}
+                        onClick={() => goToDetail(f.id)}
+                      >
                         {f.thumbnailUrl ? (
                           <img
                             src={f.thumbnailUrl}
-                            alt={f.title}
+                            alt=""
                             onError={(e) => {
                               const t = e.currentTarget;
                               t.onerror = null;
                               t.removeAttribute('src');
-                              t.alt = '';
                               t.style.display = 'none';
                             }}
                           />
                         ) : null}
-                      </div>
+                      </button>
                       <div className="clf-entry-body">
-                        <div className="clf-entry-titlerow">
+                        <button
+                          type="button"
+                          className="clf-entry-titlerow"
+                          onClick={() => goToDetail(f.id)}
+                        >
                           <span className="clf-entry-title">{f.title}</span>
                           {f.subtitle && (
                             <span className="clf-entry-subtitle">{f.subtitle}</span>
                           )}
-                        </div>
-                        {f.director && (
-                          <div className="clf-entry-director">
-                            <span className="clf-entry-director-label">by </span>
-                            <span className="clf-entry-director-name">{f.director}</span>
-                          </div>
-                        )}
-                        {(f.duration || f.year || f.languages) && (
-                          <div className="clf-entry-meta">
-                            {[f.duration, f.year, f.languages ? `available in ${f.languages}` : '']
-                              .filter(Boolean)
-                              .join(', ')}
-                          </div>
-                        )}
+                        </button>
+                        {metaLine && <div className="clf-entry-meta">{metaLine}</div>}
                         {f.description && (
                           <p className="clf-entry-desc">{f.description}</p>
                         )}
                         <div className="clf-entry-links">
-                          <span className="clf-entry-link clf-entry-link--muted">TRAILER</span>
-                          <span className="clf-entry-link-sep">|</span>
-                          <span className="clf-entry-link">FILM &amp; MORE</span>
+                          <button
+                            type="button"
+                            className={`clf-entry-link${f.youtubeVideoId ? '' : ' clf-entry-link--muted'}`}
+                            onClick={() => openFilmTrailer(f)}
+                            disabled={!f.youtubeVideoId}
+                          >
+                            TRAILER
+                          </button>
                         </div>
                       </div>
                     </div>
-                  ))}
+                    );
+                  })}
                 </div>
               </section>
             ))}

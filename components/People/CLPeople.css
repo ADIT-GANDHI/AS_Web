@@ -3,14 +3,16 @@
    Background, filter bar, and content column follow Songs/Reflections.
 ───────────────────────────────────────────── */
 
-/* Listing — original plate (Images/people_mainpage.png → public/people_mainpage.png) */
+/* Listing — dual-layer: people_newbg-tile + centered middle white (art ratio 1483/1922).
+   OLD single plate: people_mainpage.png via PEOPLE_LISTING_BG (kept commented in CLPeople.tsx). */
 .cl-songs-page-root:has(.clpe-page) {
   position: relative;
   background-color: #ffffff;
   background-image: none;
 }
 
-/* Detail — repeat-y layer via RepeatingPageBackground */
+/* Detail — dual-layer: people_detailbg-tile + same middle white as listing (art ratio 1483/1922).
+   OLD single plate: people_detail.png via PEOPLE_DETAIL_BG (kept commented in CLPeopleDetail.tsx). */
 .cl-songs-page-root:has(.clped-page) {
   --clped-artboard-w: 1920;
   /* Client: detail content column 856px */

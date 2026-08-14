@@ -89,6 +89,9 @@ export const MOCK_REFLECTION_DETAIL = {
   videoId: '',
   description:
     "'Nothing has its own intrinsic character. Everything exists in relation to something else. The name of this realization is shoonya.' Krishna Nath unpacks the Bhakti and Sufi understanding of emptiness — not as void, but as the open, relational ground from which all forms emerge. In this conversation we trace the word's roots through Kabir, Lalon and the wider mystic tradition, and the way poets have used 'shoonya' both as critique and invitation.",
+  aboutHtml:
+    "<p>'Nothing has its own intrinsic character. Everything exists in relation to something else. The name of this realization is shoonya.' Krishna Nath unpacks the Bhakti and Sufi understanding of emptiness — not as void, but as the open, relational ground from which all forms emerge. In this conversation we trace the word's roots through Kabir, Lalon and the wider mystic tradition, and the way poets have used 'shoonya' both as critique and invitation.</p>",
+  format: 'Interview',
 };
 
 export const REFLECTIONS_RELATED = {

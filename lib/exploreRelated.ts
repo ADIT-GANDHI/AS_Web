@@ -253,6 +253,15 @@ export function getExploreItemSubtitle(item: any, bucket: ExploreListEntry['buck
   return LOREM_SUBTITLE;
 }
 
+function normalizeExplorePlain(raw: string): string {
+  return htmlToPlainText(String(raw || ''))
+    .replace(/\\n/g, '\n')
+    .replace(/\r\n/g, '\n')
+    .replace(/\n+/g, ' ')
+    .replace(/\s+/g, ' ')
+    .trim();
+}
+
 export function getExploreItemDescription(item: any, bucket: ExploreListEntry['bucket']): string {
   if (bucket === 'poems') {
     const raw =
@@ -261,8 +270,7 @@ export function getExploreItemDescription(item: any, bucket: ExploreListEntry['b
       item?.meta_description ||
       item?.couplet_transliteration ||
       '';
-    const text = htmlToPlainText(String(raw)).trim();
-    return text || LOREM_DESC;
+    return normalizeExplorePlain(String(raw)) || LOREM_DESC;
   }
 
   const raw =
@@ -274,10 +282,7 @@ export function getExploreItemDescription(item: any, bucket: ExploreListEntry['b
     item?.thumbnailexcerpt ||
     item?.reflection_excerpt ||
     '';
-  const text = htmlToPlainText(String(raw))
-    .replace(/\\n/g, '\n')
-    .trim();
-  return text || LOREM_DESC;
+  return normalizeExplorePlain(String(raw)) || LOREM_DESC;
 }
 
 /** Infer bucket for raw (unmapped) related rows — used by song detail raw API. */

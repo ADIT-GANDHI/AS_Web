@@ -17,7 +17,7 @@ type FilmPopupModalProps = {
   onClose: () => void;
 };
 
-/** Films listing trailer popup — PDF page 2: white frame, pink ✕, shared YT player. */
+/** Films listing trailer popup — opened from thumbnail / TRAILER (YouTube embed). */
 export default function FilmPopupModal({ open, data, onClose }: FilmPopupModalProps) {
   useEffect(() => {
     if (!open) return;
@@ -67,6 +67,7 @@ export default function FilmPopupModal({ open, data, onClose }: FilmPopupModalPr
             videoId={data.videoId}
             title={data.title || 'Film trailer'}
             className="cfp-iframe"
+            autoplay
           />
         </div>
       </div>

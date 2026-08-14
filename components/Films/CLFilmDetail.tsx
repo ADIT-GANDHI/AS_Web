@@ -11,7 +11,6 @@ import {
   getFilmDescription,
 } from './filmFieldUtils';
 import { extractYouTubeId } from '@/lib/youtube';
-import { glossaryTermsFromKeywords } from '@/lib/parseKeywords';
 import { truncateAtWord, truncateToFitLinesLive, moreButtonOnOwnLine } from '@/lib/truncateAtWord';
 import { AJAB_API_BASE } from '@/lib/ajabEnv';
 import {
@@ -32,11 +31,11 @@ import '@/components/Songs/CLSongDetails.css';
 import './CLFilms.css';
 import './FilmLanguageToggle.css';
 import RepeatingPageBackground from '@/components/shared/RepeatingPageBackground';
-import GlossaryStrip from '@/components/shared/GlossaryStrip';
 import { FILMS_DETAIL_BG } from '@/lib/pageBackgroundTiles';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
 import WavyCard from '@/components/shared/WavyCard';
 import { FilmsNavCountContext } from '@/components/Films/FilmsNavCountContext';
+import { flattenFilmListItems } from '@/lib/filmListApi';
 
 function resolveFilmYouTubeId(item: any): string {
   const raw =
@@ -214,7 +213,7 @@ export default function CLFilmDetail({ id: idProp }: { id?: string }) {
   const [activeVideoId, setActiveVideoId] = useState('');
   const [activeLang, setActiveLang] = useState('');
   const [activeTab, setActiveTab] =
-    useState<'all' | 'songs' | 'poems' | 'reflections' | 'other'>('songs');
+    useState<'all' | 'songs' | 'poems' | 'reflections' | 'other'>('all');
   const [activeFilmTab, setActiveFilmTab] = useState<'film' | 'episodes'>('film');
   const [descExpanded, setDescExpanded] = useState(false);
   const [selectedEpisodeIdx, setSelectedEpisodeIdx] = useState(0);
@@ -226,10 +225,11 @@ export default function CLFilmDetail({ id: idProp }: { id?: string }) {
   const { setFilmsNavTotal } = useContext(FilmsNavCountContext);
 
   useEffect(() => {
-    fetch(`${AJAB_API_BASE}/Api/film_list`, { cache: 'no-store' })
+    fetch(`${AJAB_API_BASE}/Api/film_list?page=1&limit=10`, { cache: 'no-store' })
       .then((res) => (res.ok ? res.json() : null))
       .then((json) => {
-        if (typeof json?.total === 'number' && json.total > 0) setFilmsNavTotal(json.total);
+        const total = Number(json?.total);
+        if (Number.isFinite(total) && total > 0) setFilmsNavTotal(total);
       })
       .catch(() => {});
   }, [setFilmsNavTotal]);
@@ -296,7 +296,7 @@ export default function CLFilmDetail({ id: idProp }: { id?: string }) {
 
         if (listRes.ok) {
           const listJson = await listRes.json();
-          const list = Array.isArray(listJson?.data) ? listJson.data : [];
+          const list = flattenFilmListItems(listJson?.data);
           const base = normalizeFilmBase(mapped.title);
 
           /*
@@ -379,12 +379,29 @@ export default function CLFilmDetail({ id: idProp }: { id?: string }) {
 
   const counts = related.counts;
   const tabs = [
-    { key: 'all' as const, label: 'ALL', count: counts.all },
-    { key: 'songs' as const, label: 'SONGS', count: counts.songs },
-    { key: 'poems' as const, label: 'POEMS', count: counts.poems },
-    { key: 'reflections' as const, label: 'REFLECTIONS', count: counts.reflections },
-    { key: 'other' as const, label: 'OTHER', count: counts.other },
+    { key: 'all' as const, label: 'All', count: counts.all },
+    { key: 'songs' as const, label: 'Songs', count: counts.songs },
+    { key: 'poems' as const, label: 'Poems', count: counts.poems },
+    { key: 'reflections' as const, label: 'Reflections', count: counts.reflections },
+    { key: 'other' as const, label: 'Others', count: counts.other },
   ];
+
+  const formatLabelForBucket = (bucket: string): string => {
+    switch (bucket) {
+      case 'songs':
+        return 'SONG';
+      case 'poems':
+        return 'POEM';
+      case 'reflections':
+        return 'REFLECTION';
+      case 'films':
+        return 'FILM';
+      case 'people':
+        return 'PEOPLE';
+      default:
+        return 'OTHER';
+    }
+  };
 
   const visibleEntries = useMemo((): RelatedListEntry[] => {
     const d = related.data as Record<string, any[]>;
@@ -521,11 +538,6 @@ export default function CLFilmDetail({ id: idProp }: { id?: string }) {
   }, [visibleEntries, relatedListExpanded]);
   const hasMoreRelated = visibleEntries.length > RELATED_INITIAL_COUNT;
 
-  const glossaryTerms = useMemo(
-    () => glossaryTermsFromKeywords((related.data.keywords || []) as unknown[]),
-    [related.data.keywords]
-  );
-
   const relatedHref = (bucket: string, item: any) => getRelatedDetailHref(bucket, item);
 
   if (loading) return <LoadingShell />;
@@ -590,11 +602,9 @@ export default function CLFilmDetail({ id: idProp }: { id?: string }) {
         <RepeatingPageBackground containerRef={shellRef} tile={FILMS_DETAIL_BG} />
         <Header />
         <main className="relative z-10">
-          <div
-            className={`clfd-page${activeFilmTab === 'episodes' ? ' clfd-page--episodes' : ''}`}
-          >
-            {/* PDF: "Film | Episodes" is page-centred (artboard centre), not content-column centre */}
-            {hasEpisodeSeries && (
+          <div className="clfd-page">
+            {/* Temporarily hidden — episodes concept paused (films-only). */}
+            {false && hasEpisodeSeries && (
               <div className="clfd-mode-row">
                 <button
                   type="button"
@@ -628,47 +638,45 @@ export default function CLFilmDetail({ id: idProp }: { id?: string }) {
                     <span className="clfd-header-subtitle">{headerSubtitle}</span>
                   )}
                 </div>
-                {(data.director || data.year) && (
+                {(data.director) && (
                   <div className="clfd-header-meta-row">
-                    {data.director && (
                       <div className="clfd-header-byline">
                         Film by <span className="caps">{data.director}</span>
                       </div>
-                    )}
-                    {data.year && <div className="clfd-header-year">{data.year}</div>}
                   </div>
                 )}
               </div>
 
-              {activeFilmTab === 'film' ? (
-                <>
-                  {renderVideo(headerTitle)}
+              <>
+                {renderVideo(headerTitle)}
 
-                  {languagesFromVersions.length > 1 && (
-                    <div className="film-lang-toggle clfd-lang-toggle">
-                      {languageVersions.map((version, index) => (
-                        <span key={version.id} className="film-lang-toggle-item-wrap">
-                          {index > 0 && <span className="film-lang-sep">|</span>}
-                          <button
-                            type="button"
-                            className={`film-lang-btn${activeLang === version.language ? ' active' : ''}`}
-                            onClick={() => {
-                              setActiveVideoId(version.videoId);
-                              setActiveLang(version.language);
-                              setDescExpanded(false);
-                            }}
-                            disabled={activeLang === version.language}
-                          >
-                            {displayLanguageLabel(version.language)}
-                          </button>
-                        </span>
-                      ))}
-            </div>
-                  )}
+                {languagesFromVersions.length > 1 && (
+                  <div className="film-lang-toggle clfd-lang-toggle">
+                    {languageVersions.map((version, index) => (
+                      <span key={version.id} className="film-lang-toggle-item-wrap">
+                        {index > 0 && <span className="film-lang-sep">|</span>}
+                        <button
+                          type="button"
+                          className={`film-lang-btn${activeLang === version.language ? ' active' : ''}`}
+                          onClick={() => {
+                            setActiveVideoId(version.videoId);
+                            setActiveLang(version.language);
+                            setDescExpanded(false);
+                          }}
+                          disabled={activeLang === version.language}
+                        >
+                          {displayLanguageLabel(version.language)}
+                        </button>
+                      </span>
+                    ))}
+                  </div>
+                )}
 
-                  {renderDescription()}
-                </>
-              ) : (
+                {renderDescription()}
+              </>
+
+              {/* Temporarily hidden — episodes panel (restore with Film | Episodes tabs). */}
+              {false && activeFilmTab === 'episodes' && (
                 <div className="clfd-episodes-panel">
                   <div className="clfd-episodes-divider" aria-hidden="true" />
 
@@ -747,7 +755,7 @@ export default function CLFilmDetail({ id: idProp }: { id?: string }) {
               )}
 
               <section className="cld-related clfd-related">
-                <h2 className="cld-related-title">Related</h2>
+                <h2 className="cld-related-title">Explore</h2>
                 <div className="cld-related-tabs">
                   {tabs.map((t, i) => (
                     <span
@@ -763,7 +771,7 @@ export default function CLFilmDetail({ id: idProp }: { id?: string }) {
                         }}
                       >
                         {t.label}
-                        <span className="cld-related-tab-count">({t.count})</span>
+                        <span className="cld-related-tab-count"> ({t.count})</span>
                       </button>
                       {i < tabs.length - 1 && (
                         <span className="cld-related-tab-sep">|</span>
@@ -782,6 +790,7 @@ export default function CLFilmDetail({ id: idProp }: { id?: string }) {
                       const expanded = !!relatedExpanded[relKey];
                       const needsClamp = relatedDescriptionNeedsClamp(descPlain, bucket);
                       const href = relatedHref(bucket, item);
+                      const formatLabel = formatLabelForBucket(bucket);
                       const body = (
                         <>
                           <div className="cld-related-thumb">
@@ -819,6 +828,7 @@ export default function CLFilmDetail({ id: idProp }: { id?: string }) {
                                 </button>
                               )}
                             </p>
+                            <div className="clfd-related-format">{formatLabel}</div>
                           </div>
                         </>
                       );
@@ -844,18 +854,16 @@ export default function CLFilmDetail({ id: idProp }: { id?: string }) {
                   <button
                     type="button"
                     className="cld-related-seemore"
-                    onClick={() => setRelatedListExpanded((v) => !v)}
+                    onClick={(e) => {
+                      e.preventDefault();
+                      e.stopPropagation();
+                      setRelatedListExpanded((v) => !v);
+                    }}
                   >
                     {relatedListExpanded ? 'SEE LESS' : 'SEE MORE'}
                   </button>
                 )}
               </section>
-
-              {glossaryTerms.length > 0 && (
-                <div className="clfd-glossary-align">
-                  <GlossaryStrip terms={glossaryTerms} className="clfd-glossary-strip" />
-                </div>
-              )}
             </div>
           </div>
         </main>

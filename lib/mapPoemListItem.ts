@@ -44,15 +44,22 @@ export function mapPoemListItem(
       String(it.couplet_translation || '').trim(),
     poet,
     poetId: poetId || undefined,
-    translator: String(it.translator || '').trim() || undefined,
+    translator:
+      String(it.translator || it.translated_by || it.translation_by || it.translator_name || '')
+        .trim() || undefined,
     title: String(it.couplet_transliteration || it.original_title || '').trim() || undefined,
     translationTitle: String(it.couplet_translation || '').trim() || undefined,
     keywordIds: splitIds(it.related_keywords ?? it.keywords),
     thumbnailUrl: it.thumbnail_url ? `${AJAB_API_BASE}${it.thumbnail_url}` : '',
-    noteText: htmlToPlainText(String(it.note_text || '')),
-    glossary: htmlToPlainText(String(it.glossary || '')),
+    noteText: htmlToPlainText(
+      String(it.note_text || it.notes || it.note || it.poem_notes || '')
+    ),
+    glossary: htmlToPlainText(
+      String(it.glossary || it.glossary_text || it.poem_glossary || '')
+    ),
     audioUrl:
-      String(it.soundCloud_iD || it.soundcloud_url || it.soundCloud_track_url || '').trim() ||
-      undefined,
+      String(
+        it.soundCloud_iD || it.soundcloud_url || it.song_url || it.soundCloud_track_url || ''
+      ).trim() || undefined,
   };
 }

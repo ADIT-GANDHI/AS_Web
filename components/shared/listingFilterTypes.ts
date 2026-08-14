@@ -73,4 +73,6 @@ export type ListingFilterPanelProps = ListingFilterHandlers &
     /** Controlled open state for the filter drawer. */
     open?: boolean;
     onOpenChange?: (open: boolean) => void;
+    /** Drawer width in px (default 422). Poems AI uses ~446. */
+    drawerWidth?: number;
   };

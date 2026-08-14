@@ -89,22 +89,20 @@ body:has(.clrd-page) footer.footer-bg .footer-inner {
    card height regardless of card width. flex: unset + line-clamp: 4 on desc
    so description truncates at 4 lines with "…" and mediatype pin stays at bottom. */
 
-/* [Claude] these changes have been recommended by claude —
-   White border added to match Figma design — cards have a 1.5px white outline
-   separating them from the marble background. */
-
-/* White outline via box-shadow (no border gaps on rounded corners). */
+/* Soft drop shadow only — matches AI (no hard white outline ring).
+   OLD (white ring): box-shadow: var(--ajab-card-shadow), 0 0 0 1.5px #ffffff; */
 .clr-card {
   --wc-width: var(--ajab-card-w);
   --wc-thumb-h: clamp(100px, 8.9vw, 141px);
   --wc-shadow: var(--ajab-card-shadow);
   --wc-radius: var(--ajab-card-radius);
-  box-shadow: var(--ajab-card-shadow), 0 0 0 1.5px #ffffff;
+  box-shadow: var(--ajab-card-shadow);
   /* Dynamic height — content-driven, not stretched */
 }
 
 .clr-card:hover {
-  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15), 0 0 0 1.5px #ffffff;
+  /* OLD: box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15), 0 0 0 1.5px #ffffff; */
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15);
 }
 
 /* Lower wave: use default WavyCard ::after (song-card-bottom-shadow.png, 108% width). */
@@ -345,6 +343,14 @@ body:has(.clrd-page) .nav-link--songs .nav-link-songs-count {
 
 .clrd-description-body {
   margin: 0;
+}
+
+.clrd-description-body p {
+  margin: 0 0 0.75em;
+}
+
+.clrd-description-body p:last-child {
+  margin-bottom: 0;
 }
 
 .clrd-description-body--clamped {

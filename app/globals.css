@@ -95,6 +95,22 @@ html, body {
   font-weight: 400;
 }
 
+/* Merriweather (serif) — Poems AI intro + poem body */
+@font-face {
+  font-family: "Merriweather";
+  src: url("/fonts/Merriweather/Merriweather-Regular.ttf") format("truetype");
+  font-weight: 300 900;
+  font-style: normal;
+  font-display: swap;
+}
+@font-face {
+  font-family: "Merriweather";
+  src: url("/fonts/Merriweather/Merriweather-Italic.ttf") format("truetype");
+  font-weight: 300 900;
+  font-style: italic;
+  font-display: swap;
+}
+
 /* body {
   font-family: 'Inter', sans-serif;
 } */
@@ -143,6 +159,7 @@ p {
 
   /* ── Type system (font-family) ── */
   --ajab-font-serif:    'Lora', serif;
+  --ajab-font-serif-poem: 'Merriweather', 'Lora', serif;
   --ajab-font-sans:     'Merriweather Sans', sans-serif;
 
   /* ── Type scale (Figma-derived, px values, line-height 1.3 unless noted) ── */

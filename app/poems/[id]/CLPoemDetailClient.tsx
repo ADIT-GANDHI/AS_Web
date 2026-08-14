@@ -8,11 +8,12 @@ import { useEffect, useMemo, useState } from 'react';
 import { usePathname } from 'next/navigation';
 import { AJAB_API_BASE } from '@/lib/ajabEnv';
 import { CLGlossaryPopup, CLPlayerPopup } from '@/components/Poems/CLPoemPopups';
+import type { AudioVersion } from '@/components/Poems/CLPoemPopups';
+import { fetchPoemListen, toAudioVersions } from '@/lib/poemAudio';
 import ExploreSection from '@/components/shared/ExploreSection';
 import WavyPaperPopup from '@/components/shared/WavyPaperPopup';
 import {
   findMockPoemById,
-  POEMS_GLOSSARY,
   POEMS_RELATED,
   type PoemData,
 } from '@/components/Poems/CLPoemMocks';
@@ -20,6 +21,7 @@ import {
   EMPTY_RELATED,
   fetchRelatedByParam,
   asRelatedContent,
+  relatedGlossaryTerms,
   type RelatedContent,
 } from '@/lib/mapRelatedResponse';
 import '@/styles/CustomStyle.css';
@@ -107,6 +109,7 @@ export default function CLPoemDetailClient({ id: idProp }: { id: string }) {
   const [showGlossary, setShowGlossary] = useState(false);
   const [showPlayer, setShowPlayer] = useState(false);
   const [related, setRelated] = useState<RelatedContent>(EMPTY_RELATED);
+  const [listenVersions, setListenVersions] = useState<AudioVersion[]>([]);
 
   useEffect(() => {
     const fetchPoem = async () => {
@@ -153,6 +156,21 @@ export default function CLPoemDetailClient({ id: idProp }: { id: string }) {
     };
   }, [poem?.id]);
 
+  useEffect(() => {
+    if (!poem?.id) {
+      setListenVersions([]);
+      return;
+    }
+    let cancelled = false;
+    fetchPoemListen(poem.id).then((tracks) => {
+      if (cancelled) return;
+      setListenVersions(toAudioVersions(tracks));
+    });
+    return () => {
+      cancelled = true;
+    };
+  }, [poem?.id]);
+
   const poemText = useMemo(() => {
     if (!poem) return '';
     if (script === 'devanagari' && poem.hindi) return poem.hindi;
@@ -160,9 +178,10 @@ export default function CLPoemDetailClient({ id: idProp }: { id: string }) {
     return poem.text;
   }, [script, poem]);
 
-  const glossaryBody =
-    poem?.glossary ||
-    POEMS_GLOSSARY.map((g) => `${g.term} — ${g.meaning}`).join('\n\n');
+  const glossaryTerms = useMemo(() => relatedGlossaryTerms(related), [related]);
+  const notesBody =
+    (poem?.noteText && poem.noteText.trim()) ||
+    'Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat.';
 
   if (loading) return <PoemsLoadingShell />;
 
@@ -262,37 +281,29 @@ export default function CLPoemDetailClient({ id: idProp }: { id: string }) {
                       </button>
                     </div>
 
-                    {(poem.noteText || poem.glossary) && (
-                      <div className="clp-notes-glossary">
-                        {poem.noteText && (
-                          <button
-                            className={showNotes ? 'is-active' : undefined}
-                            onClick={() => {
-                              setShowNotes((v) => !v);
-                              setShowGlossary(false);
-                              setShowPlayer(false);
-                            }}
-                          >
-                            NOTES
-                          </button>
-                        )}
-                        {poem.noteText && poem.glossary && (
-                          <span className="sep">|</span>
-                        )}
-                        {poem.glossary && (
-                          <button
-                            className={showGlossary ? 'is-active' : undefined}
-                            onClick={() => {
-                              setShowGlossary((v) => !v);
-                              setShowNotes(false);
-                              setShowPlayer(false);
-                            }}
-                          >
-                            GLOSSARY
-                          </button>
-                        )}
-                      </div>
-                    )}
+                    <div className="clp-notes-glossary">
+                      <button
+                        className={showNotes ? 'is-active' : undefined}
+                        onClick={() => {
+                          setShowNotes((v) => !v);
+                          setShowGlossary(false);
+                          setShowPlayer(false);
+                        }}
+                      >
+                        NOTES
+                      </button>
+                      <span className="sep">|</span>
+                      <button
+                        className={showGlossary ? 'is-active' : undefined}
+                        onClick={() => {
+                          setShowGlossary((v) => !v);
+                          setShowNotes(false);
+                          setShowPlayer(false);
+                        }}
+                      >
+                        GLOSSARY
+                      </button>
+                    </div>
                   </div>
                 </div>
               </div>
@@ -313,17 +324,21 @@ export default function CLPoemDetailClient({ id: idProp }: { id: string }) {
             transform: 'translateY(-50%)',
           }}
         >
-          {poem.noteText || 'No notes available.'}
+          {notesBody}
         </WavyPaperPopup>
 
         <CLGlossaryPopup
           isOpen={showGlossary}
           onClose={() => setShowGlossary(false)}
-          body={glossaryBody}
+          terms={glossaryTerms}
           rightAnchor="clamp(160px, 14vw, 300px)"
         />
 
-        <CLPlayerPopup isOpen={showPlayer} onClose={() => setShowPlayer(false)} />
+        <CLPlayerPopup
+          isOpen={showPlayer}
+          onClose={() => setShowPlayer(false)}
+          versions={listenVersions}
+        />
       </div>
     </div>
   );

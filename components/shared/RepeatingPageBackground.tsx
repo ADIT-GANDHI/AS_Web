@@ -11,9 +11,19 @@ import './RepeatingPageBackground.css';
 const TILE_OVERLAP_PX = 4;
 const SHEET_SHIFT_PX = 6;
 
+export type RepeatingPageBackgroundOverlay = {
+  tile: PageBackgroundTile;
+  /** Overlay width as a fraction of shell width (e.g. 1483/1922). */
+  widthRatio: number;
+  /** Translucent overlays should use a single sheet (default true). */
+  singleSheet?: boolean;
+};
+
 export type RepeatingPageBackgroundProps = {
   containerRef: RefObject<HTMLElement | null>;
   tile: PageBackgroundTile;
+  /** Optional centered layer on top of the full-bleed tile (People middle white). */
+  overlay?: RepeatingPageBackgroundOverlay;
   /** Defer heavy assets until window load (Songs composite ~7 MB). */
   deferUntilLoad?: boolean;
   /** Extra px added to scaled tile height (default 4). */
@@ -31,6 +41,7 @@ export type RepeatingPageBackgroundProps = {
 export default function RepeatingPageBackground({
   containerRef,
   tile,
+  overlay,
   deferUntilLoad = false,
   tileOverlapPx = TILE_OVERLAP_PX,
   sheetShiftPx = SHEET_SHIFT_PX,
@@ -38,6 +49,8 @@ export default function RepeatingPageBackground({
 }: RepeatingPageBackgroundProps) {
   const [bgHeight, setBgHeight] = useState(0);
   const [tileH, setTileH] = useState(0);
+  const [overlayWidth, setOverlayWidth] = useState(0);
+  const [overlayTileH, setOverlayTileH] = useState(0);
   const [showArt, setShowArt] = useState(!deferUntilLoad);
 
   const measure = useCallback(() => {
@@ -47,7 +60,25 @@ export default function RepeatingPageBackground({
     const w = shell.clientWidth;
     const scaled = (Math.min(w, tile.tileWidth) * tile.tileHeight) / tile.tileWidth;
     setTileH(Math.max(1, Math.ceil(scaled) + tileOverlapPx));
-  }, [containerRef, tile.tileWidth, tile.tileHeight, tileOverlapPx]);
+
+    if (overlay && overlay.widthRatio > 0) {
+      const ow = Math.max(1, Math.round(w * overlay.widthRatio));
+      const oScaled =
+        (Math.min(ow, overlay.tile.tileWidth) * overlay.tile.tileHeight) /
+        overlay.tile.tileWidth;
+      setOverlayWidth(ow);
+      setOverlayTileH(Math.max(1, Math.ceil(oScaled) + tileOverlapPx));
+    } else {
+      setOverlayWidth(0);
+      setOverlayTileH(0);
+    }
+  }, [
+    containerRef,
+    tile.tileWidth,
+    tile.tileHeight,
+    tileOverlapPx,
+    overlay,
+  ]);
 
   useEffect(() => {
     if (!deferUntilLoad) return;
@@ -87,6 +118,17 @@ export default function RepeatingPageBackground({
     backgroundSize: `100% ${tileH}px`,
   };
 
+  const overlaySingle = overlay?.singleSheet !== false;
+  const overlaySheetStyle =
+    overlay && overlayWidth > 0 && overlayTileH > 0
+      ? {
+          backgroundImage: `url(${overlay.tile.url})`,
+          backgroundRepeat: 'repeat-y' as const,
+          backgroundPosition: 'left top',
+          backgroundSize: `100% ${overlayTileH}px`,
+        }
+      : null;
+
   return (
     <div
       className="repeating-page-bg"
@@ -114,6 +156,29 @@ export default function RepeatingPageBackground({
             />
           </>
         )
+      ) : null}
+
+      {showArt && overlaySheetStyle ? (
+        <div
+          className="repeating-page-bg__overlay"
+          style={{ width: overlayWidth }}
+        >
+          {overlaySingle ? (
+            <div className="repeating-page-bg__overlay-sheet" style={overlaySheetStyle} />
+          ) : (
+            <>
+              <div className="repeating-page-bg__overlay-sheet" style={overlaySheetStyle} />
+              <div
+                className="repeating-page-bg__overlay-sheet"
+                style={{
+                  ...overlaySheetStyle,
+                  top: -sheetShiftPx,
+                  backgroundPosition: `left -${sheetShiftPx}px`,
+                }}
+              />
+            </>
+          )}
+        </div>
       ) : null}
     </div>
   );

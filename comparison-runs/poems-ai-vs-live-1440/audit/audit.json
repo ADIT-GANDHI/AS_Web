@@ -1,0 +1,62 @@
+{
+  "main": {
+    "pageW": 1440,
+    "toolbarW": 856,
+    "introFontStyle": "italic",
+    "introSize": "17px",
+    "poemFontStyle": "italic",
+    "poemSize": "21px",
+    "poetText": "KAMAAL",
+    "translatorText": "",
+    "prevColor": "rgb(128, 128, 128)",
+    "prevText": "Previous"
+  },
+  "explore": {
+    "sameLine": true,
+    "thumbRadius": "10px",
+    "hasLiteralBackslashN": false,
+    "itemCount": 3,
+    "seeMore": true
+  },
+  "filter": {
+    "drawerW": 446,
+    "poetsColor": "rgb(227, 30, 121)",
+    "chipCount": 2,
+    "chips": [
+      "Amir Khusro×",
+      "Baba Farid×"
+    ]
+  },
+  "notes": {
+    "left": 1160,
+    "top": -376,
+    "overlapSeeAll": false,
+    "placeholder": true,
+    "sample": "NotesArchive notes for this couplet will appear here when available."
+  },
+  "glossary": {
+    "open": true,
+    "left": 1160,
+    "w": 280,
+    "sample": "GlossaryShoonya — Emptiness Ulat — Upside Down Alakh — Unseeable Darpan — Mirror Shahar — City"
+  },
+  "listen": {
+    "top": -376,
+    "right": 1440,
+    "singers": [
+      "Prahlad Singh Tipanya12:30",
+      "Vidya Rao",
+      "Kaluram Bamaniya",
+      "Gundecha Bandhu",
+      "Omprakash Nayak",
+      "Shafi Mohammad Faqir"
+    ],
+    "uniqueCount": 6,
+    "progress": true,
+    "hasPlayControls": true,
+    "iframeVisible": false
+  },
+  "fabs": {
+    "shareOrTop": 2
+  }
+}

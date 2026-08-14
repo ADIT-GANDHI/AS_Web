@@ -21,6 +21,7 @@ export const SONGS_LISTING_BG: PageBackgroundTile = {
   fallbackColor: '#ede8df',
 };
 
+/** @deprecated Single-plate listing bg — kept for revert. Prefer dual-layer tiles below. */
 export const PEOPLE_LISTING_BG: PageBackgroundTile = {
   url: tileUrl('/people_mainpage.png'),
   tileWidth: 1921,
@@ -28,11 +29,44 @@ export const PEOPLE_LISTING_BG: PageBackgroundTile = {
   fallbackColor: '#f7f6f4',
 };
 
+/**
+ * People listing dual-layer (built by `scripts/build-people-listing-dual-bg.mjs`).
+ * Texture is full-bleed; middle white is centered at art ratio 1483/1922.
+ */
+export const PEOPLE_LISTING_BG_TEXTURE: PageBackgroundTile = {
+  url: tileUrl('/people_newbg-tile.png'),
+  tileWidth: 1922,
+  tileHeight: 1898,
+  fallbackColor: '#f7f6f4',
+};
+
+export const PEOPLE_LISTING_MIDDLE_WHITE: PageBackgroundTile = {
+  url: tileUrl('/people_new_middle_white_layer-tile.png'),
+  tileWidth: 1483,
+  tileHeight: 3358,
+  fallbackColor: 'transparent',
+};
+
+/** Design artboard ratio: middle white width ÷ texture width. */
+export const PEOPLE_LISTING_MIDDLE_WIDTH_RATIO = 1483 / 1922;
+
+/** @deprecated Single-plate detail bg — kept for revert. Prefer dual-layer tiles below. */
 export const PEOPLE_DETAIL_BG: PageBackgroundTile = {
   url: '/people_detail.png',
   tileWidth: 1921,
   tileHeight: 3870,
   fallbackColor: '#ffffff',
+};
+
+/**
+ * People detail dual-layer (same middle white as listing; texture from people_detailbg.png).
+ * Built by `scripts/build-people-listing-dual-bg.mjs`.
+ */
+export const PEOPLE_DETAIL_BG_TEXTURE: PageBackgroundTile = {
+  url: tileUrl('/people_detailbg-tile.png'),
+  tileWidth: 1922,
+  tileHeight: 1898,
+  fallbackColor: '#f7f6f4',
 };
 
 export const REFLECTIONS_LISTING_BG: PageBackgroundTile = {

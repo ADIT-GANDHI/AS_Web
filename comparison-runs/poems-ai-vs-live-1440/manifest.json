@@ -1,0 +1,56 @@
+[
+  {
+    "label": "01 Main (top)",
+    "ai": "ai\\pdf-p01.png",
+    "live": "live\\01-main-top.png",
+    "pair": "pairs\\pair-01.png"
+  },
+  {
+    "label": "02 Explore (theme filter)",
+    "ai": "ai\\pdf-p02.png",
+    "live": "live\\02-explore.png",
+    "pair": "pairs\\pair-02.png"
+  },
+  {
+    "label": "03 Main (full scroll)",
+    "ai": "ai\\pdf-p03.png",
+    "live": "live\\01-main-full.png",
+    "pair": "pairs\\pair-03.png"
+  },
+  {
+    "label": "04 Filter parda",
+    "ai": "ai\\pdf-p04.png",
+    "live": "live\\04-filter-parda.png",
+    "pair": "pairs\\pair-04.png"
+  },
+  {
+    "label": "05 Filter parda (chips)",
+    "ai": "ai\\pdf-p05.png",
+    "live": "live\\04-filter-parda.png",
+    "pair": "pairs\\pair-05.png"
+  },
+  {
+    "label": "06 Notes popup",
+    "ai": "ai\\pdf-p06.png",
+    "live": "live\\06-notes.png",
+    "pair": "pairs\\pair-06.png"
+  },
+  {
+    "label": "07 Glossary popup",
+    "ai": "ai\\pdf-p07.png",
+    "live": "live\\07-glossary.png",
+    "pair": "pairs\\pair-07.png"
+  },
+  {
+    "label": "08 Listen player",
+    "ai": "ai\\pdf-p08.png",
+    "live": "live\\08-listen.png",
+    "pair": "pairs\\pair-08.png"
+  },
+  {
+    "label": "09 Listen player (alt)",
+    "ai": "ai\\pdf-p09.png",
+    "live": "live\\08-listen.png",
+    "pair": "pairs\\pair-09.png"
+  }
+]

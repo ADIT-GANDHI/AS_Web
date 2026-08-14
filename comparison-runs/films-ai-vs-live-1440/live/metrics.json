@@ -1,0 +1,61 @@
+{
+  "listing": {
+    "count": "22 Films",
+    "seriesTitles": [
+      "Ajab Mulakatein",
+      "rohit TT",
+      "Journeys with Kabir",
+      "rohit TTcp"
+    ],
+    "seriesW": {
+      "L": 220,
+      "W": 1000,
+      "H": 427
+    },
+    "thumb": {
+      "L": 220,
+      "W": 360,
+      "H": 202
+    },
+    "thumbPad": "5px",
+    "titleColor": "rgb(130, 130, 130)",
+    "titleSize": "28px",
+    "subtitleColor": "rgb(111, 111, 114)",
+    "directorColor": "rgb(227, 30, 121)",
+    "metaText": "1:34:24, 2009",
+    "links": "TRAILER|FILM & MORE",
+    "introSample": "Here you will find the films that have been the seed of this archive, inquiring ",
+    "hasPageIntro": false,
+    "filmSeriesLabel": false
+  },
+  "popup": {
+    "open": true,
+    "frameW": 860,
+    "frameH": 488,
+    "closeColor": "rgb(227, 30, 121)",
+    "overlayBg": "rgba(0, 0, 0, 0.55)",
+    "src": "https://www.youtube.com/embed/s9hMVeTaUw8?autoplay=1&rel=0"
+  },
+  "detail": {
+    "content": {
+      "L": 292,
+      "W": 856,
+      "T": -559
+    },
+    "video": {
+      "L": 292,
+      "W": 856,
+      "T": -477
+    },
+    "title": "Kabira Khada Baazaar Mein",
+    "titleColor": "rgb(79, 79, 79)",
+    "subtitle": "Journeys with Sacred & Secular Kabir",
+    "byline": "Film by Shabnam Virmani",
+    "year": "2009",
+    "mode": "Film|Episodes",
+    "langs": "Hindi|ENGLISH|Kannada",
+    "hasRelated": true,
+    "hasGlossary": true,
+    "relatedTitle": "Related"
+  }
+}

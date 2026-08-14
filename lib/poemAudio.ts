@@ -17,9 +17,16 @@ const FALLBACK_THUMBS = [
 ];
 
 function asTrack(raw: Record<string, unknown>, index = 0): PoemAudioTrack | null {
-  const soundcloudId = String(raw.soundcloud_url || raw.soundCloud_iD || '').trim();
+  const soundcloudId = String(
+    raw.soundcloud_url || raw.soundCloud_iD || raw.song_url || raw.soundCloud_track_url || ''
+  ).trim();
   if (!soundcloudId) return null;
-  const singer = String(raw.singer_name || raw.song_name || 'Unknown').trim() || 'Unknown';
+  let singer = String(raw.singer_name || '').trim().replace(/\s+/g, ' ');
+  // CMS sometimes stores the track id in singer_name — skip those
+  if (!singer || /^\d+$/.test(singer)) {
+    singer = String(raw.song_name || '').trim().replace(/\s+/g, ' ');
+  }
+  if (!singer || /^\d+$/.test(singer)) return null;
   const thumbRaw = String(raw.upload_singer_image || '').trim();
   const thumbnailUrl = thumbRaw
     ? thumbRaw.startsWith('http')
@@ -37,19 +44,83 @@ function asTrack(raw: Record<string, unknown>, index = 0): PoemAudioTrack | null
   };
 }
 
-/** Listen clips for Poems — CMS `/api/poem/getPublished`. */
-export async function fetchPublishedPoemAudio(limit = 12): Promise<PoemAudioTrack[]> {
+/** Listen clips for a specific poem — CMS `/Api/poem_listen?poem_id=`. */
+export async function fetchPoemListen(poemId: string): Promise<PoemAudioTrack[]> {
+  if (!poemId) return [];
   try {
     const res = await fetch(
-      `${AJAB_API_BASE}/api/poem/getPublished?page=1&limit=${limit}`,
+      `${AJAB_API_BASE}/Api/poem_listen?poem_id=${encodeURIComponent(poemId)}`,
       { cache: 'no-store' }
     );
     if (!res.ok) return [];
     const json = await res.json();
     if (!Array.isArray(json?.data)) return [];
     return json.data
+      .map((row: Record<string, unknown>, i: number) => asListenTrack(row, i))
+      .filter(Boolean) as PoemAudioTrack[];
+  } catch {
+    return [];
+  }
+}
+
+function singerFromSoundcloudUrl(url: string): string {
+  const slug = url.split('/').filter(Boolean).pop() || '';
+  const match = slug.match(/^(.+?)-sings-/i);
+  if (!match) return '';
+  return match[1]
+    .replace(/-/g, ' ')
+    .replace(/\b\w/g, (ch) => ch.toUpperCase())
+    .trim();
+}
+
+function asListenTrack(raw: Record<string, unknown>, index = 0): PoemAudioTrack | null {
+  const soundcloudId = String(raw.soundcloud_track_id || raw.soundcloud_url || '').trim();
+  if (!soundcloudId) return null;
+  const title = String(raw.couplet_transliteration || raw.original_title || '').trim();
+  const singer = singerFromSoundcloudUrl(soundcloudId) || title || 'Recording';
+  const thumbRaw = String(raw.thumbnail_url || '').trim();
+  const thumbnailUrl = thumbRaw
+    ? thumbRaw.startsWith('http')
+      ? thumbRaw
+      : `${AJAB_API_BASE}${thumbRaw.startsWith('/') ? thumbRaw : `/${thumbRaw}`}`
+    : FALLBACK_THUMBS[index % FALLBACK_THUMBS.length];
+
+  return {
+    id: String(raw.id || soundcloudId),
+    soundcloudId,
+    singer,
+    thumbnailUrl,
+  };
+}
+
+/** Listen clips for Poems — CMS `/api/poem/getPublished`.
+ * Prefer distinct singers first (AI panel shows different performers; CMS often
+ * returns long runs of the same singer_name). */
+export async function fetchPublishedPoemAudio(limit = 12): Promise<PoemAudioTrack[]> {
+  try {
+    const fetchLimit = Math.max(limit * 4, 40);
+    const res = await fetch(
+      `${AJAB_API_BASE}/api/poem/getPublished?page=1&limit=${fetchLimit}`,
+      { cache: 'no-store' }
+    );
+    if (!res.ok) return [];
+    const json = await res.json();
+    if (!Array.isArray(json?.data)) return [];
+    const all = json.data
       .map((row: Record<string, unknown>, i: number) => asTrack(row, i))
       .filter(Boolean) as PoemAudioTrack[];
+
+    const unique: PoemAudioTrack[] = [];
+    const seen = new Set<string>();
+    for (const track of all) {
+      const key = track.singer.toLowerCase();
+      if (seen.has(key)) continue;
+      seen.add(key);
+      unique.push(track);
+      if (unique.length >= limit) return unique;
+    }
+    // Do not pad with duplicate singer names — caller can merge curated fallbacks
+    return unique;
   } catch {
     return [];
   }
