@@ -23,6 +23,7 @@ import {
   getRelatedCardDescription,
   getRelatedCardSubtitle,
   getRelatedCardTitle,
+  getRelatedFormatLabel,
   relatedDescriptionNeedsClamp,
 } from '@/lib/relatedCardText';
 import '@/styles/CustomStyle.css';
@@ -386,22 +387,8 @@ export default function CLFilmDetail({ id: idProp }: { id?: string }) {
     { key: 'other' as const, label: 'Others', count: counts.other },
   ];
 
-  const formatLabelForBucket = (bucket: string): string => {
-    switch (bucket) {
-      case 'songs':
-        return 'SONG';
-      case 'poems':
-        return 'POEM';
-      case 'reflections':
-        return 'REFLECTION';
-      case 'films':
-        return 'FILM';
-      case 'people':
-        return 'PEOPLE';
-      default:
-        return 'OTHER';
-    }
-  };
+  const formatLabelForBucket = (bucket: string, item: any): string =>
+    getRelatedFormatLabel(item, bucket);
 
   const visibleEntries = useMemo((): RelatedListEntry[] => {
     const d = related.data as Record<string, any[]>;
@@ -581,14 +568,14 @@ export default function CLFilmDetail({ id: idProp }: { id?: string }) {
             className={`clfd-about-text${!descExpanded && isLong ? ' clamped' : ''}`}
           >
             {!descExpanded && isLong ? clippedDescription : activeDescription}
-            {!descExpanded && isLong ? ' ' : ''}
-            {!descExpanded && isLong && (
+            {isLong ? ' ' : ''}
+            {isLong && (
               <button
                 type="button"
                 className="clfd-description-more"
-                onClick={() => setDescExpanded(true)}
+                onClick={() => setDescExpanded((prev) => !prev)}
               >
-                {'...more'}
+                {descExpanded ? '...less' : '...more'}
               </button>
             )}
           </p>
@@ -790,7 +777,7 @@ export default function CLFilmDetail({ id: idProp }: { id?: string }) {
                       const expanded = !!relatedExpanded[relKey];
                       const needsClamp = relatedDescriptionNeedsClamp(descPlain, bucket);
                       const href = relatedHref(bucket, item);
-                      const formatLabel = formatLabelForBucket(bucket);
+                      const formatLabel = formatLabelForBucket(bucket, item);
                       const body = (
                         <>
                           <div className="cld-related-thumb">

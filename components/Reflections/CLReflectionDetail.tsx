@@ -194,12 +194,28 @@ function ReflectionDescription({ text, html }: { text: string; html: string }) {
     return (
       <div className="clrd-description">
         {html.trim() ? (
-          <div
-            className="clrd-description-body is-expanded"
-            dangerouslySetInnerHTML={{ __html: html }}
-          />
+          <div className="clrd-description-body is-expanded">
+            <div dangerouslySetInnerHTML={{ __html: html }} />
+            {' '}
+            <button
+              type="button"
+              className="clrd-description-more"
+              onClick={() => setExpanded(false)}
+            >
+              ...less
+            </button>
+          </div>
         ) : (
-          <p className="clrd-description-body is-expanded">{normalized}</p>
+          <p className="clrd-description-body is-expanded">
+            {normalized}{' '}
+            <button
+              type="button"
+              className="clrd-description-more"
+              onClick={() => setExpanded(false)}
+            >
+              ...less
+            </button>
+          </p>
         )}
       </div>
     );

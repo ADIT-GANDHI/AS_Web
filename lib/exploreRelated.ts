@@ -200,8 +200,8 @@ export function buildExploreEntries(
 export function getExploreItemTitle(item: any, bucket: ExploreListEntry['bucket']): string {
   if (bucket === 'poems') {
     for (const field of [
-      item?.couplet_transliteration,
       item?.english_transliteration,
+      item?.couplet_transliteration,
       item?.meta_title,
       item?.title,
       item?.original_title,
@@ -214,10 +214,10 @@ export function getExploreItemTitle(item: any, bucket: ExploreListEntry['bucket'
   for (const field of [
     item?.Songtitle_transliteration,
     item?.song_title_transliteration,
+    item?.english_transliteration,
     item?.umbrellaTitleText,
     item?.umbrellaTitle,
     item?.title,
-    item?.english_transliteration,
     item?.original_title,
   ]) {
     const t = norm(field);
@@ -227,17 +227,18 @@ export function getExploreItemTitle(item: any, bucket: ExploreListEntry['bucket'
 }
 
 /**
- * Subtitle = English translation when available.
- * Duplicate of title (common CMS songtitletraan bug) → lorem ipsum.
+ * Italic line beside the title = English translation of the title.
+ * Poems: `english_translation`. Songs: `english_translation` / `songtitletraan`.
+ * Duplicate of the transliteration title (common CMS bug) is skipped.
  */
 export function getExploreItemSubtitle(item: any, bucket: ExploreListEntry['bucket'], title: string): string {
   const candidates =
     bucket === 'poems'
-      ? [item?.couplet_translation, item?.couplet_transliteration, item?.subtitle]
+      ? [item?.english_translation, item?.couplet_translation, item?.subtitle]
       : bucket === 'songs'
         ? [
-            item?.songTitle,
             item?.english_translation,
+            item?.songTitle,
             item?.songtitletraan,
             item?.subtitle,
           ]

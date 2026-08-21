@@ -99,6 +99,28 @@ export function getRelatedCardDescription(item: any, bucket: string): string {
   return htmlToPlainText(String(raw)).trim();
 }
 
+/** Format chip under an Explore/Related row (e.g. REFLECTION Interview). */
+export function getRelatedFormatLabel(item: any, bucket: string): string {
+  switch (bucket) {
+    case 'songs':
+      return 'SONG';
+    case 'poems':
+      return 'POEM';
+    case 'films':
+      return 'FILM';
+    case 'people':
+      return 'PEOPLE';
+    case 'reflections': {
+      const format = String(item?.format || item?.reflection_type || item?.format_name || '')
+        .replace(/\s+/g, ' ')
+        .trim();
+      return format ? `REFLECTION ${format}` : 'REFLECTION Essay';
+    }
+    default:
+      return 'OTHER';
+  }
+}
+
 /** Whether the description should clamp with CSS line-clamp + ...more. */
 export function relatedDescriptionNeedsClamp(descPlain: string, bucket: string): boolean {
   if (!descPlain) return false;

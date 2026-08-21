@@ -6,6 +6,8 @@ import {
   MOCK_HOME_SONG,
 } from '@/components/Home/CLHomeMocks';
 import { formatFilmDirector } from '@/components/Films/filmFieldUtils';
+import { AJAB_API_BASE } from '@/lib/ajabEnv';
+import { mapPersonProfileTags } from '@/lib/mapPersonDetail';
 import { extractYouTubeId } from '@/lib/youtube';
 
 export type HomeSongCard = typeof MOCK_HOME_SONG;
@@ -55,13 +57,29 @@ function firstString(...vals: unknown[]): string {
   return '';
 }
 
-/** Strip CMS underscores from role lines — each segment (e.g. "_Singers, _Writers"). */
-function stripLeadingRoleUnderscore(raw: string): string {
-  return raw
-    .split(',')
-    .map((part) => part.replace(/^_+/, '').trim())
-    .filter(Boolean)
-    .join(', ');
+/** Flatten CMS name fields that may be a string, array, or `{ name }` object. Skip numeric ids. */
+function firstDisplayName(...vals: unknown[]): string {
+  for (const v of vals) {
+    if (typeof v === 'string') {
+      const t = v.trim();
+      if (t && t !== '—' && !/^\d+$/.test(t)) return t;
+      continue;
+    }
+    if (Array.isArray(v)) {
+      const joined = v
+        .map((entry) => firstDisplayName(entry))
+        .filter(Boolean)
+        .join(', ');
+      if (joined) return joined;
+      continue;
+    }
+    if (v && typeof v === 'object') {
+      const row = v as Record<string, unknown>;
+      const nested = firstDisplayName(row.name, row.title, row.english, row.hindi);
+      if (nested) return nested;
+    }
+  }
+  return '';
 }
 
 function mapHomePersonSubtitle(
@@ -69,14 +87,33 @@ function mapHomePersonSubtitle(
   mockSubtitle: string,
   apiOnly: boolean
 ): string {
-  const raw = firstString(
-    record.occupation_text,
-    record.occupation,
-    record.occupation_names,
-    record.second_title
-  );
-  if (!raw) return apiOnly ? '' : mockSubtitle;
-  return stripLeadingRoleUnderscore(raw);
+  const tags = mapPersonProfileTags(record);
+  if (tags) return tags;
+  return apiOnly ? '' : mockSubtitle;
+}
+
+/** `/Api/home` person omits `profile_tags_list` — fill it from `person_list`. */
+export async function withHomePersonProfileTags(
+  people: HomePeopleCard | null
+): Promise<HomePeopleCard | null> {
+  if (!people?.id) return people;
+  try {
+    const res = await fetch(
+      `${AJAB_API_BASE}/Api/person_list?person_id=${encodeURIComponent(String(people.id))}&limit=1`,
+      { cache: 'no-store' }
+    );
+    if (!res.ok) return people;
+    const json = await res.json();
+    const row = Array.isArray(json?.data) ? json.data[0] : json?.data;
+    if (!row || typeof row !== 'object') return people;
+    if (String((row as { id?: unknown }).id ?? '') !== String(people.id)) return people;
+    return {
+      ...people,
+      subtitle: mapPersonProfileTags(row as Record<string, unknown>),
+    };
+  } catch {
+    return people;
+  }
 }
 
 function hasRecordId(raw: Record<string, unknown>): boolean {
@@ -87,6 +124,20 @@ function hasRecordId(raw: Record<string, unknown>): boolean {
 function pickImage(apiPath: unknown, mockPath?: string): string {
   if (typeof apiPath === 'string' && apiPath.trim()) return apiPath.trim();
   return mockPath ?? '';
+}
+
+/** First non-empty CMS thumb. `??` is not enough — `thumbnail_url: ""` must not hide `thumbnailUrl`. */
+function pickRecordImage(record: Record<string, unknown>, mockPath?: string): string {
+  return pickImage(
+    firstString(
+      record.thumbnailUrl,
+      record.thumbnail_url,
+      record.thumbnail_Image,
+      record.thumbnail_image,
+      record.thumbnail_image_upload
+    ),
+    mockPath
+  );
 }
 
 function truncate(text: string, max = 320): string {
@@ -148,7 +199,7 @@ function mapSong(raw: unknown, mock: HomeSongCard, apiOnly: boolean): HomeSongCa
       firstString(record.poet, record.poet_name, record.poet_display).toUpperCase() ||
       (!apiOnly ? mock.poet : ''),
     description,
-    image: pickImage(record.thumbnail_url ?? record.thumbnailUrl, apiOnly ? undefined : mock.image),
+    image: pickRecordImage(record, apiOnly ? undefined : mock.image),
     youtubeVideoId:
       extractYouTubeId(firstString(record.youtube_video_id, record.youtubeVideoId)) ||
       (!apiOnly ? mock.youtubeVideoId : ''),
@@ -177,14 +228,14 @@ function mapPoem(raw: unknown, mock: HomePoemCard, apiOnly: boolean): HomePoemCa
     record.couplet_translation
   );
 
-  let transliteration = joinVerseLines(htmlToVerseLines(transliterationHtml, 4));
-  let translation = joinVerseLines(htmlToVerseLines(translationHtml, 2));
+  let translation = joinVerseLines(htmlToVerseLines(translationHtml, 4));
+  let transliteration = joinVerseLines(htmlToVerseLines(transliterationHtml, 2));
 
   // Legacy CMS fields — Hindi original only when no English verse is available.
   if (!transliteration) {
     const legacy = htmlToVerseLines(
       firstString(record.original_text, record.couplet_hindi, record.hindi_text),
-      4
+      2
     );
     transliteration = joinVerseLines(legacy);
   }
@@ -193,12 +244,12 @@ function mapPoem(raw: unknown, mock: HomePoemCard, apiOnly: boolean): HomePoemCa
   if (!translation && !apiOnly) translation = mock.translation;
 
   const poet =
-    firstString(
-      record.poet_names,
-      record.poet_id_raw,
+    firstDisplayName(
       record.attributed_poet,
       record.poet_name,
-      record.poet
+      record.poet,
+      record.poet_names,
+      record.poet_id_raw
     ).toUpperCase() || (!apiOnly ? mock.poet : '');
 
   return {
@@ -234,7 +285,7 @@ function mapReflection(
         record.author_name
       ).toUpperCase() || (!apiOnly ? mock.saysBy : ''),
     description,
-    image: pickImage(record.thumbnail_url ?? record.thumbnailUrl, apiOnly ? undefined : mock.image),
+    image: pickRecordImage(record, apiOnly ? undefined : mock.image),
     youtubeVideoId:
       extractYouTubeId(
         firstString(record.youtube_video_id, record.interview_video, record.youtubeVideoId)
@@ -278,10 +329,7 @@ function mapPeople(raw: unknown, mock: HomePeopleCard, apiOnly: boolean): HomePe
         record.speaker_name
       ).toUpperCase() || (!apiOnly ? mock.introBy : ''),
     description,
-    image: pickImage(
-      record.thumbnail_url ?? record.thumbnailUrl ?? record.thumbnail_image_upload,
-      apiOnly ? undefined : mock.image
-    ),
+    image: pickRecordImage(record, apiOnly ? undefined : mock.image),
   };
 }
 
@@ -307,7 +355,7 @@ function mapFilm(raw: unknown, mock: HomeFilmCard, apiOnly: boolean): HomeFilmCa
     subtitle: firstString(record.second_title) || (!apiOnly ? mock.subtitle : ''),
     filmBy: filmBy.toUpperCase() || (!apiOnly ? mock.filmBy : ''),
     description,
-    image: pickImage(record.thumbnail_url ?? record.thumbnailUrl, apiOnly ? undefined : mock.image),
+    image: pickRecordImage(record, apiOnly ? undefined : mock.image),
     youtubeVideoId:
       extractYouTubeId(
         firstString(

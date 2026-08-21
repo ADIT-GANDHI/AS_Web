@@ -28,6 +28,11 @@ type ExploreSectionProps = {
    * read-more toggle (Poems design). Omit to keep the "…more" behaviour.
    */
   descriptionLines?: number;
+  /**
+   * When set, See More reveals this many extra rows per click.
+   * Omit to keep the default expand-all / collapse behaviour.
+   */
+  seeMoreStep?: number;
 };
 
 function entryKey(entry: ExploreListEntry, index: number): string {
@@ -43,23 +48,28 @@ export default function ExploreSection({
   className = '',
   initialCount = EXPLORE_INITIAL_COUNT,
   descriptionLines,
+  seeMoreStep,
 }: ExploreSectionProps) {
   const clampLines = descriptionLines && descriptionLines > 0 ? descriptionLines : 0;
+  const step = seeMoreStep && seeMoreStep > 0 ? seeMoreStep : 0;
   const keywords = useMemo(() => getExploreKeywords(data), [data]);
   const [activeKeywordId, setActiveKeywordId] = useState<'all' | string>('all');
   const [expandedRows, setExpandedRows] = useState<Record<string, boolean>>({});
   const [listExpanded, setListExpanded] = useState(false);
+  const [visibleCount, setVisibleCount] = useState(initialCount);
 
   useEffect(() => {
     setActiveKeywordId('all');
     setExpandedRows({});
     setListExpanded(false);
-  }, [data]);
+    setVisibleCount(initialCount);
+  }, [data, initialCount]);
 
   useEffect(() => {
     setListExpanded(false);
     setExpandedRows({});
-  }, [activeKeywordId]);
+    setVisibleCount(initialCount);
+  }, [activeKeywordId, initialCount]);
 
   const entries = useMemo(
     () => buildExploreEntries(data, activeKeywordId),
@@ -67,11 +77,24 @@ export default function ExploreSection({
   );
 
   const displayed = useMemo(() => {
+    if (step) return entries.slice(0, Math.max(initialCount, visibleCount));
     if (listExpanded || entries.length <= initialCount) return entries;
     return entries.slice(0, initialCount);
-  }, [entries, initialCount, listExpanded]);
+  }, [entries, initialCount, listExpanded, step, visibleCount]);
 
-  const hasMore = entries.length > initialCount;
+  const hasMore = step
+    ? displayed.length < entries.length
+    : entries.length > initialCount;
+  const showSeeMore = step
+    ? displayed.length < entries.length || visibleCount > initialCount
+    : hasMore;
+  const seeMoreLabel = step
+    ? displayed.length < entries.length
+      ? 'SEE MORE'
+      : 'SEE LESS'
+    : listExpanded
+      ? 'SEE LESS'
+      : 'SEE MORE';
 
   const allEntries = useMemo(() => buildExploreEntries(data, 'all'), [data]);
   if (!keywords.length && !allEntries.length) return null;
@@ -196,13 +219,25 @@ export default function ExploreSection({
         )}
       </div>
 
-      {hasMore ? (
+      {showSeeMore ? (
         <button
           type="button"
           className="explore-seemore"
-          onClick={() => setListExpanded((v) => !v)}
+          onClick={() => {
+            if (step) {
+              if (displayed.length < entries.length) {
+                setVisibleCount((count) =>
+                  Math.min(count + step, Math.max(entries.length, initialCount))
+                );
+              } else {
+                setVisibleCount(initialCount);
+              }
+              return;
+            }
+            setListExpanded((v) => !v);
+          }}
         >
-          {listExpanded ? 'SEE LESS' : 'SEE MORE'}
+          {seeMoreLabel}
         </button>
       ) : null}
     </section>

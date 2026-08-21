@@ -545,7 +545,7 @@ a.clh-card {
   padding-right: var(--clh-poem-verse-inset);
 }
 
-/* PDF home poem: 4 transliteration lines, gap, then 2 translation lines */
+/* PDF home poem: 4 translation lines, gap, then 2 transliteration lines */
 .clh-poem-text {
   font-family: var(--ajab-font-serif);
   font-style: italic;
@@ -558,8 +558,8 @@ a.clh-card {
   margin: 0 0 calc(10px * var(--clh-poem-air));
   display: -webkit-box;
   -webkit-box-orient: vertical;
-  -webkit-line-clamp: 4;
-  line-clamp: 4;
+  -webkit-line-clamp: 2;
+  line-clamp: 2;
   overflow: hidden;
 }
 
@@ -580,8 +580,8 @@ a.clh-card {
   margin: 0 0 calc(8px * var(--clh-poem-air));
   display: -webkit-box;
   -webkit-box-orient: vertical;
-  -webkit-line-clamp: 2;
-  line-clamp: 2;
+  -webkit-line-clamp: 4;
+  line-clamp: 4;
   overflow: hidden;
   /* Avoid clipped Devanagari ascenders when line-clamp trims */
   padding-bottom: 2px;
@@ -619,7 +619,8 @@ a.clh-card {
 }
 
 .clh-poem-poet-name {
-  font-weight: 300;
+  font-family: var(--ajab-font-serif);
+  font-weight: 400;
   color: var(--ajab-ink-500);
   text-transform: uppercase;
 }

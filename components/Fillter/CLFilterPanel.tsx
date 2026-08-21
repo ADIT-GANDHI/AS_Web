@@ -233,8 +233,10 @@ export default function CLFilterPanel({
             : selectedThemes.includes(value);
       if (!isSelected && selectedFilters.length >= maxFiltersLimit) return;
       onFilterSelect(type, value);
+      if (hasCatalog) setCatalogMode(true);
     },
     [
+      hasCatalog,
       maxFiltersLimit,
       onFilterSelect,
       selectedFilters.length,
@@ -519,10 +521,6 @@ export default function CLFilterPanel({
                             <span key={cat} style={{ display: 'inline-flex', alignItems: 'center' }}>
                               <button
                                 onClick={() => {
-                                  if (hasCatalog && !catalogMode && activeCategory === cat) {
-                                    setCatalogMode(true);
-                                    return;
-                                  }
                                   setCatalogMode(false);
                                   setActiveCategory(cat);
                                 }}
@@ -531,7 +529,7 @@ export default function CLFilterPanel({
                                   fontSize: '18px',
                                   fontWeight: 300,
                                   color:
-                                    activeCategory === cat
+                                    !catalogMode && activeCategory === cat
                                       ? '#E31E79'
                                       : '#828282',
                                   background: 'none',
@@ -593,7 +591,8 @@ export default function CLFilterPanel({
                         minHeight: 0,
                         paddingTop: '14px',
                         paddingBottom: '24px',
-                        width: '258px',
+                        width: hasCatalog ? '100%' : '258px',
+                        overflowWrap: hasCatalog ? 'anywhere' : undefined,
                         overscrollBehavior: 'contain',
                         touchAction: 'pan-y',
                       }}
@@ -614,6 +613,8 @@ export default function CLFilterPanel({
                                   color: isActive ? '#E31E79' : '#6F6F72',
                                   cursor: 'pointer',
                                   padding: '11px 0',
+                                  overflowWrap: 'anywhere',
+                                  wordBreak: 'break-word',
                                 }}
                               >
                                 <span style={{ display: 'block' }}>{entry.label}</span>
@@ -662,6 +663,8 @@ export default function CLFilterPanel({
                                 padding: '13px 0',
                                 display: 'flex',
                                 alignItems: 'center',
+                                overflowWrap: 'anywhere',
+                                wordBreak: 'break-word',
                               }}
                             >
                               <span>{item.label}</span>

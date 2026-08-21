@@ -112,3 +112,11 @@ export const RADIO_PLAYLIST_SIDEBAR_BG: PageBackgroundTile = {
   tileHeight: 1081,
   fallbackColor: '#f8f6f2',
 };
+
+/** Glossary listing dual-layer texture + shared middle-white parda. */
+export const GLOSSARY_BG_TEXTURE: PageBackgroundTile = {
+  url: tileUrl('/glossary_bg.svg'),
+  tileWidth: 1920,
+  tileHeight: 1917,
+  fallbackColor: '#f8f6f2',
+};

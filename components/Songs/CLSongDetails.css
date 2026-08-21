@@ -109,6 +109,10 @@
   box-sizing: border-box;
 }
 
+.cld-page > .cld-detail-body-align:first-child {
+  padding-top: min(48px, 4vw);
+}
+
 /* ── Versions section — same 856px content column; arrows hang outside ── */
 .cld-versions-section {
   --cld-version-card-w: 250px;
@@ -253,6 +257,10 @@
   margin-bottom: 4px;
 }
 
+.cld-version-card.is-current .cld-version-card-title {
+  color: var(--ajab-ink-700);
+}
+
 /* REVERT: font-size 18px; margin-bottom 6px */
 
 /* Version year — PDF measured: MerriweatherSans Light 13px, always dark (#4f4f4f),
@@ -266,7 +274,7 @@
   margin-left: 4px;
 }
 
-.cld-version-card.is-active .cld-version-card-year {
+.cld-version-card.is-current .cld-version-card-year {
   color: var(--ajab-ink-700) !important;
 }
 
@@ -300,8 +308,8 @@
   align-items: baseline;
   justify-content: space-between;
   gap: 12px;
-  max-width: var(--cld-media-max-width);
   width: 100%;
+  max-width: 100%;
   margin: 0 0 var(--cld-gap-header-video);
   padding: 0;
   box-sizing: border-box;
@@ -369,6 +377,7 @@
   flex-shrink: 0;
   display: flex;
   align-self: baseline;
+  margin-left: auto;
 }
 
 .cld-song-header-meta {
@@ -382,14 +391,14 @@
 
 /* ── Video section — 16:9 embed width aligned to PDF / standard YouTube proportions. */
 .cld-video-wrap {
-  width: min(100%, var(--cld-media-max-width));
-  max-width: var(--cld-media-max-width);
+  width: 100%;
+  max-width: 100%;
   margin: 0 0 var(--cld-gap-video-about);
   aspect-ratio: 1027 / 588;
   background: #000;
   border-radius: 4px;
   overflow: hidden;
-  border: 8px solid #FFFFFF;
+  border: 4px solid #FFFFFF;
   box-shadow: 0 4px 14px rgba(0, 0, 0, 0.15);
   box-sizing: border-box;
 }
@@ -421,7 +430,8 @@
   line-height: 1.45;
   color: var(--ajab-ink-700);
   text-align: left;
-  max-width: var(--cld-media-max-width);
+  width: 100%;
+  max-width: 100%;
   margin: 0 0 var(--cld-gap-about-lang);
   padding: 0;
   box-sizing: border-box;
@@ -725,14 +735,14 @@
   font-style: normal;
   font-weight: 400;
   font-size: 16px;
-  line-height: 1.42;
+  line-height: 1.75;
   color: var(--ajab-ink-400);
   text-align: center;
   white-space: pre-wrap;
 }
 
 .cld-lyrics-stanza {
-  margin-bottom: 1.05em;
+  margin-bottom: 1.45em;
 }
 
 .cld-lyrics-stanza+.cld-lyrics-stanza {
@@ -745,7 +755,7 @@
 
 /* CMS HTML — base normal; only <em>/<i> italic (matches ajabshahar.com). */
 .cld-lyrics--html p {
-  margin: 0 0 0.2em;
+  margin: 0 0 0.35em;
 }
 
 .cld-lyrics--html p:last-child {
@@ -760,12 +770,33 @@
 
 /* Stanza separator — replaces blank <p>&nbsp;</p> CMS tags */
 .cld-lyrics--html .cld-lyric-sep {
-  height: 1.2em;
+  height: 1.6em;
 }
 
 .cld-lyrics em,
-.cld-lyrics i {
+.cld-lyrics i,
+.cld-lyrics [style*='italic'] {
   font-style: italic;
+}
+
+.cld-lyrics-translation {
+  margin: 2.4em 0 0;
+  padding-top: 0.2em;
+  text-align: center;
+  font-family: var(--ajab-font-sans);
+  font-weight: 300;
+  font-size: 15px;
+  line-height: 1.5;
+  color: var(--ajab-ink-400);
+}
+
+.cld-lyrics-translation-name {
+  color: var(--ajab-pink-primary);
+  text-decoration: none;
+}
+
+.cld-lyrics-translation-name:hover {
+  text-decoration: underline;
 }
 
 /* ── NOTES | GLOSSARY links ──

@@ -64,14 +64,14 @@ body:has(.clfd-page) footer.footer-bg .footer-inner {
 
 /* AI: page intro sits above the Films count */
 .clf-page-intro {
-  color: #6d6e71;
+  color: var(--ajab-ink-600);
   font-family: var(--ajab-font-serif);
   font-style: italic;
   font-weight: 400;
   font-size: clamp(16px, calc(100vw * 17 / var(--clf-artboard-w)), 17px);
   line-height: 1.55;
   text-align: center;
-  max-width: min(730px, calc(100% - 48px));
+  max-width: clamp(530px, 60vw, 830px);
   margin: 0 auto 28px;
   padding: 0 24px;
   box-sizing: border-box;

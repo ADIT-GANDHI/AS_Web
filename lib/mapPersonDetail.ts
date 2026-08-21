@@ -8,7 +8,7 @@ export function resolvePersonImageUrl(raw: unknown): string {
   return `${AJAB_API_BASE}${trimmed.startsWith('/') ? trimmed : `/${trimmed}`}`;
 }
 
-/** Role line beside name — strip CMS leading underscores; show singular labels. */
+/** Role line for occupation filters only — not shown on listing cards. */
 export function mapPersonRole(it: Record<string, unknown>): string {
   const raw =
     it.occupation_text ||
@@ -23,6 +23,23 @@ export function mapPersonRole(it: Record<string, unknown>): string {
     .toUpperCase();
   if (!normalized || normalized === '—') return '';
   return singularizeOccupationLabel(normalized);
+}
+
+/** Listing / home subtitle — CMS `profile_tags_list` first (never primary occupation). */
+export function mapPersonProfileTags(it: Record<string, unknown>): string {
+  const fromList = Array.isArray(it.profile_tags_list)
+    ? it.profile_tags_list.map((tag) => String(tag).trim()).filter(Boolean).join(', ')
+    : '';
+  const fromTags = Array.isArray(it.profile_tags)
+    ? it.profile_tags.map((tag) => String(tag).trim()).filter(Boolean).join(', ')
+    : typeof it.profile_tags === 'string'
+      ? it.profile_tags.trim()
+      : '';
+  const raw = String(fromList || it.profile_tags_text || fromTags || '')
+    .replace(/\s+/g, ' ')
+    .trim();
+  if (!raw || raw === '—') return '';
+  return raw;
 }
 
 /** CMS stores plural occupations (SINGERS, POETS, LEGENDARY FIGURES). */

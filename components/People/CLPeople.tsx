@@ -31,7 +31,7 @@ import '@/components/Songs/CLSongs.css';
 import './CLPeople.css';
 import { AJAB_API_BASE } from '@/lib/ajabEnv';
 import { catalogHasMore, mergeCatalogById } from '@/lib/catalogPagination';
-import { mapPersonRole } from '@/lib/mapPersonDetail';
+import { mapPersonProfileTags, mapPersonRole } from '@/lib/mapPersonDetail';
 import { parseCatalogTotal } from '@/lib/parseCatalogTotal';
 import { PeopleNavCountContext } from '@/components/People/PeopleNavCountContext';
 
@@ -200,6 +200,7 @@ export default function CLPeople() {
     id: String(it.id || ''),
     name: String(it.person_name_english || it.person_name || ''),
     role: mapPersonRole(it),
+    profileTags: mapPersonProfileTags(it),
     description:
       String(it.thumbnail_excerpt || '') ||
       String(it.about || '') ||
@@ -386,7 +387,9 @@ export default function CLPeople() {
                         <Link href={href} className="clpe-entry-name">
                           {p.name}
                         </Link>
-                        {p.role ? <span className="clpe-entry-role">{p.role}</span> : null}
+                        {p.profileTags ? (
+                          <span className="clpe-entry-tags">{p.profileTags}</span>
+                        ) : null}
                         <PersonListingExcerpt description={p.description} href={href} />
                       </div>
                     </article>

@@ -24,6 +24,21 @@ function splitIds(raw: unknown): string[] {
     .filter(Boolean);
 }
 
+function extraTranslationText(it: Record<string, unknown>): string {
+  const rows = it.extra_translation_rows;
+  if (!Array.isArray(rows)) return '';
+  return rows
+    .map((row) => {
+      if (typeof row === 'string') return htmlToPlainText(row);
+      if (row && typeof row === 'object') {
+        return htmlToPlainText(String((row as { text?: unknown }).text || ''));
+      }
+      return '';
+    })
+    .filter(Boolean)
+    .join('\n\n');
+}
+
 export function mapPoemListItem(
   it: Record<string, unknown>,
   poetNameById?: Map<string, string>
@@ -41,6 +56,7 @@ export function mapPoemListItem(
     hindi: htmlToPlainText(String(it.original_text || '')),
     english:
       htmlToPlainText(String(it.english_translation_text || '')) ||
+      extraTranslationText(it) ||
       String(it.couplet_translation || '').trim(),
     poet,
     poetId: poetId || undefined,

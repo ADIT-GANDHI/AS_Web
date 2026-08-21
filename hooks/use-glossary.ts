@@ -105,10 +105,7 @@ export const useGlossary = () => {
 
         const data: GlossaryResponse = await response.json();
 
-        /* [Claude] these changes have been recommended by claude —
-           Use mock if API data looks like test data:
-           - term longer than 60 chars → repeated placeholder text
-           - meaning shorter than 30 chars after stripping HTML → "cxvcghkjN" etc. */
+        /* Temporarily commented out — show whatever the live API returns.
         const isReal = (item: GlossaryItem) => {
           const termOk = item.glossary_term?.length > 0 && item.glossary_term.length <= 60;
           const meaningText = (item.glossary_meaning || '')
@@ -116,10 +113,10 @@ export const useGlossary = () => {
           const meaningOk = meaningText.length >= 30;
           return termOk && meaningOk;
         };
+        */
 
         if (data.status && Array.isArray(data.data) && data.data.length) {
-          const meaningful = data.data.filter(isReal);
-          setGlossaryData(meaningful.length >= 3 ? meaningful : MOCK_GLOSSARY);
+          setGlossaryData(data.data);
         } else {
           throw new Error('Invalid response format');
         }

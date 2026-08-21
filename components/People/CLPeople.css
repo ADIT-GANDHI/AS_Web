@@ -169,13 +169,12 @@ body:has(.clped-page) footer.footer-bg .footer-inner {
   outline-offset: 2px;
 }
 
-.clpe-entry-role {
+.clpe-entry-tags {
   font-family: var(--ajab-font-sans);
   font-weight: 300;
   font-size: var(--ajab-fs-tag);
   color: var(--ajab-ink-300);
-  letter-spacing: 0.04em;
-  text-transform: uppercase;
+  letter-spacing: 0.02em;
   display: inline;
 }
 

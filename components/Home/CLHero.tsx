@@ -23,7 +23,7 @@ import '@/components/Songs/CLSongs.css';
 import './CLHome.css';
 import { AJAB_API_BASE } from '@/lib/ajabEnv';
 import { mapNewsToHomePopupSlides } from '@/lib/mapNewsPopupSlides';
-import { mapHomeLatest } from '@/lib/homeApiMapper';
+import { mapHomeLatest, withHomePersonProfileTags } from '@/lib/homeApiMapper';
 import { isHomeApiOnlyMode } from '@/lib/homePageConfig';
 import {
   shouldAutoOpenAjabNewsPopup,
@@ -45,10 +45,21 @@ const toImageUrl = (value?: string) => {
 
 function SongCard({ data, imageFallback }: { data: HomeSongCard; imageFallback: string }) {
   const detailHref = `/songs/details/${data.id}`;
-  const hasVideo = Boolean(data.youtubeVideoId);
 
-  const body = (
-    <>
+  return (
+    <HomeCardShell
+      className="clh-song-card"
+      href={detailHref}
+      media={
+        <>
+          <HomeCardImage src={data.image} fallbackSrc={imageFallback} alt={data.title || 'Song'} />
+          <HomeCardMediaActions
+            soundCloudUrl={data.soundCloudUrl}
+            downloadUrl={data.downloadUrl}
+          />
+        </>
+      }
+    >
       <div className="clh-card-title">{data.title}</div>
       {data.subtitle && <div className="clh-card-subtitle">{data.subtitle}</div>}
       {data.singer && (
@@ -68,30 +79,6 @@ function SongCard({ data, imageFallback }: { data: HomeSongCard; imageFallback: 
       <div className="clh-card-footer">
         <span className="clh-card-cta">EXPLORE SONG</span>
       </div>
-    </>
-  );
-
-  return (
-    <HomeCardShell
-      className="clh-song-card"
-      href={hasVideo ? undefined : detailHref}
-      media={
-        <>
-          {hasVideo ? (
-            <HomeCardVideo videoId={data.youtubeVideoId!} title={data.title || 'Song'} />
-          ) : (
-            <HomeCardImage src={data.image} fallbackSrc={imageFallback} alt={data.title || 'Song'} />
-          )}
-          <HomeCardMediaActions
-            soundCloudUrl={data.soundCloudUrl}
-            downloadUrl={data.downloadUrl}
-          />
-        </>
-      }
-    >
-      <HomeCardBodyLink detailHref={detailHref} active={hasVideo}>
-        {body}
-      </HomeCardBodyLink>
     </HomeCardShell>
   );
 }
@@ -100,14 +87,16 @@ function PoemCard({ data }: { data: HomePoemCard }) {
   return (
     <HomeCardShell className="clh-poem-card" href={`/poems/details/${data.id}`}>
       <div className="clh-poem-content">
-        {data.transliteration && <div className="clh-poem-text">{data.transliteration}</div>}
-        <div className="clh-poem-spacer" />
         {data.translation && <div className="clh-poem-translation">{data.translation}</div>}
+        <div className="clh-poem-spacer" />
+        {data.transliteration && <div className="clh-poem-text">{data.transliteration}</div>}
         <div className="clh-poem-divider" />
-        <div className="clh-poem-poet">
-          <span className="clh-poem-poet-label">poet </span>
-          <span className="clh-poem-poet-name">{data.poet}</span>
-        </div>
+        {data.poet ? (
+          <div className="clh-poem-poet">
+            <span className="clh-poem-poet-label">poet </span>
+            <span className="clh-poem-poet-name">{data.poet}</span>
+          </div>
+        ) : null}
       </div>
       <div className="clh-card-footer">
         <span className="clh-card-cta">EXPLORE POEM</span>
@@ -192,7 +181,7 @@ function PeopleCard({ data, imageFallback }: { data: HomePeopleCard; imageFallba
       <div className="clh-card-divider" />
       <p className="clh-card-desc">{data.description}</p>
       <div className="clh-card-footer">
-        <span className="clh-card-cta">EXPLORE PEOPLE</span>
+        <span className="clh-card-cta">EXPLORE PERSON</span>
       </div>
     </HomeCardShell>
   );
@@ -200,10 +189,15 @@ function PeopleCard({ data, imageFallback }: { data: HomePeopleCard; imageFallba
 
 function FilmCard({ data, imageFallback }: { data: HomeFilmCard; imageFallback: string }) {
   const detailHref = `/films/details/${data.id}`;
-  const hasVideo = Boolean(data.youtubeVideoId);
 
-  const body = (
-    <>
+  return (
+    <HomeCardShell
+      className="clh-film-card"
+      href={detailHref}
+      media={
+        <HomeCardImage src={data.image} fallbackSrc={imageFallback} alt={data.title || 'Film'} />
+      }
+    >
       <div className="clh-card-title">{data.title}</div>
       {data.subtitle && <div className="clh-card-subtitle">{data.subtitle}</div>}
       {data.filmBy && (
@@ -217,24 +211,6 @@ function FilmCard({ data, imageFallback }: { data: HomeFilmCard; imageFallback: 
       <div className="clh-card-footer">
         <span className="clh-card-cta">EXPLORE FILM</span>
       </div>
-    </>
-  );
-
-  return (
-    <HomeCardShell
-      className="clh-film-card"
-      href={hasVideo ? undefined : detailHref}
-      media={
-        hasVideo ? (
-          <HomeCardVideo videoId={data.youtubeVideoId!} title={data.title || 'Film'} />
-        ) : (
-          <HomeCardImage src={data.image} fallbackSrc={imageFallback} alt={data.title || 'Film'} />
-        )
-      }
-    >
-      <HomeCardBodyLink detailHref={detailHref} active={hasVideo}>
-        {body}
-      </HomeCardBodyLink>
     </HomeCardShell>
   );
 }
@@ -266,7 +242,7 @@ export default function CLHero() {
             setSong(mapped.song);
             setPoem(mapped.poem);
             setReflection(mapped.reflection);
-            setPeople(mapped.people);
+            setPeople(await withHomePersonProfileTags(mapped.people));
             setFilm(mapped.film);
           }
         }

@@ -589,10 +589,14 @@ body:has(.clp-page) .ajab-filter-selections button {
   font-weight: 400;
   color: var(--ajab-pink-primary);
   margin-bottom: 4px;
+  overflow-wrap: anywhere;
+  word-break: break-word;
 }
 
 .clp-glossary-meaning {
   white-space: pre-wrap;
+  overflow-wrap: anywhere;
+  word-break: break-word;
 }
 
 .clp-soundcloud-widget {

@@ -22,12 +22,12 @@ export const MOCK_HOME_SONG = {
 
 export const MOCK_HOME_POEM = {
   id: 2,
-  transliteration: `Maati kahe kumhaar se
-tu kya roendat moye?
-Ik din aisa aayega,
-main roendungi toye.`,
   translation: `The potter tells the earth -
-"Thus and thus I pound you..."`,
+"Thus and thus I pound you..."
+One day it will come to pass
+that I shall pound you too.`,
+  transliteration: `Maati kahe kumhaar se
+tu kya roendat moye?`,
   poet: 'AMIR KHUSRO',
 };
 
@@ -46,7 +46,7 @@ export const MOCK_HOME_REFLECTION = {
 export const MOCK_HOME_PEOPLE = {
   id: 4,
   title: 'Maukhik Parampara',
-  subtitle: 'Oral Traditions',
+  subtitle: 'Folklorist, Scholar, Seeker',
   introBy: 'VIPUL RIKHI',
   description:
     'While there are many kinds of oral traditions — those which transmit mythology, sacred texts and folklore — our focus here are the oral traditions of Kabir or other mystic poets — the Bhaktas, Sufis and Bauls. While there are many kinds of oral traditions...',

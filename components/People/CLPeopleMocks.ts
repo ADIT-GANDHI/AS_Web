@@ -7,6 +7,7 @@ export interface PersonCard {
   id: string;
   name: string;
   role: string;
+  profileTags: string;
   description: string;
   thumbnailUrl?: string;
 }
@@ -15,7 +16,8 @@ export const MOCK_PEOPLE: PersonCard[] = [
   {
     id: 'p1',
     name: 'Abdul Hussain Abdullah Turk',
-    role: 'SUFI SINGER, THINKER, FOLKLORIST',
+    role: 'SUFI SINGER',
+    profileTags: 'Folklorist, Scholar, Seeker, Sufi Singer',
     description:
       "Abdul Hussain AbdullahTurk (1950-2015), or 'Bawa Bha' as he was fondly called in Kutch, Gujarat, was a man whose heart was steeped in the poetry of the famous 17th century Sufi poet Shah Abdul Latif Bhitai and the sounds of the Kutchi Sindhi raag. He not only understood the nuances of poetry and music of the Sindh and music of was a man whose heart was steeped in the history of...",
     thumbnailUrl: '/people/abdul-hussain-abdullah-turk.jpg',
@@ -24,6 +26,7 @@ export const MOCK_PEOPLE: PersonCard[] = [
     id: 'p2',
     name: 'Abdullah Ismail Jat',
     role: 'FOLK SINGER',
+    profileTags: 'Folk Singer',
     description:
       'Abdullah Ismail Jat is a member of the herding community of village JatVandh, Bhuj in the Kutch district of Gujarat. He is a passionate singer of the kalaams of Sindhi Sufi poet Shah Abdul Latif Bhitai and a visible presence in the oral traditions of Shah Latif in Kutch.',
     thumbnailUrl: '/people/abdullah-ismail-jat.jpg',
@@ -32,6 +35,7 @@ export const MOCK_PEOPLE: PersonCard[] = [
     id: 'p3',
     name: 'Akho Das',
     role: 'BHAKTI POET',
+    profileTags: 'Poet',
     description:
       'Akho Das (1591–1656), also known as Akha Bhagat was a 16th century bhakti poet from Gujarat. According to the tales people tell about Akho, he became an ascetic at a young age. He was working at the Royal Mint in Ahmedabad and got falsely accused of a fraud. Disillusioned with the material world and holding contempt for its pettiness, Akho left on a solitary spiritual journey which took him to Gokul.',
     thumbnailUrl: '/people/akho-das.jpg',
@@ -40,6 +44,7 @@ export const MOCK_PEOPLE: PersonCard[] = [
     id: 'p4',
     name: 'Amalak Ram',
     role: 'KABIR SINGER',
+    profileTags: 'Singer',
     description:
       'Amalak Ram is a passionate singer of Kabir bhajans from Rajasthan. His earthy voice and contemplative renditions have brought audiences across India closer to the spirit of the mystic poet.',
     thumbnailUrl: '/TN-About-Basavalingaiah-Hiremath.jpg',
@@ -48,6 +53,7 @@ export const MOCK_PEOPLE: PersonCard[] = [
     id: 'p5',
     name: 'Arun Goyal',
     role: 'SCHOLAR, TRANSLATOR',
+    profileTags: 'Scholar, Translator',
     description:
       'Arun Goyal is a noted scholar and translator who has worked extensively on Sufi and Bhakti poetry, bringing many obscure mystic poets into mainstream awareness through his accessible translations and commentary.',
     thumbnailUrl: '/TN-About-Basavalingaiah-Hiremath.jpg',

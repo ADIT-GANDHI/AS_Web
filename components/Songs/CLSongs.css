@@ -198,6 +198,24 @@ body:has(.cl-home-page-root) footer.footer-bg .footer-inner {
   margin: 0 auto clamp(20px, 2.5vw, 34px);
 }
 
+/* ── Songs listing only: title, Filters, and the divider share one gutter.
+   Other listings keep the original 16vw count-row (People/Reflections
+   already pin their filter bars to that). ── */
+.cl-songs-listing-page {
+  --cl-listing-inline: clamp(60px, 15vw, 307px);
+}
+
+.cl-songs-listing-page .cl-songs-count-row,
+.cl-songs-listing-page .cl-filter-bar {
+  padding-left: var(--cl-listing-inline);
+  padding-right: var(--cl-listing-inline);
+}
+
+.cl-songs-listing-page .cl-filter-bar::before {
+  left: var(--cl-listing-inline);
+  right: var(--cl-listing-inline);
+}
+
 /* ── Count row: "201 Songs" ──
    Horizontal padding aligns with the marble panel edges.
    16vw matches the PDF exactly at 1919px design width (x=307 = 16%). ── */

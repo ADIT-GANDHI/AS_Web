@@ -118,7 +118,17 @@ function SongAboutClamp({ html }: { html: string }) {
   if (expanded) {
     return (
       <div className="cld-description">
-        <div className="cld-description-body" dangerouslySetInnerHTML={{ __html: html }} />
+        <div className="cld-description-body">
+          <div dangerouslySetInnerHTML={{ __html: html }} />
+          {' '}
+          <button
+            type="button"
+            className="cld-description-more"
+            onClick={() => setExpanded(false)}
+          >
+            ...less
+          </button>
+        </div>
       </div>
     );
   }
@@ -156,6 +166,35 @@ function cleanLyricsHtml(html: string): string {
     .replace(/<p[^>]*>(\s|&nbsp;|<br\s*\/?>)*<\/p>/gi, '<div class="cld-lyric-sep"></div>')
     // collapse consecutive separators into one
     .replace(/(<div class="cld-lyric-sep"><\/div>\s*){2,}/gi, '<div class="cld-lyric-sep"></div>');
+}
+
+const TRANSLATOR_PARA_RE =
+  /<p[^>]*>\s*(?:<[^>]+>\s*)*(?:Translation\s*:|Translated\s+by)\s*([\s\S]*?)<\/p>\s*$/i;
+
+function readTranslatorFromHtml(html: string): { html: string; name: string } {
+  if (!html) return { html: '', name: '' };
+  const match = html.match(TRANSLATOR_PARA_RE);
+  if (!match) return { html, name: '' };
+  return {
+    html: html.replace(TRANSLATOR_PARA_RE, '').trim(),
+    name: htmlToPlainText(match[1]).replace(/\s+/g, ' ').trim(),
+  };
+}
+
+function firstTranslatorName(data: any, ...htmlSources: string[]): string {
+  const fromFields = firstLyricsField(
+    data?.translator,
+    data?.translated_by,
+    data?.translator_name,
+    data?.translation_by,
+    data?.translator_display
+  ).replace(/\s+/g, ' ').trim();
+  if (fromFields) return fromFields;
+  for (const html of htmlSources) {
+    const name = readTranslatorFromHtml(html).name;
+    if (name) return name;
+  }
+  return '';
 }
 
 /** First non-empty string from CMS fields (string or nested getText object). */
@@ -261,9 +300,22 @@ export default function CLSongDetailsPage({
 
   const lyricsHtml =
     typeof lyricsSource === 'string' && /<[a-z][\s\S]*>/i.test(lyricsSource)
-      ? lyricsSource
+      ? readTranslatorFromHtml(lyricsSource).html
       : '';
   const lyrics: string = lyricsHtml ? '' : htmlToPlainText(lyricsSource);
+  const translatorName = firstTranslatorName(
+    data,
+    firstLyricsField(data?.songLyricsTranslated, data?.song_lyrics_translated),
+    typeof lyricsSource === 'string' ? lyricsSource : ''
+  );
+  const translatorId = String(
+    data?.translator_ids?.[0] || data?.translator_id || data?.translator_raw || ''
+  ).trim();
+  const translatorHref = translatorId
+    ? `/people/${translatorId}`
+    : translatorName
+      ? `/searche?search=${encodeURIComponent(translatorName)}`
+      : '';
   const notesText = exploreSongsPanelText(data, ['notes']);
   const glossaryText = exploreSongsPanelText(data, [
     'glossary',
@@ -279,7 +331,11 @@ export default function CLSongDetailsPage({
   const stanzas = useMemo(
     () =>
       typeof lyrics === 'string'
-        ? lyrics.split(/\n\s*\n/).map((s) => s.trim()).filter(Boolean)
+        ? lyrics
+            .split(/\n\s*\n/)
+            .map((s) => s.trim())
+            .filter(Boolean)
+            .filter((s) => !/^(Translation\s*:|Translated\s+by)\b/i.test(s))
         : [],
     [lyrics]
   );
@@ -330,7 +386,7 @@ export default function CLSongDetailsPage({
         <Header />
         <main className="relative z-10">
           <div className="cld-page">
-            {/* ===== Versions section ===== */}
+            {versionCards.length > 1 && (
             <section className="cld-versions-section">
               <div className="cld-versions-heading">
               <h2 className="cld-versions-title">{versionCards.length} Song Versions</h2>
@@ -360,7 +416,7 @@ export default function CLSongDetailsPage({
                       href={withAppBasePath(`/songs/details/${card.id}`)}
                       imageSrc={card.image}
                       imageAlt={card.title}
-                      className={`cld-version-card${idx === currentVersionIdx ? '' : ' is-active'}`}
+                      className={`cld-version-card${idx === currentVersionIdx ? ' is-current' : ''}`}
                       bodyClassName="cld-version-card-body"
                       thumbClassName="cld-version-card-thumb"
                     >
@@ -391,6 +447,7 @@ export default function CLSongDetailsPage({
                 </button>
               </div>
             </section>
+            )}
 
             {/* Header / video / about — inset to match first version card (after in-flow chevron + gap). */}
             <div className="cld-detail-body-align">
@@ -518,6 +575,19 @@ export default function CLSongDetailsPage({
                   )}
                 </div>
               )}
+
+              {translatorName ? (
+                <p className="cld-lyrics-translation">
+                  Translation{' '}
+                  {translatorHref ? (
+                    <Link href={translatorHref} className="cld-lyrics-translation-name">
+                      {translatorName}
+                    </Link>
+                  ) : (
+                    <span className="cld-lyrics-translation-name">{translatorName}</span>
+                  )}
+                </p>
+              ) : null}
             </div>
 
             {/* ===== NOTES | GLOSSARY links ===== */}

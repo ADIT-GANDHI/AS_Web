@@ -160,20 +160,42 @@ function mapRelatedKeyword(it: any) {
 }
 
 function poemNeedsEnrichment(item: any): boolean {
-  return !(
-    item?.meta_description ||
-    item?.thumbnail_excerpt ||
-    item?.thumbnailexcerpt
-  ) || !String(item?.couplet_transliteration || '').trim();
+  const hasExcerpt = Boolean(
+    item?.meta_description || item?.thumbnail_excerpt || item?.thumbnailexcerpt
+  );
+  const hasTransliteration = Boolean(
+    String(item?.english_transliteration || item?.couplet_transliteration || '').trim()
+  );
+  const hasTranslation = Boolean(
+    String(item?.english_translation || item?.couplet_translation || '').trim()
+  );
+  return !hasExcerpt || !hasTransliteration || !hasTranslation;
 }
 
 function enrichPoemRow(p: any, byId: Map<string, any>): any {
   const full = byId.get(String(p.id));
+  const english_transliteration =
+    p.english_transliteration ||
+    full?.english_transliteration ||
+    p.couplet_transliteration ||
+    full?.couplet_transliteration ||
+    '';
+  const english_translation =
+    p.english_translation ||
+    full?.english_translation ||
+    p.couplet_translation ||
+    full?.couplet_translation ||
+    '';
   const couplet_transliteration =
-    p.couplet_transliteration || full?.couplet_transliteration || '';
-  const couplet_translation = p.couplet_translation || full?.couplet_translation || '';
+    p.couplet_transliteration ||
+    full?.couplet_transliteration ||
+    english_transliteration ||
+    '';
+  const couplet_translation =
+    p.couplet_translation || full?.couplet_translation || english_translation || '';
   const meta_title = p.meta_title || full?.meta_title || '';
   const englishTitle =
+    english_transliteration ||
     couplet_transliteration ||
     meta_title ||
     p.title ||
@@ -181,16 +203,7 @@ function enrichPoemRow(p: any, byId: Map<string, any>): any {
     p.original_title ||
     '';
 
-  if (!poemNeedsEnrichment(p) && couplet_transliteration) {
-    return {
-      ...p,
-      couplet_transliteration,
-      couplet_translation,
-      meta_title,
-      title: englishTitle || p.title,
-    };
-  }
-  if (!full && !couplet_transliteration) return p;
+  if (!full && !englishTitle) return p;
   return {
     ...p,
     original_title: p.original_title || full?.original_title || '',
@@ -200,6 +213,8 @@ function enrichPoemRow(p: any, byId: Map<string, any>): any {
       full?.thumbnail_excerpt || full?.thumbnailexcerpt || p.thumbnail_excerpt || '',
     thumbnailexcerpt:
       full?.thumbnailexcerpt || full?.thumbnail_excerpt || p.thumbnailexcerpt || '',
+    english_transliteration,
+    english_translation,
     couplet_transliteration,
     couplet_translation,
     title: englishTitle || p.title,
@@ -238,6 +253,61 @@ export async function enrichRelatedPoems(content: RelatedContent): Promise<Relat
     return {
       ...content,
       data: { ...content.data, poems: enrichedPoems, keywords: enrichedKeywords },
+    };
+  } catch {
+    return content;
+  }
+}
+
+function reflectionNeedsFormat(item: any): boolean {
+  return !String(item?.format || item?.reflection_type || item?.format_name || '').trim();
+}
+
+function enrichReflectionRow(item: any, byId: Map<string, any>): any {
+  if (!reflectionNeedsFormat(item)) return item;
+  const full = byId.get(String(item?.id ?? ''));
+  if (!full) return item;
+  const format = String(full.format || full.reflection_type || full.format_name || '').trim();
+  if (!format) return item;
+  return { ...item, format };
+}
+
+/** Related API omits reflection `format` — merge from the reflections listing index. */
+export async function enrichRelatedReflections(
+  content: RelatedContent
+): Promise<RelatedContent> {
+  const reflections = content.data.reflections || [];
+  const keywordReflections = (content.data.keywords || []).flatMap((kw) =>
+    Array.isArray(kw?.reflections) ? kw.reflections : []
+  );
+  const needsWork =
+    reflections.some(reflectionNeedsFormat) ||
+    keywordReflections.some(reflectionNeedsFormat);
+  if (!needsWork) return content;
+
+  try {
+    const res = await fetch(`${AJAB_API_BASE}/Api/reflection_list?page=1&limit=300`, {
+      cache: 'no-store',
+    });
+    if (!res.ok) return content;
+    const json = await res.json();
+    const byId = new Map<string, any>();
+    for (const row of json.data || []) {
+      if (row?.id != null) byId.set(String(row.id), row);
+    }
+
+    return {
+      ...content,
+      data: {
+        ...content.data,
+        reflections: reflections.map((item) => enrichReflectionRow(item, byId)),
+        keywords: (content.data.keywords || []).map((kw) => ({
+          ...kw,
+          reflections: Array.isArray(kw?.reflections)
+            ? kw.reflections.map((item: any) => enrichReflectionRow(item, byId))
+            : kw?.reflections,
+        })),
+      },
     };
   } catch {
     return content;
@@ -344,7 +414,8 @@ export async function fetchRelatedByParam(
     const json = await res.json();
     const normalized = normalizeRelatedResponse(json);
     if (!normalized) return null;
-    return enrichRelatedPoems(normalized);
+    const withPoems = await enrichRelatedPoems(normalized);
+    return enrichRelatedReflections(withPoems);
   } catch {
     return null;
   }

@@ -538,6 +538,7 @@ export default function CLPoems() {
               data={related.data}
               className="clp-related"
               initialCount={3}
+              seeMoreStep={3}
               descriptionLines={3}
             />
           </div>
