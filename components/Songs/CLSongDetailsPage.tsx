@@ -9,13 +9,12 @@ import { CLGlossaryPopup } from '../Poems/CLPoemPopups';
 import ExploreSection from '@/components/shared/ExploreSection';
 import WavyCard from '@/components/shared/WavyCard';
 import WavyPaperPopup from '@/components/shared/WavyPaperPopup';
+import ScriptToggleButtons, { type Script } from '@/components/shared/ScriptToggleButtons';
 import './CLSongs.css'; // for the root marble bg + floating button overrides
 import './CLSongDetails.css';
 import SongDetailBackground from '@/components/Songs/SongDetailBackground';
 import { truncateAtWord, truncateToFitLines } from '@/lib/truncateAtWord';
 import { resolveCmsAssetUrl, withAppBasePath } from '@/lib/resolveCmsAssetUrl';
-
-type Script = 'devanagari' | 'transliteration' | 'english';
 
 function firstExploreSongsText(data: Record<string, unknown> | undefined, keys: string[]): string {
   if (!data) return '';
@@ -262,7 +261,9 @@ export default function CLSongDetailsPage({
   }, [data, script]);
 
   const singer = (getText(data?.singer_name) || getText(data?.singer) || '').toUpperCase();
-  const poet = (getText(data?.poet) || '').toUpperCase();
+  const poetName = (getText(data?.poet) || '').trim();
+  const poet = poetName.toUpperCase();
+  const poetHref = poetName ? `/searche?search=${encodeURIComponent(poetName)}` : '';
   const year =
     getText(data?.year) ||
     getText(data?.Year) ||
@@ -495,33 +496,6 @@ export default function CLSongDetailsPage({
               <SongAboutClamp html={aboutHtml} />
             </div>
 
-            {/* ===== Language toggle — Figma 361:1480.
-                 Three 44 x 44 white glyph buttons: pink Devanagari (अ),
-                 grey transliteration (ā), pink Latin (a). ===== */}
-            <div className="cld-lang-toggle" role="tablist" aria-label="Script">
-              <button
-                className={`cld-lang-btn cld-lang-btn--script${script === 'devanagari' ? ' active' : ''}`}
-                onClick={() => setScript('devanagari')}
-                aria-label="Devanagari"
-              >
-                अ
-              </button>
-              <button
-                className={`cld-lang-btn cld-lang-btn--muted${script === 'transliteration' ? ' active' : ''}`}
-                onClick={() => setScript('transliteration')}
-                aria-label="Transliteration"
-              >
-                ā
-              </button>
-              <button
-                className={`cld-lang-btn cld-lang-btn--script${script === 'english' ? ' active' : ''}`}
-                onClick={() => setScript('english')}
-                aria-label="Latin / English"
-              >
-                a
-              </button>
-            </div>
-
             {/* ===== Lyrics column: title + poem + notes/glossary (PDF) ===== */}
             <div className="cld-lyrics-notes-wrap">
             <div className="cld-lyrics-stage">
@@ -530,7 +504,9 @@ export default function CLSongDetailsPage({
                 {poet && (
                   <div>
                     <span className="cld-song-poet-label cld-song-poet">poet </span>
-                    <span className="cld-song-poet">{poet}</span>
+                    <Link href={poetHref} className="cld-song-poet cld-song-poet-link">
+                      {poet}
+                    </Link>
                   </div>
                 )}
               </div>
@@ -589,6 +565,8 @@ export default function CLSongDetailsPage({
                 </p>
               ) : null}
             </div>
+
+            <ScriptToggleButtons script={script} onChange={setScript} />
 
             {/* ===== NOTES | GLOSSARY links ===== */}
             {(hasNotes || hasGlossary) && (

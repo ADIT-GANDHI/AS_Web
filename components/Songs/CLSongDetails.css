@@ -490,54 +490,9 @@
   white-space: nowrap;
 }
 
-/* ── Language toggle — Figma 361:1480
-   Three white circular 44 x 44 glyph buttons with 55 px gaps:
-   pink Devanagari (अ), grey transliteration (ā), pink Latin (a). ── */
-.cld-lang-toggle {
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  gap: 54px;
-  width: 100%;
-  max-width: min(856px, 100%);
-  margin: 0 auto var(--cld-gap-lang-title);
-}
-
-/* REVERT (mid-body pass): margin was 64px auto 72px */
-
-.cld-lang-btn {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  width: 44px;
-  height: 44px;
-  background: #ffffff;
-  border: 1px solid rgba(177, 177, 177, 0.28);
-  border-radius: 999px;
-  padding: 0;
-  font-family: var(--ajab-font-serif);
-  font-size: 22px;
-  line-height: 1;
-  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.08);
-}
-
-.cld-lang-btn--script {
-  color: var(--ajab-pink-primary);
-  cursor: pointer;
-}
-
-.cld-lang-btn--script:hover {
-  opacity: 0.78;
-}
-
-.cld-lang-btn--muted {
-  color: #808080;
-  cursor: pointer;
-}
-
-.cld-lang-btn.active {
-  box-shadow: 0 2px 14px rgba(227, 30, 121, 0.18);
-  border-color: rgba(227, 30, 121, 0.32);
+/* Song detail — vertical rhythm around shared script toggle */
+.cld-lyrics-notes-wrap .cld-lang-toggle {
+  margin: var(--cld-gap-lang-title) auto var(--cld-gap-lyrics-notes);
 }
 
 /* ── Big song title + poet (inside lyrics stage) ── */
@@ -582,6 +537,14 @@
   color: var(--ajab-ink-400);
 }
 
+.cld-song-poet-link {
+  text-decoration: none;
+}
+
+.cld-song-poet-link:hover {
+  text-decoration: underline;
+}
+
 /* ── Lyrics — DO NOT change line-height / stanza spacing in layout passes.
    Typography + stanza rhythm are locked; only outer block margin may shift. ── */
 /* Lyrics stay centered; notes card bottom sits on the NOTES|GLOSSARY rule (PDF). */
@@ -601,7 +564,7 @@
   position: relative;
   min-width: 0;
   width: 60%;
-  margin: 0 auto var(--cld-gap-lyrics-notes);
+  margin: 0 auto;
   overflow: visible;
 }
 

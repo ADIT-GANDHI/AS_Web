@@ -14,6 +14,7 @@ import {
 import { PoemsNavCountContext } from './PoemsNavCountContext';
 import { CLGlossaryPopup, CLPlayerPopup, CLSideSheet } from './CLPoemPopups';
 import ExploreSection from '@/components/shared/ExploreSection';
+import ScriptToggleButtons, { type Script } from '@/components/shared/ScriptToggleButtons';
 import CLFilterPanel from '@/components/Fillter/CLFilterPanel';
 import type {
   ListingFilterCategory,
@@ -23,10 +24,10 @@ import Loader from '@/components/Loader';
 import Link from 'next/link';
 import '@/styles/CustomStyle.css';
 import '@/components/Songs/CLSongs.css';
-import '@/components/Songs/CLSongDetails.css';
 import './CLPoems.css';
 import { AJAB_API_BASE } from '@/lib/ajabEnv';
 import { mapPoemListItem } from '@/lib/mapPoemListItem';
+import { poemCreditForScript, poemTextForScript } from '@/lib/poemScriptView';
 import { parseCatalogTotal } from '@/lib/parseCatalogTotal';
 import { fetchPoemFilterOptions } from '@/lib/poemFilters';
 import {
@@ -41,8 +42,6 @@ import {
   relatedGlossaryTerms,
   type RelatedContent,
 } from '@/lib/mapRelatedResponse';
-
-type Script = 'devanagari' | 'transliteration' | 'english';
 
 const CATALOG_LIMIT = 300;
 const NOTES_LOREM =
@@ -311,12 +310,15 @@ export default function CLPoems() {
   const goNext = () =>
     setActiveIdx((i) => (filteredPoems.length ? (i + 1) % filteredPoems.length : 0));
 
-  const poemText = useMemo(() => {
-    if (!activePoem) return '';
-    if (script === 'devanagari' && activePoem.hindi) return activePoem.hindi;
-    if (script === 'english' && activePoem.english) return activePoem.english;
-    return activePoem.text;
-  }, [script, activePoem]);
+  const poemText = useMemo(
+    () => (activePoem ? poemTextForScript(activePoem, script) : ''),
+    [script, activePoem]
+  );
+
+  const poemCredit = useMemo(
+    () => (activePoem ? poemCreditForScript(activePoem, script) : null),
+    [script, activePoem]
+  );
 
   const glossaryTerms = useMemo(() => relatedGlossaryTerms(related), [related]);
 
@@ -440,47 +442,18 @@ export default function CLPoems() {
               ) : (
                 <>
                   <div className="clp-poem-text">{poemText}</div>
-                  {activePoem.poet ? (
-                    <div className="clp-poem-poet">{activePoem.poet.toUpperCase()}</div>
-                  ) : (
-                    <div className="clp-poem-poet clp-poem-poet--empty" aria-hidden="true">
-                      &nbsp;
+                  {poemCredit?.kind === 'poet' && (
+                    <div className="clp-poem-poet">{poemCredit.name.toUpperCase()}</div>
+                  )}
+                  {poemCredit?.kind === 'translator' && (
+                    <div className="clp-translator">
+                      Translation by {poemCredit.name.toUpperCase()}
                     </div>
                   )}
-                  <div className="clp-translator">
-                    {activePoem.translator
-                      ? `Translation by ${activePoem.translator.toUpperCase()}`
-                      : '\u00a0'}
-                  </div>
                 </>
               )}
 
-              <div className="clp-lang-toggle" role="tablist" aria-label="Script">
-                <button
-                  type="button"
-                  className={`clp-lang-btn${script === 'devanagari' ? ' active' : ''}`}
-                  onClick={() => setScript('devanagari')}
-                  aria-label="Devanagari"
-                >
-                  अ
-                </button>
-                <button
-                  type="button"
-                  className={`clp-lang-btn${script === 'transliteration' ? ' active' : ''}`}
-                  onClick={() => setScript('transliteration')}
-                  aria-label="Transliteration"
-                >
-                  ā
-                </button>
-                <button
-                  type="button"
-                  className={`clp-lang-btn${script === 'english' ? ' active' : ''}`}
-                  onClick={() => setScript('english')}
-                  aria-label="English"
-                >
-                  a
-                </button>
-              </div>
+              <ScriptToggleButtons script={script} onChange={setScript} />
 
               <div className="clp-actions">
                 <button

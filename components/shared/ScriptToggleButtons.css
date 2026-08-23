@@ -1,0 +1,42 @@
+/* Shared script toggle — Songs detail + Poems (अ / ā / a).
+   Unselected = pink; selected = black (no pink glow / highlight). */
+.cld-lang-toggle {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 54px;
+  width: 100%;
+  max-width: min(856px, 100%);
+}
+
+.cld-lang-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 44px;
+  height: 44px;
+  background: #ffffff;
+  border: 1px solid rgba(177, 177, 177, 0.28);
+  border-radius: 999px;
+  padding: 0;
+  font-family: var(--ajab-font-serif);
+  font-size: 22px;
+  line-height: 1;
+  color: var(--ajab-pink-primary);
+  cursor: pointer;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.08);
+}
+
+.cld-lang-btn:hover {
+  opacity: 0.78;
+}
+
+.cld-lang-btn.active {
+  color: var(--ajab-ink-900, #1a1a1a);
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.08);
+  border-color: rgba(177, 177, 177, 0.28);
+}
+
+.cld-lang-btn.active:hover {
+  opacity: 1;
+}

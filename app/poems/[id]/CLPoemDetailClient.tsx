@@ -12,6 +12,8 @@ import type { AudioVersion } from '@/components/Poems/CLPoemPopups';
 import { fetchPoemListen, toAudioVersions } from '@/lib/poemAudio';
 import ExploreSection from '@/components/shared/ExploreSection';
 import WavyPaperPopup from '@/components/shared/WavyPaperPopup';
+import ScriptToggleButtons, { type Script } from '@/components/shared/ScriptToggleButtons';
+import { poemCreditForScript, poemTextForScript } from '@/lib/poemScriptView';
 import {
   findMockPoemById,
   POEMS_RELATED,
@@ -27,8 +29,6 @@ import {
 import '@/styles/CustomStyle.css';
 import '@/components/Songs/CLSongs.css';
 import '@/components/Poems/CLPoems.css';
-
-type Script = 'devanagari' | 'transliteration' | 'english';
 
 function htmlToPlainText(raw: string): string {
   if (!raw || typeof raw !== 'string') return '';
@@ -52,6 +52,7 @@ interface PoemDetail {
   hindi: string;
   english: string;
   poet: string;
+  translator: string;
   noteText: string;
   glossary: string;
   soundCloudUrl: string;
@@ -71,6 +72,7 @@ function mapApiItem(it: any): PoemDetail {
       htmlToPlainText(it.english_translation_text || '') ||
       String(it.couplet_translation || '').trim(),
     poet: it.attributed_poet || it.poet || '',
+    translator: String(it.translator || it.translated_by || it.translation_by || '').trim(),
     noteText: htmlToPlainText(it.note_text || ''),
     glossary: htmlToPlainText(it.glossary || ''),
     soundCloudUrl: it.soundCloud_track_url || '',
@@ -87,6 +89,7 @@ function mapMockPoem(mock: PoemData): PoemDetail {
     hindi: mock.hindi || '',
     english: mock.english || '',
     poet: mock.poet || '',
+    translator: mock.translator || '',
     noteText: mock.noteText || '',
     glossary: mock.glossary || '',
     soundCloudUrl: mock.audioUrl || '',
@@ -171,12 +174,15 @@ export default function CLPoemDetailClient({ id: idProp }: { id: string }) {
     };
   }, [poem?.id]);
 
-  const poemText = useMemo(() => {
-    if (!poem) return '';
-    if (script === 'devanagari' && poem.hindi) return poem.hindi;
-    if (script === 'english' && poem.english) return poem.english;
-    return poem.text;
-  }, [script, poem]);
+  const poemText = useMemo(
+    () => (poem ? poemTextForScript(poem, script) : ''),
+    [script, poem]
+  );
+
+  const poemCredit = useMemo(
+    () => (poem ? poemCreditForScript(poem, script) : null),
+    [script, poem]
+  );
 
   const glossaryTerms = useMemo(() => relatedGlossaryTerms(related), [related]);
   const notesBody =
@@ -250,36 +256,19 @@ export default function CLPoemDetailClient({ id: idProp }: { id: string }) {
 
                   <div className="clp-poem-text">{poemText}</div>
 
-                  {poem.poet && (
+                  {poemCredit?.kind === 'poet' && (
                     <div className="clp-poem-poet">
-                      poet <span className="name">{poem.poet}</span>
+                      poet <span className="name">{poemCredit.name}</span>
+                    </div>
+                  )}
+                  {poemCredit?.kind === 'translator' && (
+                    <div className="clp-translator">
+                      Translation by {poemCredit.name.toUpperCase()}
                     </div>
                   )}
 
                   <div className="clp-halo-controls">
-                    <div className="clp-lang-toggle" role="tablist">
-                      <button
-                        className={`clp-lang-btn${script === 'devanagari' ? ' active' : ''}`}
-                        onClick={() => setScript('devanagari')}
-                        aria-label="Devanagari"
-                      >
-                        अ
-                      </button>
-                      <button
-                        className={`clp-lang-btn${script === 'transliteration' ? ' active' : ''}`}
-                        onClick={() => setScript('transliteration')}
-                        aria-label="Transliteration"
-                      >
-                        ā
-                      </button>
-                      <button
-                        className={`clp-lang-btn${script === 'english' ? ' active' : ''}`}
-                        onClick={() => setScript('english')}
-                        aria-label="English"
-                      >
-                        a
-                      </button>
-                    </div>
+                    <ScriptToggleButtons script={script} onChange={setScript} />
 
                     <div className="clp-notes-glossary">
                       <button

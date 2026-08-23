@@ -229,11 +229,12 @@ body:has(.clp-page) footer.footer-bg .footer-inner {
   white-space: pre-line;
   text-align: center;
   max-width: 520px;
-  /* Keep script toggles + LISTEN|NOTES|GLOSSARY above the fold @900px (AI). */
+  /* Scroller — disabled for now; show full poem for each script view.
   max-height: 168px;
   overflow-y: auto;
   scrollbar-width: thin;
   scrollbar-color: #c8c8c8 transparent;
+  */
 }
 
 .clp-poem-poet {
@@ -263,44 +264,15 @@ body:has(.clp-page) footer.footer-bg .footer-inner {
   min-height: 1.2em;
 }
 
-/* Script circles — AI: 39px circles centred at x≈635/720/805. */
-.clp-lang-toggle {
-  display: flex;
-  justify-content: center;
-  gap: 46px;
-  width: 339px;
+/* Poems — shared script toggle spacing (same buttons as Songs detail). */
+.clp-poem-stage .cld-lang-toggle,
+.clp-halo-controls .cld-lang-toggle {
+  width: min(339px, 100%);
+  max-width: 339px;
+  margin: 0 auto 31px;
   padding-bottom: 26px;
-  margin: 0 0 31px;
   border-bottom: 1px solid #cccccc;
   box-sizing: border-box;
-}
-
-.clp-lang-btn {
-  width: 39px;
-  height: 39px;
-  border-radius: 50%;
-  border: 1px solid #d8d8d8;
-  background: #fff;
-  color: #828282;
-  font-family: var(--ajab-font-serif);
-  font-size: 16px;
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  padding: 0;
-  transition: color 0.15s, border-color 0.15s, background 0.15s;
-}
-
-.clp-lang-btn:hover {
-  color: var(--ajab-pink-primary);
-  border-color: var(--ajab-pink-primary);
-}
-
-.clp-lang-btn.active {
-  color: #fff;
-  background: var(--ajab-pink-primary);
-  border-color: var(--ajab-pink-primary);
 }
 
 /* LISTEN | NOTES | GLOSSARY — AI y≈1062, 18px */
@@ -889,13 +861,8 @@ body:has(.clp-page) .nav-link--poems {
     max-width: 100%;
   }
 
-  .clp-lang-btn {
-    width: 48px;
-    height: 48px;
-    font-size: 18px;
-  }
-
-  .clp-lang-toggle {
+  .clp-poem-stage .cld-lang-toggle,
+  .clp-halo-controls .cld-lang-toggle {
     gap: 20px;
   }
 }

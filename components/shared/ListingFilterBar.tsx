@@ -4,6 +4,7 @@ import type { ReactNode } from 'react';
 import CLFilterPanel from '@/components/Fillter/CLFilterPanel';
 import type { ListingFilterPanelProps } from './listingFilterTypes';
 import { buildFilterChips } from './ActiveFilterChips';
+import PinnedFilterBarShell from './PinnedFilterBarShell';
 
 type Props = {
   panel: ListingFilterPanelProps;
@@ -36,23 +37,21 @@ export default function ListingFilterBar({
   const allButtonActive = allPinkWhenFiltered ? hasChipFilters || allActive : allActive;
 
   return (
-    <>
-      <div className="cl-filter-bar">
-        <span className="cl-filter-trigger-wrap">
-          <CLFilterPanel {...panel} />
-        </span>
-        <span className="cl-filter-sep">|</span>
-        <button
-          type="button"
-          className={`cl-az-btn cl-az-btn--all${allButtonActive ? ' active' : ''}${
-            allPinkWhenFiltered && !hasChipFilters ? ' cl-az-btn--all-idle' : ''
-          }`}
-          onClick={onAllClick}
-        >
-          {allLabel}
-        </button>
-        {azRow}
-      </div>
-    </>
+    <PinnedFilterBarShell>
+      <span className="cl-filter-trigger-wrap">
+        <CLFilterPanel {...panel} />
+      </span>
+      <span className="cl-filter-sep">|</span>
+      <button
+        type="button"
+        className={`cl-az-btn cl-az-btn--all${allButtonActive ? ' active' : ''}${
+          allPinkWhenFiltered && !hasChipFilters ? ' cl-az-btn--all-idle' : ''
+        }`}
+        onClick={onAllClick}
+      >
+        {allLabel}
+      </button>
+      {azRow}
+    </PinnedFilterBarShell>
   );
 }

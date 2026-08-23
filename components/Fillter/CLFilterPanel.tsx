@@ -171,7 +171,8 @@ export default function CLFilterPanel({
   const selectionsScrollRef = useRef<HTMLDivElement>(null);
   const [thumbTop, setThumbTop] = useState(0);
   const [thumbHeight, setThumbHeight] = useState(480);
-  const panelRef = useRef<HTMLDivElement>(null);
+  // LOCKED_SCROLL: uncomment panelRef + ref on motion.div below when re-enabling scroll lock.
+  // const panelRef = useRef<HTMLDivElement>(null);
 
   const filterLists = useMemo(() => {
     const pick = (
@@ -301,52 +302,55 @@ export default function CLFilterPanel({
   // Only render overlay after hydration (fixed layers are client-only).
   useEffect(() => setMounted(true), []);
 
-  useEffect(() => {
-    if (!open) return;
-    const prevBody = document.body.style.overflow;
-    const prevHtml = document.documentElement.style.overflow;
-    document.body.style.overflow = 'hidden';
-    document.documentElement.style.overflow = 'hidden';
-    return () => {
-      document.body.style.overflow = prevBody;
-      document.documentElement.style.overflow = prevHtml;
-    };
-  }, [open]);
-
-  /** Non-passive wheel lock: list scrolls inside the drawer; page behind never moves. */
-  useEffect(() => {
-    if (!open) return;
-
-    const onWheel = (event: WheelEvent) => {
-      const panel = panelRef.current;
-      const list = scrollRef.current;
-      const target = event.target as Node | null;
-      if (!panel || !target) return;
-
-      // Click/scroll outside the drawer panel → block page scroll.
-      if (!panel.contains(target)) {
-        event.preventDefault();
-        return;
-      }
-
-      // Inside the option list: allow scroll until the edge, then stop chaining.
-      if (list?.contains(target)) {
-        const { scrollTop, scrollHeight, clientHeight } = list;
-        const atTop = scrollTop <= 0;
-        const atBottom = scrollTop + clientHeight >= scrollHeight - 1;
-        if ((event.deltaY < 0 && atTop) || (event.deltaY > 0 && atBottom)) {
-          event.preventDefault();
-        }
-        return;
-      }
-
-      // Drawer chrome (tabs / chips) — don't scroll the page underneath.
-      event.preventDefault();
-    };
-
-    document.addEventListener('wheel', onWheel, { passive: false, capture: true });
-    return () => document.removeEventListener('wheel', onWheel, true);
-  }, [open]);
+  // ── Filter scroll mode ──
+  // Active: dual scroll — page and filter list both scroll while the parda is open.
+  // To revert to locked scroll (page frozen behind filter): uncomment LOCKED_SCROLL block below
+  // and restore panelRef + ref={panelRef} on the motion.div drawer.
+  //
+  // LOCKED_SCROLL — body/html overflow lock
+  // useEffect(() => {
+  //   if (!open) return;
+  //   const prevBody = document.body.style.overflow;
+  //   const prevHtml = document.documentElement.style.overflow;
+  //   document.body.style.overflow = 'hidden';
+  //   document.documentElement.style.overflow = 'hidden';
+  //   return () => {
+  //     document.body.style.overflow = prevBody;
+  //     document.documentElement.style.overflow = prevHtml;
+  //   };
+  // }, [open]);
+  //
+  // LOCKED_SCROLL — non-passive wheel lock (list scrolls inside drawer; page behind never moves)
+  // useEffect(() => {
+  //   if (!open) return;
+  //
+  //   const onWheel = (event: WheelEvent) => {
+  //     const panel = panelRef.current;
+  //     const list = scrollRef.current;
+  //     const target = event.target as Node | null;
+  //     if (!panel || !target) return;
+  //
+  //     if (!panel.contains(target)) {
+  //       event.preventDefault();
+  //       return;
+  //     }
+  //
+  //     if (list?.contains(target)) {
+  //       const { scrollTop, scrollHeight, clientHeight } = list;
+  //       const atTop = scrollTop <= 0;
+  //       const atBottom = scrollTop + clientHeight >= scrollHeight - 1;
+  //       if ((event.deltaY < 0 && atTop) || (event.deltaY > 0 && atBottom)) {
+  //         event.preventDefault();
+  //       }
+  //       return;
+  //     }
+  //
+  //     event.preventDefault();
+  //   };
+  //
+  //   document.addEventListener('wheel', onWheel, { passive: false, capture: true });
+  //   return () => document.removeEventListener('wheel', onWheel, true);
+  // }, [open]);
 
   const categories: FilterType[] = singleListMode
     ? ['Singer']
@@ -415,7 +419,7 @@ export default function CLFilterPanel({
 
                   {/* Portaled drawer — wavy bg from top:0; header stacks above (z-index 10000). */}
                   <motion.div
-                  ref={panelRef}
+                  // LOCKED_SCROLL: ref={panelRef}
                   className="ajab-filter-drawer"
                   style={{
                     position: 'fixed',

@@ -1,5 +1,6 @@
 import React, { useMemo, useState, useRef, useCallback } from 'react';
 import Loader from '@/components/Loader';
+import PinnedFilterBarShell from '@/components/shared/PinnedFilterBarShell';
 import { useGlossary } from '@/hooks/use-glossary';
 import { parseGlossaryTermLine } from './glossaryTermUtils';
 import './Glossary.css';
@@ -99,7 +100,7 @@ export default function Glossary() {
             <h2 className="cl-songs-count">{normalizedData.length} Words</h2>
           </div>
 
-          <div className="cl-filter-bar cl-filter-bar--letters-only">
+          <PinnedFilterBarShell className="cl-filter-bar cl-filter-bar--letters-only">
             <button
               type="button"
               className={`cl-az-btn cl-az-btn--all${activeLetter === 'ALL' ? ' active' : ''}`}
@@ -126,7 +127,7 @@ export default function Glossary() {
                 );
               })}
             </div>
-          </div>
+          </PinnedFilterBarShell>
 
           <div className="glossary-list">
             {filteredData.map((item) => {
