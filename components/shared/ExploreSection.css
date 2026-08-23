@@ -31,6 +31,16 @@
   gap: 12px;
 }
 
+.explore-theme--chip::before {
+  content: '|';
+  margin-right: 12px;
+  color: var(--ajab-ink-200);
+  font-family: var(--ajab-font-sans);
+  font-weight: 300;
+  font-size: inherit;
+  user-select: none;
+}
+
 .explore-theme-sep {
   color: var(--ajab-ink-200);
   font-family: var(--ajab-font-sans);
@@ -240,4 +250,130 @@
   .explore-itemtitle {
     font-size: 20px;
   }
+
+  .clp-related.explore-section {
+    width: calc(100% - 32px);
+  }
+}
+
+/* ── Poems explore skin — shared by Songs / Poems / Reflections detail ── */
+/* Poems listing only — decorative rule above explore (not used on detail pages). */
+.clp-explore-divider {
+  width: min(856px, calc(100% - 48px));
+  height: 28px;
+  margin: 8px auto 85px;
+  background: url(/poems-explore-divider.png) center / 100% auto no-repeat;
+}
+
+/* Detail pages — spacing above explore without the listing divider asset */
+.cld-page .clp-related.explore-section,
+.clrd-page .clp-related.explore-section,
+.clp-page--detail .clp-related.explore-section {
+  margin-top: clamp(32px, 4vw, 48px);
+}
+
+.clp-related.explore-section {
+  max-width: min(856px, calc(100% - 48px));
+  margin: 0 auto;
+}
+
+.clp-related.explore-section .explore-title,
+.clp-related .explore-title {
+  font-size: 26px;
+  margin-bottom: 12px;
+}
+
+.clp-related .explore-theme,
+.clp-related .explore-theme--chip::before {
+  font-family: var(--ajab-font-serif);
+  font-size: 22px;
+}
+
+.clp-related .explore-itemtitle {
+  font-size: 27px;
+  flex: 0 0 auto;
+  max-width: 62%;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.clp-related .explore-itemdesc {
+  font-size: 18px;
+}
+
+.clp-related .explore-format {
+  font-size: 17.6px;
+  letter-spacing: 0.02em;
+}
+
+.clp-related .explore-themes {
+  margin-bottom: 43px;
+}
+
+.clp-related .explore-list {
+  gap: 37px;
+}
+
+.clp-related .explore-item {
+  min-height: 207px;
+  gap: 20px;
+  box-sizing: border-box;
+}
+
+.clp-related .explore-item:not(:last-child) {
+  border-bottom: 1px dotted #b9b9b9;
+}
+
+.clp-related .explore-item:not(:last-child) .explore-body {
+  border-bottom: 0;
+  padding-bottom: 0;
+  margin-bottom: 0;
+}
+
+.clp-related .explore-thumb {
+  width: 307px;
+  height: 173px;
+  margin-left: -11px;
+  border: 6px solid #ffffff;
+  border-radius: 10px;
+  overflow: hidden;
+  box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.06), 0 2px 10px rgba(0, 0, 0, 0.06);
+  box-sizing: border-box;
+  background: #fff;
+}
+
+.clp-related .explore-thumb img {
+  border-radius: 2px;
+}
+
+.clp-related .explore-titlerow {
+  flex-wrap: nowrap;
+  align-items: baseline;
+  gap: 8px;
+}
+
+.clp-related .explore-itemsubtitle {
+  font-family: var(--ajab-font-serif);
+  font-style: italic;
+  font-weight: 400;
+  font-size: 22px;
+  color: #828282;
+  margin-left: 0;
+  flex: 1 1 auto;
+  min-width: 0;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.clp-related .explore-seemore {
+  display: inline-block;
+  margin-top: 28px;
+  font-family: var(--ajab-font-sans);
+  font-weight: 400;
+  font-size: 18px;
+  letter-spacing: 0.04em;
+  color: var(--ajab-pink-primary);
+  text-transform: uppercase;
 }

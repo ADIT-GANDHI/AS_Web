@@ -62,7 +62,6 @@ export default function CLPoems() {
   const [themeOptions, setThemeOptions] = useState<ListingFilterOption[]>([]);
   const [selectedPoetIds, setSelectedPoetIds] = useState<string[]>([]);
   const [selectedThemeIds, setSelectedThemeIds] = useState<string[]>([]);
-  const [filterOrder, setFilterOrder] = useState<Array<'Poet' | 'Theme'>>([]);
   const [poetFetchPoems, setPoetFetchPoems] = useState<PoemData[]>([]);
 
   const [sidePanel, setSidePanel] = useState<'listen' | 'notes' | 'glossary' | null>(null);
@@ -86,8 +85,6 @@ export default function CLPoems() {
   const [listenVersions, setListenVersions] = useState<AudioVersion[]>([]);
   const skipFilterResetRef = useRef(false);
 
-  const primaryFilter = filterOrder[0] ?? null;
-
   const poetNameById = useMemo(() => {
     const map = new Map<string, string>();
     for (const p of poetOptions) map.set(p.id, p.label);
@@ -97,7 +94,6 @@ export default function CLPoems() {
   const clearAllFilters = useCallback(() => {
     setSelectedPoetIds([]);
     setSelectedThemeIds([]);
-    setFilterOrder([]);
     setPoetFetchPoems([]);
   }, []);
 
@@ -105,43 +101,29 @@ export default function CLPoems() {
     if (type === 'Poet') {
       const removing = selectedPoetIds.includes(value);
       if (removing) {
-        const next = selectedPoetIds.filter((x) => x !== value);
-        setSelectedPoetIds(next);
-        if (!next.length) setFilterOrder((order) => order.filter((d) => d !== 'Poet'));
+        setSelectedPoetIds(selectedPoetIds.filter((x) => x !== value));
       } else {
         setSelectedPoetIds([...selectedPoetIds, value]);
-        setFilterOrder((order) => (order.includes('Poet') ? order : [...order, 'Poet']));
       }
       return;
     }
     if (type === 'Theme') {
       const removing = selectedThemeIds.includes(value);
       if (removing) {
-        const next = selectedThemeIds.filter((x) => x !== value);
-        setSelectedThemeIds(next);
-        if (!next.length) setFilterOrder((order) => order.filter((d) => d !== 'Theme'));
+        setSelectedThemeIds(selectedThemeIds.filter((x) => x !== value));
       } else {
         setSelectedThemeIds([...selectedThemeIds, value]);
-        setFilterOrder((order) => (order.includes('Theme') ? order : [...order, 'Theme']));
       }
     }
   };
 
   const handleRemoveFilter = (type: ListingFilterCategory, value: string) => {
     if (type === 'Poet') {
-      setSelectedPoetIds((prev) => {
-        const next = prev.filter((x) => x !== value);
-        if (!next.length) setFilterOrder((order) => order.filter((d) => d !== 'Poet'));
-        return next;
-      });
+      setSelectedPoetIds((prev) => prev.filter((x) => x !== value));
       return;
     }
     if (type === 'Theme') {
-      setSelectedThemeIds((prev) => {
-        const next = prev.filter((x) => x !== value);
-        if (!next.length) setFilterOrder((order) => order.filter((d) => d !== 'Theme'));
-        return next;
-      });
+      setSelectedThemeIds((prev) => prev.filter((x) => x !== value));
     }
   };
 
@@ -266,7 +248,6 @@ export default function CLPoems() {
     skipFilterResetRef.current = true;
     setSelectedPoetIds([]);
     setSelectedThemeIds([]);
-    setFilterOrder([]);
     setPoetFetchPoems([]);
     setActiveIdx(idx);
   }, [deepLinkId, poemsLoading, poems]);
@@ -416,15 +397,6 @@ export default function CLPoems() {
               </div>
             </div>
 
-            {(selectedPoetIds.length > 0 || selectedThemeIds.length > 0) && (
-              <div className="clp-filtered-by" aria-live="polite">
-                Filtered by{' '}
-                <span className={primaryFilter === 'Poet' ? 'is-on' : ''}>Poets</span>
-                {' | '}
-                <span className={primaryFilter === 'Theme' ? 'is-on' : ''}>Themes</span>
-              </div>
-            )}
-
             <div className="clp-nav-row">
               <button type="button" className="clp-prevnext" onClick={goPrev}>
                 <span className="clp-prevnext-arrow clp-prevnext-arrow--prev" aria-hidden />
@@ -443,7 +415,14 @@ export default function CLPoems() {
                 <>
                   <div className="clp-poem-text">{poemText}</div>
                   {poemCredit?.kind === 'poet' && (
-                    <div className="clp-poem-poet">{poemCredit.name.toUpperCase()}</div>
+                    <div className="clp-poem-poet">
+                      <Link
+                        href={`/searche?search=${encodeURIComponent(poemCredit.name)}`}
+                        className="clp-poem-poet-link"
+                      >
+                        {poemCredit.name.toUpperCase()}
+                      </Link>
+                    </div>
                   )}
                   {poemCredit?.kind === 'translator' && (
                     <div className="clp-translator">

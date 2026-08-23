@@ -203,32 +203,36 @@ export default function Header() {
                       href={item.href}
                       className={`nav-link nav-link--${item.name.toLowerCase()} ${isActive ? 'active' : ''}`}
                     >
-                      <span className="nav-link-label">{item.name}</span>
-                      {isSongs && songsNavTotal != null && songsNavTotal > 0 && (
-                        <span className="nav-link-songs-count" aria-hidden="true">
-                          ({songsNavTotal})
+                      <span className="nav-link-label">
+                        <span className="nav-link-text">
+                          {item.name}
+                          {isSongs && songsNavTotal != null && songsNavTotal > 0 && (
+                            <span className="nav-link-songs-count" aria-hidden="true">
+                              ({songsNavTotal})
+                            </span>
+                          )}
+                          {isPoems && poemsNavTotal != null && poemsNavTotal > 0 && (
+                            <span className="nav-link-poems-count" aria-hidden="true">
+                              ({poemsNavTotal})
+                            </span>
+                          )}
+                          {isReflections && reflectionsNavTotal != null && (
+                            <span className="nav-link-reflections-count" aria-hidden="true">
+                              ({reflectionsNavTotal})
+                            </span>
+                          )}
+                          {isPeople && peopleNavTotal != null && peopleNavTotal > 0 && (
+                            <span className="nav-link-people-count" aria-hidden="true">
+                              ({peopleNavTotal})
+                            </span>
+                          )}
+                          {isFilms && filmsNavTotal != null && filmsNavTotal > 0 && (
+                            <span className="nav-link-films-count" aria-hidden="true">
+                              ({filmsNavTotal})
+                            </span>
+                          )}
                         </span>
-                      )}
-                      {isPoems && poemsNavTotal != null && poemsNavTotal > 0 && (
-                        <span className="nav-link-poems-count" aria-hidden="true">
-                          ({poemsNavTotal})
-                        </span>
-                      )}
-                      {isReflections && reflectionsNavTotal != null && (
-                        <span className="nav-link-reflections-count" aria-hidden="true">
-                          ({reflectionsNavTotal})
-                        </span>
-                      )}
-                      {isPeople && peopleNavTotal != null && peopleNavTotal > 0 && (
-                        <span className="nav-link-people-count" aria-hidden="true">
-                          ({peopleNavTotal})
-                        </span>
-                      )}
-                      {isFilms && filmsNavTotal != null && filmsNavTotal > 0 && (
-                        <span className="nav-link-films-count" aria-hidden="true">
-                          ({filmsNavTotal})
-                        </span>
-                      )}
+                      </span>
                     </Link>
                   );
                 })}
@@ -300,32 +304,36 @@ export default function Header() {
                       className={`nav-link nav-link--${item.name.toLowerCase()} text-lg font-medium ${isActive ? 'active' : ''}`}
                       onClick={() => setIsMenuOpen(false)}
                     >
-                      <span className="nav-link-label">{item.name}</span>
-                      {isSongs && songsNavTotal != null && songsNavTotal > 0 && (
-                        <span className="nav-link-songs-count" aria-hidden="true">
-                          ({songsNavTotal})
+                      <span className="nav-link-label">
+                        <span className="nav-link-text">
+                          {item.name}
+                          {isSongs && songsNavTotal != null && songsNavTotal > 0 && (
+                            <span className="nav-link-songs-count" aria-hidden="true">
+                              ({songsNavTotal})
+                            </span>
+                          )}
+                          {isPoems && poemsNavTotal != null && poemsNavTotal > 0 && (
+                            <span className="nav-link-poems-count" aria-hidden="true">
+                              ({poemsNavTotal})
+                            </span>
+                          )}
+                          {isReflections && reflectionsNavTotal != null && (
+                            <span className="nav-link-reflections-count" aria-hidden="true">
+                              ({reflectionsNavTotal})
+                            </span>
+                          )}
+                          {isPeople && peopleNavTotal != null && peopleNavTotal > 0 && (
+                            <span className="nav-link-people-count" aria-hidden="true">
+                              ({peopleNavTotal})
+                            </span>
+                          )}
+                          {isFilms && filmsNavTotal != null && filmsNavTotal > 0 && (
+                            <span className="nav-link-films-count" aria-hidden="true">
+                              ({filmsNavTotal})
+                            </span>
+                          )}
                         </span>
-                      )}
-                      {isPoems && poemsNavTotal != null && poemsNavTotal > 0 && (
-                        <span className="nav-link-poems-count" aria-hidden="true">
-                          ({poemsNavTotal})
-                        </span>
-                      )}
-                      {isReflections && reflectionsNavTotal != null && (
-                        <span className="nav-link-reflections-count" aria-hidden="true">
-                          ({reflectionsNavTotal})
-                        </span>
-                      )}
-                      {isPeople && peopleNavTotal != null && peopleNavTotal > 0 && (
-                        <span className="nav-link-people-count" aria-hidden="true">
-                          ({peopleNavTotal})
-                        </span>
-                      )}
-                      {isFilms && filmsNavTotal != null && filmsNavTotal > 0 && (
-                        <span className="nav-link-films-count" aria-hidden="true">
-                          ({filmsNavTotal})
-                        </span>
-                      )}
+                      </span>
                     </Link>
                   );
                 })}

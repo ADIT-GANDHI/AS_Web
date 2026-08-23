@@ -9,9 +9,12 @@ export function htmlToPlainText(raw: string): string {
     .replace(/<[^>]+>/g, '')
     .replace(/&nbsp;/gi, ' ')
     .replace(/&amp;/g, '&')
+    .replace(/&#(\d+);/g, (_, code) => String.fromCharCode(Number(code)))
+    .replace(/&#x([0-9a-f]+);/gi, (_, code) => String.fromCharCode(parseInt(code, 16)))
     .replace(/&lt;/g, '<')
     .replace(/&gt;/g, '>')
-    .replace(/&quot;/g, '"')
+    .replace(/&quot;/gi, '"')
+    .replace(/&apos;/gi, "'")
     .replace(/\n{3,}/g, '\n\n')
     .trim();
 }

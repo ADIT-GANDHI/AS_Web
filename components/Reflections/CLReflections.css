@@ -290,6 +290,14 @@ body:has(.clrd-page) .nav-link--songs .nav-link-songs-count {
   font-style: normal;
 }
 
+.clrd-header-speaker-link {
+  text-decoration: none;
+}
+
+.clrd-header-speaker-link:hover {
+  text-decoration: underline;
+}
+
 .clrd-header-meta {
   font-family: var(--ajab-font-sans);
   font-weight: 300;

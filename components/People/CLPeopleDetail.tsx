@@ -36,6 +36,7 @@ import {
   extractPersonGallery,
   mapPersonRole,
 } from '@/lib/mapPersonDetail';
+import { htmlToPlainText } from '@/lib/mapPoemListItem';
 import { resolveCmsAssetUrl, withAppBasePath } from '@/lib/resolveCmsAssetUrl';
 import '@/styles/CustomStyle.css';
 import '@/components/Songs/CLSongs.css';
@@ -43,26 +44,23 @@ import '@/components/Songs/CLSongDetails.css';
 import './CLPeople.css';
 import { PeopleNavCountContext } from '@/components/People/PeopleNavCountContext';
 
-// [Claude] Same HTML stripper used across all detail pages
-function htmlToPlainText(raw: string): string {
-  if (!raw || typeof raw !== 'string') return '';
-  return raw
-    .replace(/<br\s*\/?>/gi, '\n')
-    .replace(/<\/p>/gi, '\n')
-    .replace(/<[^>]+>/g, '')
-    .replace(/&nbsp;/gi, ' ')
-    .replace(/&amp;/g, '&')
-    .replace(/&lt;/g, '<')
-    .replace(/&gt;/g, '>')
-    .replace(/&quot;/g, '"')
-    .replace(/\n{3,}/g, '\n\n')
-    .trim();
-}
-
 const RELATED_INITIAL_COUNT = 3;
 
-function PersonBioBody({ about }: { about: string }) {
-  const paragraphs = about.split(/\n\n+/).filter(Boolean);
+function normalizeAboutParagraphs(about: string): string[] {
+  return about
+    .split(/\n\n+/)
+    .map((p) => p.replace(/\s+/g, ' ').trim())
+    .filter(Boolean);
+}
+
+function PersonBioBody({ paragraphs }: { paragraphs: string[] }) {
+  if (!paragraphs.length) {
+    return (
+      <p className="clped-bio-paragraph" style={{ color: 'var(--ajab-ink-300)' }}>
+        Biography coming soon.
+      </p>
+    );
+  }
 
   return (
     <>
@@ -295,10 +293,7 @@ export default function CLPeopleDetail({ id: idProp }: { id?: string }) {
 
   if (!person) return <PersonNotFound />;
 
-  const aboutParagraphs = person.about
-    ? person.about.split(/\n\n+/).filter(Boolean)
-    : [];
-
+  const aboutParagraphs = normalizeAboutParagraphs(person.about || '');
   const galleryImages = person.gallery;
 
   return (
@@ -343,13 +338,7 @@ export default function CLPeopleDetail({ id: idProp }: { id?: string }) {
                   ))}
                 </div>
               )}
-              {aboutParagraphs.length > 0 ? (
-                <PersonBioBody about={person.about} />
-              ) : (
-                <p className="clped-bio-paragraph" style={{ color: 'var(--ajab-ink-300)' }}>
-                  Biography coming soon.
-                </p>
-              )}
+              <PersonBioBody paragraphs={aboutParagraphs} />
             </div>
 
             <div className="clped-detail-rail">

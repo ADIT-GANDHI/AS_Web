@@ -7,7 +7,7 @@ type Props = {
   children: ReactNode;
 };
 
-/** Sentinel + spacer wrapper so listing filter bars pin to top: 0 on scroll. */
+/** Sentinel + spacer wrapper so listing filter bars pin near top on scroll. */
 export default function PinnedFilterBarShell({ className = 'cl-filter-bar', children }: Props) {
   const sentinelRef = useRef<HTMLDivElement>(null);
   const barRef = useRef<HTMLDivElement>(null);

@@ -602,9 +602,18 @@ export default function CLSongDetailsPage({
             )}
             </div>
 
-            {/* ===== Explore section — theme strip + mixed list ===== */}
+            {/* ===== Explore section — Poems-style explore (shared clp-related skin) ===== */}
             <div className="cld-detail-body-align">
+              {/* OLD: default explore styling
               <ExploreSection data={relatedData} className="cld-related" />
+              */}
+              <ExploreSection
+                data={relatedData}
+                className="clp-related"
+                initialCount={3}
+                seeMoreStep={3}
+                descriptionLines={3}
+              />
             </div>
           </div>
         </main>

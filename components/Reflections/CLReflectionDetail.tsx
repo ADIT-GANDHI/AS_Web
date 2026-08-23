@@ -334,6 +334,8 @@ export default function CLReflectionDetail({ id: idProp }: { id?: string }) {
 
   const description = data.description || '';
   const aboutHtml = data.aboutHtml || '';
+  const speakerName = (data.saysBy || '').trim();
+  const speakerHref = speakerName ? `/searche?search=${encodeURIComponent(speakerName)}` : '';
 
   return (
     <div className="cl-songs-page-root cl-songs-page-root--listing">
@@ -351,12 +353,14 @@ export default function CLReflectionDetail({ id: idProp }: { id?: string }) {
               <div className="clrd-header-top">
                 <div className="clrd-header-left">
                   <span className="clrd-header-title-name">{data.title}</span>
-                  {data.saysBy && (
+                  {speakerName && (
                     <span className="clrd-header-credits">
                       <span className="clrd-header-verb">
                         {data.format === 'Essay' ? 'by' : 'says'}
                       </span>
-                      <span className="clrd-header-speaker">{data.saysBy}</span>
+                      <Link href={speakerHref} className="clrd-header-speaker clrd-header-speaker-link">
+                        {speakerName}
+                      </Link>
                     </span>
                   )}
                 </div>
@@ -380,7 +384,17 @@ export default function CLReflectionDetail({ id: idProp }: { id?: string }) {
             {/* About — API `about` field, 3-line clamp + "...more" at end of line 3 */}
             <ReflectionDescription text={description} html={aboutHtml} />
 
+            {/* Explore — Poems-style (shared clp-related skin) */}
+            {/* OLD: default explore styling
             <ExploreSection data={related.data} className="cld-related" />
+            */}
+            <ExploreSection
+              data={related.data}
+              className="clp-related"
+              initialCount={3}
+              seeMoreStep={3}
+              descriptionLines={3}
+            />
             </div>
           </div>
         </main>

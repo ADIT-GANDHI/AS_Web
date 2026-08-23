@@ -167,6 +167,7 @@ export default function CLFilterPanel({
   // Issue 11: List of singers should continue till the end of the screen.
   // We use a dynamic calculation based on clientHeight instead of hardcoded LIST_MAX_H.
   const [listMaxHeight, setListMaxHeight] = useState(480);
+  const [showScrollbar, setShowScrollbar] = useState(false);
   const scrollRef = useRef<HTMLDivElement>(null);
   const selectionsScrollRef = useRef<HTMLDivElement>(null);
   const [thumbTop, setThumbTop] = useState(0);
@@ -252,7 +253,9 @@ export default function CLFilterPanel({
     if (!el) return;
     const { scrollTop, scrollHeight, clientHeight } = el;
     setListMaxHeight(clientHeight);
-    if (scrollHeight <= clientHeight) {
+    const overflow = scrollHeight > clientHeight + 1;
+    setShowScrollbar(overflow);
+    if (!overflow) {
       setThumbHeight(clientHeight);
       setThumbTop(0);
       return;
@@ -263,16 +266,37 @@ export default function CLFilterPanel({
     setThumbTop(tp);
   }, []);
 
-  // Recalculate when panel opens, list/footer layout changes, or window resizes.
+  // On open: reset list scroll + schedule thumb recalc after layout/animation settle.
+  useEffect(() => {
+    if (!open) {
+      setShowScrollbar(false);
+      return;
+    }
+
+    const el = scrollRef.current;
+    if (el) el.scrollTop = 0;
+
+    recalcThumb();
+    requestAnimationFrame(() => {
+      const list = scrollRef.current;
+      if (list) list.scrollTop = 0;
+      recalcThumb();
+      requestAnimationFrame(recalcThumb);
+    });
+    const t0 = window.setTimeout(recalcThumb, 0);
+    const t1 = window.setTimeout(recalcThumb, 100);
+
+    return () => {
+      window.clearTimeout(t0);
+      window.clearTimeout(t1);
+    };
+  }, [open, recalcThumb]);
+
+  // Recalculate when list/footer layout changes while open.
   useEffect(() => {
     if (!open) return;
 
-    const runRecalc = () => {
-      recalcThumb();
-      requestAnimationFrame(recalcThumb);
-    };
-
-    runRecalc();
+    recalcThumb();
     window.addEventListener('resize', recalcThumb);
 
     const el = scrollRef.current;
@@ -280,7 +304,11 @@ export default function CLFilterPanel({
       el && typeof ResizeObserver !== 'undefined'
         ? new ResizeObserver(() => recalcThumb())
         : null;
-    if (el && ro) ro.observe(el);
+    if (el && ro) {
+      ro.observe(el);
+      const ul = el.querySelector('ul');
+      if (ul) ro.observe(ul);
+    }
 
     return () => {
       window.removeEventListener('resize', recalcThumb);
@@ -441,6 +469,7 @@ export default function CLFilterPanel({
                   animate={{ x: 0, opacity: 1 }}
                   exit={{ x: '-100%', opacity: 0 }}
                   transition={{ type: 'spring', stiffness: 140, damping: 22 }}
+                  onAnimationComplete={recalcThumb}
                 >
                   {/* Wavy panel bg — 0.92 opacity so page texture shows through slightly */}
                   <div
@@ -690,9 +719,7 @@ export default function CLFilterPanel({
                     </div>
 
                     {/* Custom scrollbar — track height tracks live list clientHeight */}
-                    {listMaxHeight > 0 &&
-                      scrollRef.current &&
-                      scrollRef.current.scrollHeight > scrollRef.current.clientHeight && (
+                    {listMaxHeight > 0 && showScrollbar && (
                       <div
                         style={{
                           position: 'absolute',

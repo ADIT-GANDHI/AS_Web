@@ -258,7 +258,13 @@ export default function CLPoemDetailClient({ id: idProp }: { id: string }) {
 
                   {poemCredit?.kind === 'poet' && (
                     <div className="clp-poem-poet">
-                      poet <span className="name">{poemCredit.name}</span>
+                      poet{' '}
+                      <Link
+                        href={`/searche?search=${encodeURIComponent(poemCredit.name)}`}
+                        className="clp-poem-poet-link name"
+                      >
+                        {poemCredit.name}
+                      </Link>
                     </div>
                   )}
                   {poemCredit?.kind === 'translator' && (

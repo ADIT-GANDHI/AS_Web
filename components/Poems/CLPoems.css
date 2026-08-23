@@ -127,19 +127,6 @@ body:has(.clp-page) footer.footer-bg .footer-inner {
   text-underline-offset: 4px;
 }
 
-.clp-filtered-by {
-  width: min(var(--clp-content-w), calc(100% - 48px));
-  margin: -4px auto 10px;
-  font-family: var(--ajab-font-sans);
-  font-weight: 300;
-  font-size: 15px;
-  color: #828282;
-}
-
-.clp-filtered-by .is-on {
-  color: var(--ajab-pink-primary);
-}
-
 .clp-oral-note {
   margin: 12px 0 0;
   font-family: var(--ajab-font-sans);
@@ -253,6 +240,15 @@ body:has(.clp-page) footer.footer-bg .footer-inner {
   visibility: hidden;
 }
 
+.clp-poem-poet-link {
+  color: inherit;
+  text-decoration: none;
+}
+
+.clp-poem-poet-link:hover {
+  text-decoration: underline;
+}
+
 .clp-translator {
   font-family: var(--ajab-font-sans);
   font-weight: 300;
@@ -315,132 +311,6 @@ body:has(.clp-page) footer.footer-bg .footer-inner {
 }
 
 /* AI wavy divider before Explore (extracted from Poems_27June2026.ai) */
-.clp-explore-divider {
-  width: min(var(--clp-content-w), calc(100% - 48px));
-  height: 28px;
-  margin: 8px auto 85px;
-  background: url(/poems-explore-divider.png) center / 100% auto no-repeat;
-}
-
-/* Explore — AI: title Lora 26; theme strip ~22; card titles 27.
-   Two classes: `.explore-section` ships its own `margin: 0 0 32px` from a
-   separate stylesheet that loads after this one, so a single-class selector
-   loses the tie and the section flushes left. */
-.clp-related.explore-section {
-  max-width: min(var(--clp-content-w), calc(100% - 48px));
-  margin: 0 auto;
-}
-
-.clp-related.explore-section .explore-title,
-.clp-page .clp-related .explore-title {
-  font-size: 26px;
-}
-
-.clp-page .clp-related .explore-theme,
-.clp-page .clp-related .explore-theme-sep {
-  font-family: var(--ajab-font-serif);
-  font-size: 22px;
-}
-
-.clp-page .clp-related .explore-itemtitle {
-  font-size: 27px;
-}
-
-.clp-page .clp-related .explore-itemdesc {
-  font-size: 18px;
-}
-
-.clp-page .clp-related .explore-format {
-  font-size: 17.6px;
-  letter-spacing: 0.02em;
-}
-
-/* Poems AI uses five large, generously spaced related rows before SEE MORE. */
-.clp-page .clp-related .explore-title {
-  margin-bottom: 12px;
-}
-
-.clp-page .clp-related .explore-themes {
-  margin-bottom: 43px;
-}
-
-.clp-page .clp-related .explore-list {
-  gap: 37px;
-}
-
-.clp-page .clp-related .explore-item {
-  min-height: 207px;
-  gap: 20px;
-  box-sizing: border-box;
-}
-
-.clp-page .clp-related .explore-item:not(:last-child) {
-  border-bottom: 1px dotted #b9b9b9;
-}
-
-.clp-page .clp-related .explore-item:not(:last-child) .explore-body {
-  border-bottom: 0;
-  padding-bottom: 0;
-  margin-bottom: 0;
-}
-
-.clp-page .clp-related .explore-thumb {
-  width: 307px;
-  height: 173px;
-  margin-left: -11px;
-  /* AI: thick white frame + soft outer edge + rounded corners */
-  border: 8px solid #ffffff;
-  border-radius: 10px;
-  overflow: hidden;
-  box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.06), 0 2px 10px rgba(0, 0, 0, 0.06);
-  box-sizing: border-box;
-  background: #fff;
-}
-
-.clp-page .clp-related .explore-thumb img {
-  border-radius: 2px;
-}
-
-/* AI: title + italic subtitle stay on one line */
-.clp-page .clp-related .explore-titlerow {
-  flex-wrap: nowrap;
-  align-items: baseline;
-  gap: 8px;
-}
-
-.clp-page .clp-related .explore-itemtitle {
-  flex: 0 0 auto;
-  max-width: 62%;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-
-.clp-page .clp-related .explore-itemsubtitle {
-  font-family: var(--ajab-font-serif);
-  font-style: italic;
-  font-weight: 400;
-  font-size: 22px;
-  color: #828282;
-  margin-left: 0;
-  flex: 1 1 auto;
-  min-width: 0;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-
-.clp-page .clp-related .explore-seemore {
-  display: inline-block;
-  margin-top: 28px;
-  font-family: var(--ajab-font-sans);
-  font-weight: 400;
-  font-size: 18px;
-  letter-spacing: 0.04em;
-  color: var(--ajab-pink-primary);
-  text-transform: uppercase;
-}
-
 /* Poems filter parda — AI ~446px wide */
 .clp-page-root-wrap .ajab-filter-drawer,
 body:has(.clp-page) .ajab-filter-drawer {
@@ -851,8 +721,7 @@ body:has(.clp-page) .nav-link--poems {
 @media screen and (max-width: 900px) {
   .clp-toolbar,
   .clp-nav-row,
-  .clp-poem-stage,
-  .clp-related.explore-section {
+  .clp-poem-stage {
     width: calc(100% - 32px);
   }
 

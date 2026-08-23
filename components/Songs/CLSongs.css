@@ -223,11 +223,18 @@ body:has(.cl-home-page-root) footer.footer-bg .footer-inner {
 .clpe-page .cl-filter-bar--pinned,
 .glossary-container .cl-filter-bar--pinned {
   position: fixed;
-  top: 0;
+  top: 10px;
   left: 0;
   right: 0;
   z-index: 5000;
   background: transparent;
+}
+
+.cl-songs-listing-page .cl-filter-bar--pinned::before,
+.clr-page.clr-listing-page .cl-filter-bar--pinned::before,
+.clpe-page .cl-filter-bar--pinned::before,
+.glossary-container .cl-filter-bar--pinned::before {
+  display: none;
 }
 
 .cl-filter-bar-sentinel {

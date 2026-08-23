@@ -142,6 +142,15 @@ header button.about-text.active {
   letter-spacing: 0;
 }
 
+.nav-link-label {
+  display: inline-block;
+}
+
+.nav-link-text {
+  display: inline-block;
+  line-height: 1;
+}
+
 .nav-link--songs {
   min-width: 72px;
   width: auto;
@@ -151,12 +160,22 @@ header button.about-text.active {
    Counts show on hover only; -count-live force-show rules removed so the count
    never persists when the page is active (user requested hover-only behaviour). */
 
-/* SONGS count — hover only */
-.nav-link--songs .nav-link-songs-count {
+/* Nav counts — width:0 keeps spacing fixed; overflow paints count on baseline */
+.nav-link-songs-count,
+.nav-link-poems-count,
+.nav-link-reflections-count,
+.nav-link-people-count,
+.nav-link-films-count {
+  display: inline-block;
+  width: 0;
+  overflow: visible;
+  vertical-align: baseline;
   opacity: 0;
   transition: opacity 0.25s ease;
-  display: inline-block;
+  white-space: nowrap;
+  pointer-events: none;
   font-size: 0.55em;
+  line-height: 1;
   margin-left: 1px;
   color: var(--ajab-pink-primary);
 }
@@ -165,57 +184,16 @@ header button.about-text.active {
   opacity: 1;
 }
 
-/* REFLECTIONS count — hover only */
-.nav-link--reflections .nav-link-reflections-count {
-  opacity: 0;
-  transition: opacity 0.25s ease;
-  display: inline-block;
-  font-size: 0.55em;
-  margin-left: 1px;
-  color: var(--ajab-pink-primary);
-}
-
 .nav-link--reflections:hover .nav-link-reflections-count {
   opacity: 1;
 }
 
-/* [Claude] these changes have been recommended by claude — POEMS count, same pattern as songs/reflections */
-.nav-link--poems .nav-link-poems-count {
-  opacity: 0;
-  transition: opacity 0.25s ease;
-  display: inline-block;
-  font-size: 0.55em;
-  margin-left: 1px;
-  color: var(--ajab-pink-primary);
-}
-
-.nav-link--poems:hover .nav-link-poems-count,
-body:has(.clp-page) .nav-link--poems .nav-link-poems-count {
+.nav-link--poems:hover .nav-link-poems-count {
   opacity: 1;
-}
-
-/* PEOPLE count — hover only */
-.nav-link--people .nav-link-people-count {
-  opacity: 0;
-  transition: opacity 0.25s ease;
-  display: inline-block;
-  font-size: 0.55em;
-  margin-left: 1px;
-  color: var(--ajab-pink-primary);
 }
 
 .nav-link--people:hover .nav-link-people-count {
   opacity: 1;
-}
-
-/* FILMS count — hover only */
-.nav-link--films .nav-link-films-count {
-  opacity: 0;
-  transition: opacity 0.25s ease;
-  display: inline-block;
-  font-size: 0.55em;
-  margin-left: 1px;
-  color: var(--ajab-pink-primary);
 }
 
 .nav-link--films:hover .nav-link-films-count {
@@ -296,19 +274,34 @@ header nav a.nav-link.active {
   color: #1a1a1a !important;
 }
 
-/* Active route — grey label + round dotted pink underline (not on hover). */
-.nav-link.active .nav-link-label,
+/* Active route — grey label + round dotted pink underline below text only */
+.nav-link.active .nav-link-text,
 header .footer-right .nav-link--about.active,
 header .footer-right .nav-link--radio.active,
 nav > .nav-link.nav-link--radio.active,
 nav .nav-link.block.active {
+  position: relative;
   border-bottom: none;
-  padding-bottom: 6px;
+  padding-bottom: 0;
   text-decoration: none;
+}
+
+.nav-link.active .nav-link-text::after,
+header .footer-right .nav-link--about.active::after,
+header .footer-right .nav-link--radio.active::after,
+nav > .nav-link.nav-link--radio.active::after,
+nav .nav-link.block.active::after {
+  content: '';
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: -6px;
+  height: 3px;
   background-image: radial-gradient(circle, var(--ajab-pink-primary) 1.25px, transparent 1.3px);
   background-size: 6px 3px;
   background-position: left bottom;
   background-repeat: repeat-x;
+  pointer-events: none;
 }
 
 nav .nav-link.block.active {

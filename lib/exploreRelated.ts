@@ -55,11 +55,12 @@ export function getExploreKeywords(data: Record<string, unknown> | null | undefi
     const transliteration = norm(
       k?.word_transliteration || k?.title || k?.term || k?.word
     );
-    const translation = norm(
+    const translationRaw = norm(
       k?.word_translation || k?.subtitle || k?.meaning || k?.translation
     );
     if (!id || !transliteration || seen.has(id)) continue;
     seen.add(id);
+    const translation = sameText(transliteration, translationRaw) ? '' : translationRaw;
     out.push({ id, transliteration, translation });
   }
   return out;

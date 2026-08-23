@@ -114,15 +114,12 @@ export default function ExploreSection({
           All
         </button>
         {keywords.map((kw) => (
-          <span key={kw.id} className="explore-theme-group">
-            <span className="explore-theme-sep" aria-hidden="true">
-              |
-            </span>
             <button
+              key={kw.id}
               type="button"
               role="tab"
               aria-selected={activeKeywordId === kw.id}
-              className={`explore-theme${activeKeywordId === kw.id ? ' active' : ''}`}
+              className={`explore-theme explore-theme--chip${activeKeywordId === kw.id ? ' active' : ''}`}
               onClick={() => setActiveKeywordId(kw.id)}
             >
               <span className="explore-theme-translit">{kw.transliteration}</span>
@@ -133,7 +130,6 @@ export default function ExploreSection({
                 </>
               ) : null}
             </button>
-          </span>
         ))}
       </div>
 
