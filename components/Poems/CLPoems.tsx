@@ -365,7 +365,6 @@ export default function CLPoems() {
                   categoryOrder={['Poet', 'Theme']}
                   filterTriggerAlwaysPink
                   drawerWidth={446}
-                  showClearAllAlways
                   catalogList={{
                     items: catalogEntries,
                     onSelect: selectPoemById,
