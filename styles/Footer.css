@@ -355,10 +355,15 @@ form.footer-form {
 @media screen and (max-width: 767px) {
   .footer-inner {
     row-gap: 2rem;
+    grid-template-columns: 1fr;
   }
 
   .footer-text {
     font-size: 0.7rem;
     line-height: 1.25rem;
+  }
+
+  .footer-content--nav {
+    display: none;
   }
 }

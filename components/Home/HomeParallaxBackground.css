@@ -1,0 +1,269 @@
+/* [Claude] these changes have been recommended by claude —
+   HOME PAGE PARALLAX BACKGROUND — ported 1:1 from the client's live production
+   site (https://ajabshahar.com/featuredContent/), inspected directly via
+   devtools computed styles + raw CSSOM (document.styleSheets) on 2026-08-26.
+
+   TO REVERT / DISABLE:
+   1. Delete the <HomeParallaxBackground /> line and its import in CLHero.tsx
+      (both are tagged with this same "[Claude] recommended by claude" marker).
+   2. That's it — nothing else in the app references this file or the assets
+      in /public/parallax/, so removing the one JSX line fully undoes this.
+
+   WHAT WAS PORTED EXACTLY (verified against the live site's CSSOM, not
+   guessed):
+     - All 7 background-image assets (body, map, check_img1, side_pattern,
+       bird, 4x clouds, whiteString) — see Home Page/_extracted/README.txt
+       for how each was sourced/verified against the live PNGs.
+     - Both @keyframes blocks (movebird, moveclouds), verbatim.
+     - Every layer's exact width/height/top/left/animation-duration/
+       animation-delay/transform-origin/background-repeat/background-
+       attachment, verbatim.
+     - The responsive breakpoints (1140px / 1025px / 1024px / 768px) that
+       hide/resize specific layers on smaller viewports, verbatim.
+
+   THE ONE DELIBERATE DEVIATION:
+     The live site hardcodes the background container to a fixed height
+     (4138px) that happens to match ITS OWN home page's card content length.
+     Our home page has different content (different card count/height), so
+     hardcoding that same number would either clip early or leave a gap.
+     Instead .ajab-home-parallax is height:100% of its positioned ancestor
+     (.cl-home-page-root, which already stretches to fit real page content),
+     so the background always reaches exactly as far down the page as our
+     actual content does — same visual system, adapted to different content
+     length. Everything else is unchanged from the live site.
+*/
+
+.ajab-home-parallax {
+  /* Sits behind the header/cards (they use z-index via .relative.z-10 etc.)
+     and fills the full height of .cl-home-page-root, which already grows to
+     match real card content — see "deliberate deviation" note above. */
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  overflow: hidden; /* clouds intentionally translate past their own box edges — clip them, matching the live site's .main-content-wrapper { overflow:hidden } */
+  z-index: 0;
+  pointer-events: none; /* purely decorative, never blocks clicks on cards above it */
+}
+
+/* [Claude] recommended by claude —
+   .parallax-container: live CSS was `position:relative; margin:0 auto; width:1140px;`
+   i.e. a fixed 1140px-wide centered column that every layer below is
+   positioned against. Kept as a literal 1140px centered column to match the
+   live artwork's native scale exactly — the map layer (full-bleed, tiled)
+   fills the space on either side of it on wider screens. */
+.ajab-px-container {
+  position: relative;
+  margin: 0 auto;
+  width: 1140px;
+  height: 100%;
+  max-width: 100%; /* prevents horizontal overflow/scrollbar below 1140px before the 1025px rule kicks in */
+}
+
+/* Base layer rule — live CSS `.pxLayers` shared by every px-layer1..7 */
+.ajab-px-layer {
+  background-position: 0px 0px;
+  background-repeat: no-repeat;
+  background-color: transparent;
+  position: absolute;
+  width: 100%;
+  top: 0px;
+  left: 0px;
+  height: 100%; /* live default was a fixed 4138px; we stretch to the container instead, see file header */
+}
+
+/* px-layer1 — body.png — static base silhouette, scrolls with the page (no independent animation).
+   [Claude] these changes have been recommended by claude — /parallax/body.png
+   MUST be the exact live file (1140x4098), not a re-export at a different
+   resolution. background-size is left at its default "auto" (native pixel
+   size, no scaling) to match the live CSS exactly — but that means a WIDER
+   source image than the 1140px box just gets silently cropped down to its
+   left 1140px, showing a different (zoomed-in, incomplete) slice of the
+   artwork instead of the full composition. A first pass here used a
+   higher-resolution PSD re-export (1600px wide) for "better quality" and it
+   visibly changed the scene — parts of the pattern that should be visible
+   were cropped out. Do not swap this for a different-resolution version
+   without re-checking it's still exactly 1140px wide. Same note applies to
+   check_img1.png below. */
+.ajab-px-layer1 {
+  width: 1140px;
+}
+
+/* px-layer2 — map.png — the tiled kaleidoscope street-map texture.
+   background-attachment:fixed is the ONE subtle "parallax" effect in the
+   whole system: the texture itself stays pinned to the viewport while its
+   containing box scrolls past underneath it, so the map appears to drift
+   slower than the page content. Verbatim from the live site. */
+.ajab-px-layer2 {
+  background-position: 50% 0px;
+  background-repeat: repeat;
+  background-attachment: fixed;
+}
+
+/* px-layer3 — check_img1.png — the diagonal-hatched dancing-figures pattern.
+   ::before/::after add a 30px repeating vertical strip (side_pattern.png) on
+   each edge, with the right-hand one mirrored via rotate(180deg) — verbatim.
+   Same "must be exactly 1140px wide, native live file" note as px-layer1 above. */
+.ajab-px-layer3 {
+  width: 1140px;
+}
+.ajab-px-layer3::before,
+.ajab-px-layer3::after {
+  content: '';
+  display: inline-block;
+  width: 30px;
+  height: 100%;
+  background-image: url('/parallax/side_pattern.png');
+  background-repeat: repeat-y;
+}
+.ajab-px-layer3::before {
+  float: left;
+}
+.ajab-px-layer3::after {
+  float: right;
+  transform: rotate(180deg);
+}
+
+/* px-layer5 — bird2.png — the single flying bird silhouette.
+   100s linear infinite loop, verbatim keyframe below. transform-origin is
+   NOT the element center — it's an explicit point (30em, 60em) from the
+   live CSS, which is what gives the bird its specific glide-and-tumble arc.
+
+   [Claude] these changes have been recommended by claude — /parallax/bird.png
+   MUST be the exact live crop (92x81px, downloaded directly from the live
+   site). The first version of this file used a PSD-derived export (107x125px,
+   same artwork but with extra transparent padding around the silhouette).
+   Since background-position moves in absolute pixels and the whole element
+   rotates as one rigid body, that padding shifted which part of the sprite
+   sits at the rotation origin — the bird visibly looked upside-down at
+   points in the cycle where the live site's tightly-cropped version doesn't.
+   Verified by scrubbing both this element's and the live site's own
+   .px-layer5 through their Web Animations API currentTime — the rotation
+   angle sweep is byte-identical at every sampled point (both pass through a
+   genuine ~180°-from-baseline orientation twice per 100s loop, by original
+   design — that part is expected and shared with the live site). Do not
+   swap this file for a re-exported/re-cropped version without re-checking
+   it's still exactly 92x81px. */
+.ajab-px-layer5 {
+  background-image: url('/parallax/bird.png');
+  background-position: 0px 0px;
+  background-repeat: no-repeat;
+  animation: ajab-movebird 100s linear 0s infinite normal none running;
+  transform-origin: 30em 60em;
+}
+
+@keyframes ajab-movebird {
+  0% {
+    background-position: 0px 100px;
+    transform: rotate(80deg);
+  }
+  50% {
+    background-position: 1200px 500px;
+  }
+  100% {
+    background-position: 500px 200px;
+    transform: rotate(892deg);
+  }
+}
+
+/* px-layer6 (base + 3 modifiers) — the 4 cloud layers.
+   Each is a separate translateX(+100% -> -100%) sweep at its own width/
+   height/vertical position/duration/delay — verbatim from the live site.
+   Negative animation-delay values start the loop already in progress
+   (so the clouds don't all visibly "reset" together on page load). */
+.ajab-px-layer6 {
+  background-image: url('/parallax/clouds.png');
+  width: 1981px;
+  height: 800px;
+  top: 120px;
+  animation-name: ajab-moveclouds;
+  animation-duration: 70s;
+  animation-timing-function: linear;
+  animation-iteration-count: infinite;
+  animation-delay: -2s;
+}
+.ajab-px-layer6.ajab-second {
+  background-image: url('/parallax/clouds1.png');
+  width: 1290px;
+  height: 771px;
+  top: 800px;
+  animation-delay: -5s;
+  animation-duration: 58s;
+}
+.ajab-px-layer6.ajab-third {
+  background-image: url('/parallax/clouds2.png');
+  width: 1337px;
+  height: 858px;
+  top: 1800px;
+  animation-delay: 2s;
+  animation-duration: 66s;
+}
+.ajab-px-layer6.ajab-fourth {
+  background-image: url('/parallax/clouds3.png');
+  width: 1223px;
+  height: 855px;
+  top: 3200px;
+  animation-delay: 5s;
+  animation-duration: 55s;
+}
+
+@keyframes ajab-moveclouds {
+  0% {
+    transform: translate(100%, 0px);
+  }
+  100% {
+    transform: translate(-100%, 0px);
+  }
+}
+
+/* px-layer7 — whiteString.png — static decorative thread, scrolls with the page */
+.ajab-px-layer7 {
+  background-image: url('/parallax/whiteString.png');
+  background-position: 0px 0px;
+  background-repeat: repeat-y;
+  left: 36.3%;
+  top: 45px;
+  width: 356px;
+}
+
+/* ===================== RESPONSIVE — verbatim from the live site ===================== */
+
+/* ≤1140px: the side_pattern strips get cramped against 1140px art — hide them, matching live */
+@media screen and (max-width: 1140px) {
+  .ajab-px-layer3::before,
+  .ajab-px-layer3::after {
+    display: none;
+  }
+}
+
+/* ≤1025px: container goes fluid, body/check-pattern layers switch to a
+   vertically-repeating "contain" fit instead of one fixed 1140px image */
+@media screen and (max-width: 1025px) {
+  .ajab-px-container {
+    width: 100%;
+  }
+  .ajab-px-layer1,
+  .ajab-px-layer3 {
+    background-repeat: repeat-y;
+    background-size: contain;
+    width: 100%;
+  }
+}
+
+/* ≤1024px: map layer (the heaviest tiled texture) is dropped entirely for
+   performance, and the white string thread shifts inward */
+@media screen and (max-width: 1024px) {
+  .ajab-px-layer2 {
+    display: none;
+  }
+  .ajab-px-layer7 {
+    left: 29%;
+  }
+}
+
+/* ≤768px: white string thread shifts inward again for the narrower column */
+@media screen and (max-width: 768px) {
+  .ajab-px-layer7 {
+    left: 17%;
+  }
+}

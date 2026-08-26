@@ -4,12 +4,24 @@
 
 /* Marble — Figma 581:308 plate (1924×4475 native); one tile covers full home scroll.
    Same width rule as cards: cap at 1951px artboard, scale height proportionally.
-   repeat-y only if content ever exceeds scaled tile height (seam-safe #ede8df). */
+   repeat-y only if content ever exceeds scaled tile height (seam-safe #ede8df).
+   [Claude] these changes have been recommended by claude — the tiled home_bg.png
+   image is swapped out for the live-site parallax system (see
+   components/Home/HomeParallaxBackground.tsx), which paints its own body/map/
+   check-pattern layers at full page height. Kept as a comment, not deleted —
+   uncomment the `url(...)` line and remove the parallax component usage in
+   CLHero.tsx to revert to the old static tile.
+   Base colour changed #ede8df (cream) -> #fff (white) to match the live site
+   exactly: the parallax PNGs are semi-transparent, so whatever sits behind
+   them shows through — the live site's body/html/.featured-all are all
+   rgb(255,255,255), confirmed via computed style. The old cream tone was
+   bleeding through and reading as brown; revert this one line too if the
+   parallax system itself is ever reverted. */
 .cl-home-page-root {
   --clh-bg-w: min(100%, 1951px);
   background:
-    url(/home-assets/home_bg.png) center top / var(--clh-bg-w) auto repeat-y,
-    #ede8df;
+    /* url(/home-assets/home_bg.png) center top / var(--clh-bg-w) auto repeat-y, */
+    #fff; /* was #ede8df */
   min-height: 100dvh;
   position: relative;
 }
@@ -685,5 +697,26 @@ a.clh-card {
     --clh-sheet-pad-right: 20px;
     --clh-sheet-pad-top: 24px;
     --clh-sheet-pad-bottom: 36px;
+  }
+}
+
+/* Phone column only — 1440 stagger lives in the base .clh-card-row--* rules above. */
+@media screen and (max-width: 767px) {
+  .clh-page {
+    padding: 12px 20px 56px;
+  }
+
+  .clh-marble-stage {
+    --clh-gap: 48px;
+    --clh-card-w-wide: 100%;
+  }
+
+  .clh-song-card,
+  .clh-poem-card,
+  .clh-reflection-card,
+  .clh-people-card,
+  .clh-film-card {
+    width: 100%;
+    max-width: 100% !important;
   }
 }

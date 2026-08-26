@@ -3,6 +3,7 @@ import type { Metadata } from 'next';
 import './globals.css';
 import '@/styles/CustomStyle.css';
 import '@/styles/Footer.css';
+import '@/styles/mobile-767.css';
 import FloatingActions from '@/components/FloatingActions';
 import Footer from '@/components/Footer';
 

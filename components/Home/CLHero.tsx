@@ -34,6 +34,8 @@ import HomeCardShell from './HomeCardShell';
 import HomeCardVideo from './HomeCardVideo';
 import HomeCardMediaActions from './HomeCardMediaActions';
 import HomeCardBodyLink from './HomeCardBodyLink';
+// [Claude] these changes have been recommended by claude — live-site parallax background (see file for full source/revert notes)
+import HomeParallaxBackground from './HomeParallaxBackground';
 
 const NEWS_ASSET_BASE = `${AJAB_API_BASE}/`;
 
@@ -292,6 +294,8 @@ export default function CLHero() {
 
   return (
     <div className="cl-home-page-root">
+      {/* [Claude] these changes have been recommended by claude — live-site parallax background, sits behind everything below */}
+      <HomeParallaxBackground />
       <div className="cl-home-layout">
         <Header />
         <main className="relative z-10 flex-1">

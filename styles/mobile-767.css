@@ -1,0 +1,200 @@
+/**
+ * Phone layout only (max-width: 767px).
+ *
+ * Do not add rules outside this media query.
+ * 768–1439px keep the existing scaled desktop layout.
+ * 1440px+ is frozen — this file must not change it.
+ *
+ * Header.css is imported from the Header component and can land after this
+ * file, so phone overrides use explicit values + !important where needed.
+ */
+
+@media screen and (max-width: 767px) {
+  body.ajab-mobile-nav-open {
+    overflow: hidden;
+  }
+
+  /* ── Header: same Header.png / logo / search; hamburger + search left, logo right ── */
+  .gradient-bg > header,
+  header {
+    background: url(/songs-assets/Header.png) no-repeat center top / 100% 100% !important;
+    box-shadow: none !important;
+    min-height: 96px !important;
+    height: 96px !important;
+  }
+
+  .gradient-bg .header-inner-container,
+  header .header-inner-container {
+    height: 96px !important;
+    min-height: 96px !important;
+    padding: 10px 16px 28px !important;
+    justify-content: center;
+  }
+
+  .header-bar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    width: 100%;
+  }
+
+  .header-brand {
+    order: 2;
+    gap: 0 !important;
+  }
+
+  .header-toolbar {
+    order: 1;
+    gap: 8px !important;
+    margin-top: 0 !important;
+    align-items: center;
+  }
+
+  header .about-nav-dropdown-wrap,
+  header .header-toolbar .nav-link--about,
+  header .header-toolbar .nav-link--radio {
+    display: none !important;
+  }
+
+  .header-search-toggle {
+    order: 2;
+    transform: none !important;
+  }
+
+  .header-search-toggle img {
+    width: 28px;
+    height: 28px;
+  }
+
+  .header-menu-toggle {
+    order: 1;
+    padding: 4px;
+    color: #1a1a1a;
+  }
+
+  .header-menu-toggle[aria-expanded='true'] {
+    color: var(--ajab-pink-primary);
+  }
+
+  .header-logo-link .logo,
+  header .logo {
+    transform: translateY(8px) !important;
+    width: 68px !important;
+    height: auto !important;
+    margin: 0 !important;
+  }
+
+  /* Overlay: existing nav links, restyled. Hide counts + nested About tabs. */
+  .header-mobile-drawer {
+    position: fixed;
+    top: 96px;
+    right: 0;
+    bottom: 0;
+    left: 0;
+    z-index: 40;
+    background: rgba(255, 255, 255, 0.94);
+    overflow-y: auto;
+  }
+
+  .header-mobile-drawer nav {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 1.5rem;
+    padding: 28px 24px 48px;
+  }
+
+  .header-mobile-drawer .nav-link,
+  .header-mobile-drawer .nav-link .nav-link-label,
+  .header-mobile-drawer .nav-link .nav-link-text {
+    color: var(--ajab-pink-primary) !important;
+    font-family: var(--ajab-font-sans);
+    font-size: 22px;
+    font-weight: 400;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    height: auto;
+    justify-content: flex-start;
+  }
+
+  .header-mobile-drawer .nav-link.active .nav-link-text::after,
+  .header-mobile-drawer .nav-link.block.active::after {
+    display: none;
+  }
+
+  .header-mobile-drawer .nav-link-songs-count,
+  .header-mobile-drawer .nav-link-poems-count,
+  .header-mobile-drawer .nav-link-reflections-count,
+  .header-mobile-drawer .nav-link-people-count,
+  .header-mobile-drawer .nav-link-films-count,
+  .header-mobile-drawer .header-mobile-drawer__about-subs {
+    display: none !important;
+  }
+
+  /* Radio lives in the desktop header bar; on phone that slot is gone, so the existing Radio link stays in the overlay. */
+  .header-mobile-drawer .header-mobile-drawer__radio {
+    display: flex !important;
+  }
+
+  .gradient-bg .header-search-panel {
+    width: auto;
+    margin: 108px 16px 40px;
+  }
+
+  .gradient-bg .header-search-card {
+    width: 100%;
+    margin-left: 0;
+  }
+
+  /* ── Home: same 5 wavy cards, column instead of stagger ── */
+  .cl-home-page-root .clh-page {
+    padding: 12px 20px 56px !important;
+  }
+
+  .cl-home-page-root .clh-marble-stage {
+    --clh-gap: 48px;
+    --clh-card-w-wide: 100%;
+    --clh-side-pad: 20px;
+  }
+
+  .cl-home-page-root .clh-song-card,
+  .cl-home-page-root .clh-poem-card,
+  .cl-home-page-root .clh-reflection-card,
+  .cl-home-page-root .clh-people-card,
+  .cl-home-page-root .clh-film-card {
+    width: 100% !important;
+    max-width: 100% !important;
+  }
+
+  .cl-home-page-root .clh-card-row--song,
+  .cl-home-page-root .clh-card-row--poem,
+  .cl-home-page-root .clh-card-row--reflection,
+  .cl-home-page-root .clh-card-row--people,
+  .cl-home-page-root .clh-card-row--film {
+    justify-content: center !important;
+    padding: 0 !important;
+  }
+
+  /* ── Footer: stacked About / Support / Connect; hide pink route list ── */
+  footer .footer-content--nav {
+    display: none !important;
+  }
+
+  footer .footer-inner {
+    grid-template-columns: 1fr;
+    row-gap: 1.75rem;
+    padding-left: 24px;
+    padding-right: 24px;
+  }
+
+  footer form.footer-form {
+    max-width: 100%;
+  }
+
+  footer .footer-credits {
+    flex-direction: column;
+    align-items: center;
+    gap: 1rem;
+    padding-bottom: 1.5rem;
+  }
+}

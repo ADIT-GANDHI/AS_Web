@@ -62,6 +62,15 @@ Desktop.ini
 .tmp-whisper/
 _tmp*/
 _serve-test/
+/tmp/
+
+# Photoshop / design sources — not used by the Next.js app (HOME.psd is 105MB)
+*.psd
+*.psb
+*.abr
+
+# Local design dumps and layer extracts (keep web-ready copies in public/)
+/Home Page/
 
 # Local audit, comparison, and screenshot artifacts (not part of deployable app)
 _*.*

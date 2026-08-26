@@ -134,6 +134,20 @@ export default function Header() {
     };
   }, [isSearchOpen, searchQuery]);
 
+  useEffect(() => {
+    setIsMenuOpen(false);
+  }, [pathname]);
+
+  useEffect(() => {
+    if (!isMenuOpen) {
+      return;
+    }
+    document.body.classList.add('ajab-mobile-nav-open');
+    return () => {
+      document.body.classList.remove('ajab-mobile-nav-open');
+    };
+  }, [isMenuOpen]);
+
   const sections = useMemo(
     () =>
       SEARCH_SECTION_ORDER.filter((section) => (searchData.counts[section] || 0) > 0).map((section) => ({
@@ -172,10 +186,10 @@ export default function Header() {
     <div className="gradient-bg">
       <header className="sticky top-0 z-[100000]">
         <div className="mx-auto header-inner-container" style={{ position: 'relative', zIndex: 2 }}>
-          <div className="flex justify-between items-center flex-nowrap">
+          <div className="header-bar flex justify-between items-center flex-nowrap">
             {/* Logo Section */}
-            <div className="flex items-center gap-12 flex-nowrap">
-              <Link href="/" className="flex items-center">
+            <div className="header-brand flex items-center gap-12 flex-nowrap">
+              <Link href="/" className="header-logo-link flex items-center">
                 <Image
                   className="logo"
                   src={logo}
@@ -240,7 +254,7 @@ export default function Header() {
             </div>
 
             {/* Right Side Icons */}
-            <div className="flex items-center gap-9 footer-right">
+            <div className="header-toolbar flex items-center gap-9 footer-right">
               <Suspense
                 fallback={
                   <Link href="/about?tab=ajab" className="nav-link nav-link--about hidden md:inline">
@@ -257,7 +271,10 @@ export default function Header() {
                 RADIO
               </Link>
               <button
-                onClick={() => setIsSearchOpen((prev) => !prev)}
+                onClick={() => {
+                  setIsMenuOpen(false);
+                  setIsSearchOpen((prev) => !prev);
+                }}
                 className={`header-search-toggle transition-colors cursor-pointer ${isSearchOpen ? 'text-pink-500' : 'text-gray-700 hover:text-gray-900'
                   }`}
                 aria-label="Toggle search"
@@ -275,8 +292,14 @@ export default function Header() {
 
               {/* Mobile menu toggle */}
               <button
-                onClick={() => setIsMenuOpen(!isMenuOpen)}
-                className="md:hidden p-2 pl-0 text-gray-600 hover:text-gray-900 transition-colors"
+                type="button"
+                onClick={() => {
+                  setIsSearchOpen(false);
+                  setIsMenuOpen((open) => !open);
+                }}
+                className="header-menu-toggle md:hidden p-2 pl-0 text-gray-600 hover:text-gray-900 transition-colors"
+                aria-label={isMenuOpen ? 'Close menu' : 'Open menu'}
+                aria-expanded={isMenuOpen}
               >
                 {isMenuOpen ? <X className="w-8 h-8" /> : <Menu className="w-8 h-8" />}
               </button>
@@ -285,7 +308,7 @@ export default function Header() {
 
           {/* Mobile Navigation */}
           {isMenuOpen && (
-            <div className="fixed inset-0 top-[80px] bg-white z-40 md:hidden">
+            <div className="header-mobile-drawer md:hidden">
               <nav className="flex flex-col space-y-6 p-6">
                 {navigationItems.map((item) => {
                   const isSongs = item.name === 'SONGS';
@@ -339,7 +362,7 @@ export default function Header() {
                 })}
                 <Link
                   href="/radio"
-                  className={`nav-link nav-link--radio text-lg font-medium ${isRadioPage ? 'active' : ''}`}
+                  className={`header-mobile-drawer__radio nav-link nav-link--radio text-lg font-medium ${isRadioPage ? 'active' : ''}`}
                   onClick={() => setIsMenuOpen(false)}
                 >
                   RADIO
@@ -354,14 +377,14 @@ export default function Header() {
                   </Link>
                   <Link
                     href="/about?tab=ajab"
-                    className="block px-4 py-2 hover:bg-gray-100"
+                    className="header-mobile-drawer__about-subs block px-4 py-2 hover:bg-gray-100"
                     onClick={() => setIsMenuOpen(false)}
                   >
                     AJAB SHAHAR
                   </Link>
                   <Link
                     href="/about?tab=kabir"
-                    className="block px-4 py-2 hover:bg-gray-100"
+                    className="header-mobile-drawer__about-subs block px-4 py-2 hover:bg-gray-100"
                     onClick={() => setIsMenuOpen(false)}
                   >
                     KABIR PROJECT
