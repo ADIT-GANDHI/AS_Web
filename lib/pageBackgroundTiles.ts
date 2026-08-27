@@ -120,3 +120,24 @@ export const GLOSSARY_BG_TEXTURE: PageBackgroundTile = {
   tileHeight: 1917,
   fallbackColor: '#f8f6f2',
 };
+
+/**
+ * Poems page BG — single repeating texture from New_UI/Poems_13July2026.ai
+ * (monochrome plate). No middle-white parda. Explore uses a separate 2-line
+ * wave asset (`poems-explore-divider.png`), not part of this tile.
+ * Mirror stack via `scripts/build-poems-bg.mjs` → poems_newbg-tile.png.
+ */
+export const POEMS_BG_TEXTURE: PageBackgroundTile = {
+  url: tileUrl('/poems_newbg-tile.png'),
+  tileWidth: 1920,
+  tileHeight: 4268,
+  fallbackColor: '#e0e0e0',
+};
+
+/** Contact — mandala tile from New_UI/ContactPage.ai + shared middle-white parda. */
+export const CONTACT_BG_TEXTURE: PageBackgroundTile = {
+  url: tileUrl('/contact-page-bg.png'),
+  tileWidth: 717,
+  tileHeight: 717,
+  fallbackColor: '#f4f4f4',
+};

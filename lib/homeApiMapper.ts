@@ -149,22 +149,33 @@ function truncate(text: string, max = 320): string {
 const HOME_THUMBNAIL_EXCERPT_PLACEHOLDER =
   'Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris.';
 
-/** CMS `thumbnail_excerpt` only — skips junk placeholders (e.g. `"t"`, `"test"`). */
-function pickThumbnailExcerptField(record: Record<string, unknown>): string {
-  const raw = record.thumbnail_excerpt;
-  if (typeof raw !== 'string' || !raw.trim()) return '';
-  const text = raw.includes('<') ? htmlToPlainText(raw) : raw.trim();
-  if (text.length <= 10) return '';
-  return text;
+/**
+ * Card body under home thumbs — CMS may send `thumbnailexcerpt` and/or
+ * `thumbnail_excerpt`. Reflections also use `reflection_excerpt`.
+ * People cards prefer `profile`. Skips junk placeholders (e.g. `"t"`, `"test"`).
+ */
+function pickCardExcerptField(
+  record: Record<string, unknown>,
+  keys: string[] = ['thumbnailexcerpt', 'thumbnail_excerpt']
+): string {
+  for (const key of keys) {
+    const raw = record[key];
+    if (typeof raw !== 'string' || !raw.trim()) continue;
+    const text = raw.includes('<') ? htmlToPlainText(raw) : raw.trim();
+    if (text.length <= 10) continue;
+    return text;
+  }
+  return '';
 }
 
 function resolveHomeCardDescription(
   record: Record<string, unknown>,
   mockDescription: string,
   apiOnly: boolean,
-  maxLen = 280
+  maxLen = 280,
+  excerptKeys: string[] = ['thumbnailexcerpt', 'thumbnail_excerpt']
 ): string {
-  const excerpt = pickThumbnailExcerptField(record);
+  const excerpt = pickCardExcerptField(record, excerptKeys);
   if (excerpt) return truncate(excerpt, maxLen);
   if (apiOnly || hasRecordId(record)) return HOME_THUMBNAIL_EXCERPT_PLACEHOLDER;
   return mockDescription;
@@ -269,7 +280,13 @@ function mapReflection(
   const record = raw as Record<string, unknown>;
   if (apiOnly && !hasRecordId(record)) return null;
 
-  const description = resolveHomeCardDescription(record, mock.description, apiOnly, 140);
+  const description = resolveHomeCardDescription(
+    record,
+    mock.description,
+    apiOnly,
+    140,
+    ['thumbnailexcerpt', 'thumbnail_excerpt', 'reflection_excerpt']
+  );
 
   return {
     id: (record.id ?? mock.id) as HomeReflectionCard['id'],
@@ -306,7 +323,14 @@ function mapPeople(raw: unknown, mock: HomePeopleCard, apiOnly: boolean): HomePe
   const record = raw as Record<string, unknown>;
   if (apiOnly && !hasRecordId(record)) return null;
 
-  const description = resolveHomeCardDescription(record, mock.description, apiOnly, 220);
+  /* People home card body — prefer CMS `profile` (API often omits thumbnail_excerpt). */
+  const description = resolveHomeCardDescription(
+    record,
+    mock.description,
+    apiOnly,
+    220,
+    ['profile', 'about', 'thumbnailexcerpt', 'thumbnail_excerpt', 'meta_description']
+  );
 
   const title =
     firstString(

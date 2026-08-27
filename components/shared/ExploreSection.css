@@ -257,12 +257,20 @@
 }
 
 /* ── Poems explore skin — shared by Songs / Poems / Reflections detail ── */
-/* Poems listing only — decorative rule above explore (not used on detail pages). */
+/* Poems listing — full-bleed 2-line white wave between LISTEN|NOTES|GLOSSARY
+   and Related/Explore (New_UI/Poems_13July2026). Separate from page BG tile. */
 .clp-explore-divider {
-  width: min(856px, calc(100% - 48px));
-  height: 28px;
-  margin: 8px auto 85px;
-  background: url(/poems-explore-divider.png) center / 100% auto no-repeat;
+  /* Break out of the 856px content column so the wave spans the artboard. */
+  width: 100vw;
+  max-width: 100vw;
+  margin-left: calc(50% - 50vw);
+  margin-right: calc(50% - 50vw);
+  /* PDF: ~52px after actions, ~64px before section title */
+  margin-top: 52px;
+  margin-bottom: 64px;
+  height: 30px;
+  background: url(/poems-wave-divider.png) center / 100% 100% no-repeat;
+  pointer-events: none;
 }
 
 /* Detail pages — spacing above explore without the listing divider asset */

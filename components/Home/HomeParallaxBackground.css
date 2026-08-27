@@ -93,7 +93,15 @@
    background-attachment:fixed is the ONE subtle "parallax" effect in the
    whole system: the texture itself stays pinned to the viewport while its
    containing box scrolls past underneath it, so the map appears to drift
-   slower than the page content. Verbatim from the live site. */
+   slower than the page content. Verbatim from the live site.
+   [Claude] these changes have been recommended by claude — a 100vw-widened
+   version of this rule was tried (to fill the blank margins that appear on
+   wide viewports) and reverted: it introduced a visible seam at the old
+   1140px edge in practice, which looked worse than the plain blank margin
+   it was meant to fix. Back to matching the live site exactly — 1140px,
+   same as every other layer. See git history / earlier conversation if this
+   is ever worth retrying with a different approach (e.g. a soft fade at the
+   1140px edge instead of a hard box boundary). */
 .ajab-px-layer2 {
   background-position: 50% 0px;
   background-repeat: repeat;
@@ -101,12 +109,24 @@
 }
 
 /* px-layer3 — check_img1.png — the diagonal-hatched dancing-figures pattern.
-   ::before/::after add a 30px repeating vertical strip (side_pattern.png) on
-   each edge, with the right-hand one mirrored via rotate(180deg) — verbatim.
    Same "must be exactly 1140px wide, native live file" note as px-layer1 above. */
 .ajab-px-layer3 {
   width: 1140px;
 }
+
+/* [Claude] these changes have been recommended by claude — RESTORED.
+   This was briefly disabled: the live CSS adds ::before/::after (a 30px
+   repeating vertical strip, side_pattern.png, on each edge of px-layer3,
+   right-hand one mirrored via rotate(180deg)), and side_pattern.png's
+   mostly-opaque-white fill sitting against check_img1.png's soft
+   antialiased edge does produce a thin stray-looking vertical line on wide
+   viewports (1440px+). Removing it fixed that line but left the edge
+   looking bare/unfinished instead — worse trade. Restored to match the
+   live site exactly; the line stays for now as a known, accepted issue
+   rather than something to design around by deleting a whole design
+   element. If revisited later: the fix should target side_pattern.png
+   itself (e.g. softening its opaque edge to fade like check_img1.png's
+   does), not removing the strip outright. */
 .ajab-px-layer3::before,
 .ajab-px-layer3::after {
   content: '';

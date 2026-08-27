@@ -3,6 +3,8 @@
 import { useCallback, useContext, useEffect, useMemo, useRef, useState } from 'react';
 import { useSearchParams } from 'next/navigation';
 import Header from '@/components/Header';
+import RepeatingPageBackground from '@/components/shared/RepeatingPageBackground';
+import { POEMS_BG_TEXTURE } from '@/lib/pageBackgroundTiles';
 
 import {
   POEMS_INTRO,
@@ -50,6 +52,7 @@ const NOTES_LOREM =
 export default function CLPoems() {
   const searchParams = useSearchParams();
   const deepLinkId = searchParams.get('id') || '';
+  const shellRef = useRef<HTMLDivElement | null>(null);
   const { setPoemsNavTotal } = useContext(PoemsNavCountContext);
   const [poems, setPoems] = useState<PoemData[]>([]);
   const [activeIdx, setActiveIdx] = useState(0);
@@ -338,8 +341,13 @@ export default function CLPoems() {
 
   return (
     <div className="cl-songs-page-root clp-page-root-wrap">
-      <Header />
-      <div className="clp-page-root">
+      <div className="cl-songs-page-shell" ref={shellRef}>
+        <RepeatingPageBackground
+          containerRef={shellRef}
+          tile={POEMS_BG_TEXTURE}
+        />
+        <Header />
+        <div className="clp-page-root relative z-10">
         <main className="relative z-10">
           <div
             className="clp-page"
@@ -494,6 +502,7 @@ export default function CLPoems() {
             />
           </div>
         </main>
+        </div>
       </div>
     </div>
   );

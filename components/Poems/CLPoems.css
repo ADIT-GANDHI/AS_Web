@@ -1,14 +1,12 @@
 /* Poems page — calibrated to Poems_27June2026.ai at 1440px artboard.
    Content column 856px; side inset (1440 − 856) / 2 = 292px. */
 
+/* Single repeating BG painted by RepeatingPageBackground (no middle-white parda).
+   Source: New_UI/Poems_13July2026.ai monochrome plate. */
 html:has(.clp-page-root-wrap),
 body:has(.clp-page-root-wrap) {
-  background-color: #e8eef2 !important;
-  /* Mirrored tile (2317×2) so tall pages repeat without a hard seam. */
-  background-image: url(/poems-bg-ai-mirror.png) !important;
-  background-repeat: repeat-y !important;
-  background-size: 100% auto !important;
-  background-position: center top !important;
+  background-color: #e0e0e0 !important;
+  background-image: none !important;
 }
 
 .cl-songs-page-root.clp-page-root-wrap {
@@ -17,7 +15,7 @@ body:has(.clp-page-root-wrap) {
   position: relative;
   width: 100%;
   max-width: none;
-  background-color: transparent !important;
+  background-color: #e0e0e0 !important;
   background-image: none !important;
   height: auto;
   min-height: 100dvh;

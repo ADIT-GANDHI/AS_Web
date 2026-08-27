@@ -1,0 +1,204 @@
+/* Contact Us — New_UI/ContactPage.ai + Contact_draft2.pdf
+   Dual-layer BG: mandala tile + shared middle-white parda (Glossary/People system).
+   Form tags: grey placeholders inside the fields (not labels above).
+   Type: site tokens — Merriweather Sans / Lora. */
+
+.cl-songs-page-root:has(.contact-page-root) {
+  --contact-artboard-w: 1440;
+  --contact-col-w: min(calc(100vw * 520 / var(--contact-artboard-w)), calc(100vw - 48px));
+  position: relative;
+  background-color: #f4f4f4;
+  background-image: none;
+}
+
+body:has(.contact-page-root) footer.footer-bg {
+  position: relative;
+  z-index: 10;
+}
+
+body:has(.contact-page-root) footer.footer-bg .footer-inner {
+  margin-top: 0 !important;
+  padding-top: 28px;
+}
+
+.contact-page-root {
+  position: relative;
+  width: 100%;
+  min-height: 100dvh;
+  display: flex;
+  flex-direction: column;
+}
+
+.contact-page.cl-songs-page {
+  flex: 1;
+  width: 100%;
+  max-width: none;
+  padding: clamp(22px, calc(100vw * 32 / var(--contact-artboard-w)), 36px) 24px
+    clamp(56px, 7vw, 96px);
+  box-sizing: border-box;
+  font-family: var(--ajab-font-sans);
+  font-weight: 300;
+}
+
+.contact-page {
+  width: 100%;
+  display: flex;
+  justify-content: center;
+}
+
+.contact-column {
+  width: var(--contact-col-w);
+  max-width: 100%;
+}
+
+.contact-title {
+  margin: 0 0 12px;
+  font-family: var(--ajab-font-serif);
+  font-weight: 400;
+  font-size: var(--ajab-fs-h1);
+  line-height: 1.25;
+  letter-spacing: 0;
+  color: #4f4f4f;
+}
+
+.contact-intro {
+  margin: 0 0 22px;
+  font-family: var(--ajab-font-sans);
+  font-weight: 300;
+  font-size: var(--ajab-fs-body);
+  line-height: 1.55;
+  color: #575756;
+}
+
+.contact-link {
+  color: var(--ajab-pink-primary);
+  text-decoration: none;
+  font-weight: 300;
+}
+
+.contact-link:hover {
+  text-decoration: underline;
+}
+
+.contact-form {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  margin: 0 0 22px;
+}
+
+.contact-input {
+  width: 100%;
+  box-sizing: border-box;
+  margin: 0;
+  padding: 10px 18px;
+  border: 1px solid #9a9a9a;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.55);
+  font-family: var(--ajab-font-sans);
+  font-weight: 300;
+  font-size: var(--ajab-fs-body-sm);
+  line-height: 1.4;
+  color: #4f4f4f;
+  outline: none;
+}
+
+.contact-input--message {
+  border-radius: 22px;
+  min-height: 148px;
+  resize: vertical;
+  padding-top: 12px;
+  padding-bottom: 12px;
+  line-height: 1.5;
+}
+
+.contact-input::placeholder {
+  color: #9a9a9a;
+  opacity: 1;
+  font-family: var(--ajab-font-sans);
+  font-weight: 300;
+  font-size: var(--ajab-fs-body-sm);
+}
+
+.contact-input:focus {
+  border-color: #6f6f6f;
+}
+
+.contact-mailing {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  margin-top: 2px;
+  font-family: var(--ajab-font-sans);
+  font-weight: 300;
+  font-size: var(--ajab-fs-body-sm);
+  line-height: 1.45;
+  color: #575756;
+  cursor: pointer;
+}
+
+.contact-mailing input[type='checkbox'] {
+  width: 15px;
+  height: 15px;
+  margin-top: 3px;
+  flex-shrink: 0;
+  accent-color: var(--ajab-pink-primary);
+  cursor: pointer;
+}
+
+.contact-submit {
+  align-self: flex-start;
+  margin-top: 2px;
+  padding: 7px 26px;
+  border: 1px solid #9a9a9a;
+  border-radius: 999px;
+  background: transparent;
+  color: var(--ajab-pink-primary);
+  font-family: var(--ajab-font-sans);
+  font-weight: 300;
+  font-size: var(--ajab-fs-body-sm);
+  letter-spacing: 0.01em;
+  line-height: 1.3;
+  cursor: pointer;
+}
+
+.contact-submit:hover {
+  border-color: var(--ajab-pink-primary);
+}
+
+.contact-social {
+  margin: 0 0 28px;
+  font-family: var(--ajab-font-sans);
+  font-weight: 300;
+  font-size: var(--ajab-fs-body-sm);
+  line-height: 1.45;
+  color: #575756;
+}
+
+.contact-address {
+  font-style: normal;
+  font-family: var(--ajab-font-serif);
+  font-weight: 400;
+  font-size: var(--ajab-fs-body-sm);
+  line-height: 1.55;
+  color: #575756;
+}
+
+.contact-address p {
+  margin: 0;
+}
+
+.contact-address-org {
+  font-weight: 700;
+  color: #4f4f4f;
+}
+
+@media (max-width: 767px) {
+  .contact-page.cl-songs-page {
+    padding-top: 18px;
+  }
+
+  .contact-input--message {
+    min-height: 128px;
+  }
+}
