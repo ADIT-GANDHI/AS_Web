@@ -24,6 +24,7 @@ import {
   type RadioPlaylist,
   type RadioTrack,
 } from '@/lib/radioAudio';
+import { selectSingleFilterId } from '@/lib/listingFilterSelection';
 import '@/styles/CustomStyle.css';
 import '@/components/Songs/CLSongs.css';
 import './CLRadio.css';
@@ -312,14 +313,10 @@ export default function CLRadio() {
 
   const handleFilterSelect = (type: FilterType, value: string) => {
     if (type === 'Singer') {
-      setSelectedSingers((prev) =>
-        prev.includes(value) ? prev.filter((x) => x !== value) : [...prev, value]
-      );
+      setSelectedSingers((prev) => selectSingleFilterId(prev, value));
     }
     if (type === 'Poet') {
-      setSelectedCurated((prev) =>
-        prev.includes(value) ? prev.filter((x) => x !== value) : [...prev, value]
-      );
+      setSelectedCurated((prev) => selectSingleFilterId(prev, value));
     }
   };
 

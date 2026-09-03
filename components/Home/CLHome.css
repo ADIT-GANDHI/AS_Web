@@ -457,6 +457,9 @@
   -webkit-line-clamp: var(--clh-desc-lines);
   line-clamp: var(--clh-desc-lines);
   overflow: hidden;
+  /* Prefer cutting between words rather than mid-glyph when clamp ellipsizes */
+  word-break: normal;
+  overflow-wrap: break-word;
 }
 
 .clh-card-footer {
@@ -557,7 +560,8 @@ a.clh-card {
   padding-right: var(--clh-poem-verse-inset);
 }
 
-/* PDF home poem: 4 translation lines, gap, then 2 transliteration lines */
+/* PDF home poem: 4 translation lines, gap, then 2 transliteration lines.
+   Use max-height (not -webkit-line-clamp) so white-space: pre-line keeps verse breaks. */
 .clh-poem-text {
   font-family: var(--ajab-font-serif);
   font-style: italic;
@@ -568,10 +572,8 @@ a.clh-card {
   color: var(--ajab-ink-500);
   white-space: pre-line;
   margin: 0 0 calc(10px * var(--clh-poem-air));
-  display: -webkit-box;
-  -webkit-box-orient: vertical;
-  -webkit-line-clamp: 2;
-  line-clamp: 2;
+  display: block;
+  max-height: calc(var(--clh-lh-poem-card) * 2);
   overflow: hidden;
 }
 
@@ -590,12 +592,9 @@ a.clh-card {
   color: var(--ajab-ink-950);
   white-space: pre-line;
   margin: 0 0 calc(8px * var(--clh-poem-air));
-  display: -webkit-box;
-  -webkit-box-orient: vertical;
-  -webkit-line-clamp: 4;
-  line-clamp: 4;
+  display: block;
+  max-height: calc(var(--clh-lh-poem-card) * 4 + 2px);
   overflow: hidden;
-  /* Avoid clipped Devanagari ascenders when line-clamp trims */
   padding-bottom: 2px;
 }
 
@@ -615,7 +614,7 @@ a.clh-card {
 }
 
 .clh-poem-poet {
-  font-family: var(--ajab-font-sans);
+  font-family: "Merriweather Sans", sans-serif;
   font-weight: 300;
   font-size: var(--clh-fs-meta);
   line-height: var(--clh-lh-meta);
@@ -625,16 +624,41 @@ a.clh-card {
   margin: 0;
 }
 
+/* PDF/CSS note: both label + name use Merriweather Sans Light */
+.clh-poem-poet span {
+  font-family: "Merriweather Sans", sans-serif;
+  font-weight: 300;
+}
+
 .clh-poem-poet-label {
-  text-transform: lowercase;
+  text-transform: none;
   color: var(--ajab-ink-500);
 }
 
 .clh-poem-poet-name {
-  font-family: var(--ajab-font-serif);
-  font-weight: 400;
+  font-family: "Merriweather Sans", sans-serif;
+  font-weight: 300;
   color: var(--ajab-ink-500);
   text-transform: uppercase;
+}
+
+/* ── Shared home card typography (song / reflection / people / film) ── */
+.clh-card:not(.clh-poem-card) .clh-card-title {
+  font-size: 21px;
+}
+
+.clh-card:not(.clh-poem-card) .clh-card-subtitle {
+  font-size: 18px;
+  line-height: 1.15em;
+}
+
+.clh-card:not(.clh-poem-card) .clh-card-frame div:not(.clh-card-title, .clh-card-subtitle) {
+  font-size: 14px !important;
+  line-height: 1.4em !important;
+}
+
+.clh-card:not(.clh-poem-card) .clh-card-desc {
+  line-height: 1.47em;
 }
 
 .clh-poem-card .clh-card-footer {

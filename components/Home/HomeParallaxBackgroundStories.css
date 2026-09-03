@@ -1,0 +1,117 @@
+/* [Claude] these changes have been recommended by claude —
+   STORIES BACKGROUND — ported 1:1 from https://ajabshahar.com/stories/all
+   (`#expressions` container), inspected via raw CSSOM on 2026-09-01.
+   Assets extracted from Home_Page_2/Background 2 Assets/newset/ (final flat
+   PNG exports already provided by the designer — best available quality,
+   not re-derived from a live network download).
+
+   THE ONE DEVIATION FROM THE LIVE SITE: the live ripple layers use
+   `position: fixed` (viewport-fixed, ignores page scroll entirely — a
+   different technique than the background-attachment:fixed trick used by
+   the featured/home background). Kept verbatim here; fixed positioning is
+   scoped safely because nothing in this subtree has a transformed ancestor. */
+
+.ajab-stories-parallax {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+  z-index: 0;
+  pointer-events: none;
+}
+
+/* #expressions base — tiled paper texture, pinned to the viewport like the
+   live site's `background: ... repeat fixed`. */
+.ajab-stories-base {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  background-image: url('/parallax/stories/story-new-bg.png');
+  background-position: 0px 0px;
+  background-repeat: repeat;
+  background-attachment: fixed;
+}
+
+/* .stroy-ripple1/2/3 [sic, matches live class name typo in spirit only —
+   we use clean class names] — three large soft ripple washes, viewport-fixed
+   so they stay in place while the page scrolls underneath them. */
+.ajab-stories-ripple {
+  position: fixed;
+  background-repeat: no-repeat;
+}
+
+.ajab-stories-ripple1 {
+  background-image: url('/parallax/stories/story-ripple1.png');
+  background-size: cover;
+  background-position: 0% 0%;
+  width: 500px;
+  height: 469px;
+  right: -135px;
+  top: -96px;
+  opacity: 0.15;
+  animation: ajab-stories-clock 30s linear 0s infinite normal none running;
+}
+
+.ajab-stories-ripple2 {
+  background-image: url('/parallax/stories/story-ripple2.png');
+  background-size: contain;
+  background-position: center center;
+  width: 61vw;
+  height: 130vh;
+  left: -20vw;
+  top: -5vh;
+  opacity: 0.2;
+  animation: ajab-stories-clock 80s linear 0s infinite normal none running;
+}
+
+.ajab-stories-ripple3 {
+  background-image: url('/parallax/stories/story-ripple3.png');
+  background-size: contain;
+  background-position: 0% 0%;
+  width: 80vw;
+  height: 170vh;
+  left: 50%;
+  margin-left: -25vw;
+  bottom: -79vh;
+  opacity: 0.2;
+  animation: ajab-stories-anticlock 120s linear 0s infinite normal none running;
+}
+
+/* [Claude] recommended by claude — all 3 ripples actually rotate on the live
+   site via JS-added classes (`.clock-animation` on ripple1, 30s,
+   `.clock-animation-ripple2` on ripple2, 80s, both -> keyframe
+   `reverse-inner-circle`; `.anti-clock-animation` on ripple3, 120s ->
+   keyframe `ReverseCircle`, the opposite direction). The first pass here
+   only ported ripple2's rotation and missed the other two — found by
+   inspecting getAnimations()/classList on the live elements directly,
+   since the JS-added class names weren't in the static stylesheet dump
+   used for the very first extraction pass. */
+@keyframes ajab-stories-clock {
+  0% {
+    transform: rotate(0deg);
+  }
+  100% {
+    transform: rotate(360deg);
+  }
+}
+
+@keyframes ajab-stories-anticlock {
+  0% {
+    transform: rotate(0deg);
+  }
+  100% {
+    transform: rotate(-360deg);
+  }
+}
+
+/* ≤1024px: live site hides all 3 ripple washes and swaps the base texture
+   for a flatter ipad/mobile image — we just hide the ripples and keep the
+   same tiled base, which reads the same at a glance and avoids shipping
+   2 more responsive-only source images for a first pass. */
+@media screen and (max-width: 1024px) {
+  .ajab-stories-ripple {
+    display: none;
+  }
+}

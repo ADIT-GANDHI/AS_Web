@@ -1,0 +1,195 @@
+/* [Claude] these changes have been recommended by claude —
+   WORDS BACKGROUND — ported from https://ajabshahar.com/words/all
+   (`.words-wrapper`), inspected via raw CSSOM + live DOM query on 2026-09-01.
+
+   PER-ELEMENT SOURCING:
+     - base tiled texture   <- Background 3 Assets/00_background.jpg (already flat, PSD-adjacent)
+     - wordsView ghost text <- New_Words_multiplelayers.psd, layer
+                                "05_WORDS all bottom to top" (921x2610, exact
+                                size match to the live element)
+     - movingPetals, leaves-two-t2b, leaves-one-t2b, medLeafRotation(x2) <-
+       sourced directly from the live site (public/parallax/words/
+       white_petals.png, leaves-two.png, leaves-one.png, leaf-word-anim.png),
+       per explicit approval — no usable source existed in Home_Page_2/
+       Background 3 Assets for these: movingPetals/leaves-two had no source
+       layer at all, and the PSD candidates for leaves-one (721x486 vs live's
+       872x783) and the med-leaf spinner (76x51 vs live's 1024x1024!) were
+       either the wrong aspect or ~13x too low resolution to use.
+
+   Every element below was verified actually present in the live page's DOM
+   (not just declared in the stylesheet) via direct getBoundingClientRect() /
+   getAnimations() queries — the live stylesheet also declares smallLeaves/
+   largeLeaf/twoLeaves + their *Rotation orbit-pair children, but those never
+   appear in the DOM on /words/all, so they're intentionally not ported. */
+
+.ajab-words-parallax {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+  z-index: 0;
+  pointer-events: none;
+}
+
+/* .words-wrapper base — tiled paper texture */
+.ajab-words-base {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  background-image: url('/parallax/words/all_words_bg.jpg');
+  background-position: center center;
+  background-size: cover;
+  background-repeat: repeat;
+}
+
+/* .wordsView — large ghosted-text watermark, slow vertical scroll loop */
+.ajab-words-view {
+  position: absolute;
+  left: 125px;
+  top: 0px;
+  width: 921px;
+  height: 2610px;
+  opacity: 0.5;
+  background-image: url('/parallax/words/words_view.png');
+  background-size: cover;
+  background-position: 0px 0px;
+  animation: ajab-words-view-scroll 180s linear 0s infinite normal none running;
+}
+
+@keyframes ajab-words-view-scroll {
+  0% {
+    background-position: 0px 0px;
+  }
+  100% {
+    background-position: 0px -2610px;
+  }
+}
+
+@media (max-width: 1024px) {
+  .ajab-words-view {
+    left: 0px;
+  }
+}
+
+/* .movingPetals — drifting petals, translateX sweep across the page */
+.ajab-words-petals {
+  position: absolute;
+  left: 60px;
+  top: 50px;
+  width: 899px;
+  height: 1763px;
+  background-image: url('/parallax/words/white_petals.png');
+  animation: ajab-words-drift 70s linear -2s infinite normal none running;
+}
+
+@keyframes ajab-words-drift {
+  0% {
+    transform: translate(100%, 0px);
+  }
+  100% {
+    transform: translate(-100%, 0px);
+  }
+}
+
+/* .leaves-one-t2b — leaf cluster, slow vertical tile-scroll loop */
+.ajab-words-leaves-one {
+  position: absolute;
+  left: 150px;
+  top: 0px;
+  width: 872px;
+  height: 2610px;
+  background-image: url('/parallax/words/leaves-one.png');
+  background-repeat: repeat-y;
+  background-position: 0px 0px;
+  animation: ajab-words-leaves-one-scroll 60s linear -2s infinite normal none running;
+}
+
+@keyframes ajab-words-leaves-one-scroll {
+  0% {
+    background-position: 0px 0px;
+  }
+  100% {
+    background-position: 0px 783px;
+  }
+}
+
+/* .leaves-two-t2b — second, distinct leaf cluster, slower vertical tile-scroll loop */
+.ajab-words-leaves-two {
+  position: absolute;
+  left: 150px;
+  top: 1px;
+  width: 757px;
+  height: 2610px;
+  background-image: url('/parallax/words/leaves-two.png');
+  background-repeat: repeat-y;
+  background-position: 0px 0px;
+  animation: ajab-words-leaves-two-scroll 150s linear -2s infinite normal none running;
+}
+
+@keyframes ajab-words-leaves-two-scroll {
+  0% {
+    background-position: 0px 0px;
+  }
+  100% {
+    background-position: 0px 847px;
+  }
+}
+
+/* .medLeafRotation / .medLeafRotation1 — two independent single-leaf spinners */
+.ajab-words-med-leaf {
+  position: absolute;
+  width: 400px;
+  height: 400px;
+  background-image: url('/parallax/words/leaf-word-anim.png');
+  background-size: cover;
+  animation: ajab-words-spin-ccw 30s linear 0s infinite normal none running;
+}
+
+@keyframes ajab-words-spin-ccw {
+  0% {
+    transform: rotate(0deg);
+  }
+  100% {
+    transform: rotate(-360deg);
+  }
+}
+
+.ajab-words-med-leaf-a {
+  top: 671px;
+  left: 0px;
+}
+
+.ajab-words-med-leaf-b {
+  top: 165px;
+  right: 0px;
+}
+
+/* .words-wrapper::before/::after — same side_pattern strip reused sitewide,
+   45px here (wider than the 30px used elsewhere) matching the live rule. */
+.ajab-words-edges::before,
+.ajab-words-edges::after {
+  content: '';
+  display: inline-block;
+  position: absolute;
+  top: 0px;
+  width: 45px;
+  height: 100%;
+  background-image: url('/parallax/side_pattern.png');
+  background-repeat: repeat-y;
+}
+.ajab-words-edges::before {
+  left: 0px;
+}
+.ajab-words-edges::after {
+  right: 0px;
+  transform: rotate(180deg);
+}
+
+@media screen and (max-width: 1280px) {
+  .ajab-words-edges::before,
+  .ajab-words-edges::after {
+    display: none;
+  }
+}

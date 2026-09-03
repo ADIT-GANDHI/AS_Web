@@ -1,0 +1,244 @@
+/* [Claude] these changes have been recommended by claude —
+   SONGS BACKGROUND — ported 1:1 from https://ajabshahar.com/songs/featured
+   (`.featured-songs .song-parallax-container`), inspected via raw CSSOM on
+   2026-09-01. Yogic/tantric motif: ingla/pingla/sushamna are the three
+   nadis (energy channels), the tamburas rotate slowly on their own axis,
+   triangles + vibration ripples sit behind everything, snake rests at the
+   bottom centre. See Background 5 Assets/SongDB_instructions.rtf.docx for
+   the designer's original intent notes (opacity targets, rotation pairing). */
+
+.ajab-songs-parallax {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+  z-index: 0;
+  pointer-events: none;
+}
+
+/* .song-parallax-container — live CSS: fixed 1140px centered column,
+   same convention as every other background in this set. */
+.ajab-songs-container {
+  position: relative;
+  margin: 0 auto;
+  width: 1140px;
+  height: 100%;
+  max-width: 100%;
+}
+
+/* .pxSongLayers base */
+.ajab-songs-layer {
+  position: absolute;
+  width: 100%;
+  height: 100%; /* live default was a fixed 4000px; stretched to container like the home background, see HomeParallaxBackground.css header note */
+  top: 0px;
+  left: 0px;
+  background-position: 0px 0px;
+  background-repeat: no-repeat;
+}
+
+/* px-song-layer1 — tiled paper base */
+.ajab-songs-layer1 {
+  background-image: url('/parallax/songs/background_image.jpg');
+  background-repeat: repeat-y;
+}
+
+/* px-song-layer2 — the large white tambura, rotates on its own axis (off-center pivot).
+   [Claude] recommended by claude — background-size:contain added: the
+   live CSS relies on the source PNG's native aspect ratio already matching
+   the declared box, but our PSD-extracted tambura (475x655) is a different
+   resolution/crop, so without `contain` only its top-left corner would show
+   inside the 145x495 box instead of the whole instrument silhouette. */
+.ajab-songs-layer2 {
+  background-image: url('/parallax/songs/white_tambura.png');
+  background-size: contain;
+  width: 145px;
+  height: 495px;
+  top: 560px;
+  left: 12%;
+  transform-origin: 30% 20%;
+  animation: ajab-songs-antirotation 100s linear -5s infinite normal none running;
+}
+.ajab-songs-layer2.ajab-songs-small1 {
+  top: 1697px;
+  width: 190px;
+  height: 500px;
+  left: 12%;
+  opacity: 0.8;
+  animation: ajab-songs-antirotation 100s linear 2s infinite normal none running;
+}
+
+/* px-song-layer3 — the smaller/fainter tambura, rotates the opposite direction */
+.ajab-songs-layer3 {
+  background-image: url('/parallax/songs/tambura_small.png');
+  background-size: contain;
+  opacity: 0.1;
+  top: 1000px;
+  left: 70%;
+  width: 190px;
+  height: 600px;
+  transform-origin: 30% 20%;
+  animation: ajab-songs-rotation 60s linear 3s infinite normal none running;
+}
+.ajab-songs-layer3.ajab-songs-small1 {
+  left: 67%;
+  top: 2000px;
+  opacity: 0.15;
+  animation: ajab-songs-rotation 60s linear 1s infinite normal none running;
+}
+
+@keyframes ajab-songs-rotation {
+  0% {
+    transform: rotate(0deg);
+  }
+  100% {
+    transform: rotate(360deg);
+  }
+}
+@keyframes ajab-songs-antirotation {
+  0% {
+    transform: rotate(0deg);
+  }
+  100% {
+    transform: rotate(-360deg);
+  }
+}
+
+/* px-song-layer4 — static triangle motif behind everything */
+.ajab-songs-layer4 {
+  background-image: url('/parallax/songs/triangles_new.png');
+  background-size: contain;
+  opacity: 0.4;
+}
+
+/* px-song-layer5 (+ .top-to-bottom variant) — the vibration ripple texture,
+   two copies scrolling opposite directions at very different speeds. */
+.ajab-songs-layer5 {
+  background-image: url('/parallax/songs/viberations_new.png');
+  background-size: contain;
+  background-repeat: repeat;
+  opacity: 0.12;
+  left: -4%;
+  height: 4277px;
+  width: 100%;
+  animation: ajab-songs-move-up 200s linear 0s infinite normal none running;
+}
+.ajab-songs-layer5.ajab-songs-top-to-bottom {
+  top: -2000px;
+  opacity: 0.15;
+  height: 6400px;
+  animation: ajab-songs-move-down 500s linear 0s infinite normal none running;
+}
+
+@keyframes ajab-songs-move-up {
+  0% {
+    background-position: 0px 0px;
+  }
+  100% {
+    background-position: 0px -4277px;
+  }
+}
+@keyframes ajab-songs-move-down {
+  0% {
+    background-position: 0px 0px;
+  }
+  100% {
+    background-position: 0px 6400px;
+  }
+}
+
+/* px-song-layer6/7/8 — the 3 vertical nadi threads (ingla/pingla/sushamna).
+   [Claude] recommended by claude — the live CSS uses `background-size:
+   contain; repeat-y`, which assumes a short repeatable tile. Our PSD-sourced
+   assets are single continuous full-page-length threads instead (native
+   height 3198-4617px, already spanning the whole page in one image — see
+   the extraction notes in components/Home/HomeParallaxBackgroundSongs.tsx),
+   and their native width already matches the live CSS box width exactly
+   (ingla 53px, pingla 112px, sushamna 144px). `contain` was compressing that
+   tall image down to fit the shorter rendered container, making the thread
+   nearly invisible; `no-repeat` at native size renders it crisp and correct
+   for a one-shot full-length asset. */
+.ajab-songs-layer6 {
+  background-image: url('/parallax/songs/ingla.png');
+  background-repeat: no-repeat;
+  width: 53px;
+  left: 22%;
+}
+.ajab-songs-layer7 {
+  background-image: url('/parallax/songs/pingla.png');
+  background-repeat: no-repeat;
+  width: 112px;
+  left: 68%;
+}
+.ajab-songs-layer8 {
+  background-image: url('/parallax/songs/sushamna.png');
+  background-repeat: no-repeat;
+  width: 144px;
+  left: 44%;
+}
+
+@media screen and (max-width: 768px) {
+  .ajab-songs-layer6 {
+    left: 25%;
+  }
+  .ajab-songs-layer7 {
+    left: 65%;
+  }
+  .ajab-songs-layer8 {
+    left: 42%;
+  }
+}
+
+/* px-song-layer9 — the snake resting at the bottom centre; sized to its own
+   native asset dimensions since the live rule declares no explicit box. */
+.ajab-songs-layer9 {
+  background-image: url('/parallax/songs/snake.png');
+  width: 169px;
+  height: 293px;
+  top: 2244px;
+  left: 40%;
+  opacity: 0.5;
+}
+
+@media screen and (max-width: 768px) {
+  .ajab-songs-layer9 {
+    left: 36%;
+  }
+}
+
+/* px-song-layer11 — same 30px side_pattern strip reused from the home background */
+.ajab-songs-layer11::before,
+.ajab-songs-layer11::after {
+  content: '';
+  display: inline-block;
+  width: 30px;
+  height: 100%;
+  background-image: url('/parallax/side_pattern.png');
+  background-repeat: repeat-y;
+}
+.ajab-songs-layer11::before {
+  float: left;
+}
+.ajab-songs-layer11::after {
+  float: right;
+  transform: rotate(180deg);
+}
+
+@media screen and (max-width: 1140px) {
+  .ajab-songs-layer11::before,
+  .ajab-songs-layer11::after {
+    display: none;
+  }
+}
+
+@media screen and (max-width: 1024px) {
+  .ajab-songs-container {
+    width: 1024px;
+  }
+}
+@media screen and (max-width: 768px) {
+  .ajab-songs-container {
+    width: 768px;
+  }
+}

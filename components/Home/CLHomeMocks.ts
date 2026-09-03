@@ -10,6 +10,7 @@ export const MOCK_HOME_SONG = {
   id: 1,
   title: 'Main Nijaam Se Naina',
   subtitle: "I Lost My Heart To Nizam's Glance",
+  singsLabel: 'sing' as 'sing' | 'sings',
   singer: 'FARID AYAZ & ABU MOHAMMED',
   poet: 'AMIR KHUSRO',
   description:

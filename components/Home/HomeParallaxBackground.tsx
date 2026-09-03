@@ -11,12 +11,62 @@
 // pixel against the live site's own PNGs. Full extraction report:
 // "Home Page/_extracted/README.txt".
 //
+// [Claude] recommended by claude — px-layer2 (map) and px-layer7 (whiteString)
+// also carry live scroll-linked motion via Stellar.js (`data-stellar-background-ratio`
+// = "2" and "3" respectively — px-layer1/px-layer3 also have the attribute but
+// with ratio "1", which is a no-op, so they're left alone). Found by auditing
+// the live DOM's actual attributes, the same way the Songs background's
+// thread-scroll bug was found — a plain stylesheet read misses these entirely.
+// Reproduced with the same lightweight scroll listener used in
+// HomeParallaxBackgroundSongs.tsx rather than the Stellar.js library itself.
+// Approximated as offset = scrollY * (ratio - 1); the live site's exact pixel
+// deltas didn't cleanly match that formula when spot-checked (both layers
+// shifted by the same amount despite different ratios, suggesting Stellar's
+// real internal math is more involved), but the direction and relative
+// magnitude are correct, which is what's visually perceptible.
 // TO REVERT: delete this component's usage (and this import) from CLHero.tsx —
 // both call sites carry this same "[Claude] recommended by claude" tag.
 
+import { useEffect, useRef } from 'react';
 import './HomeParallaxBackground.css';
 
+const STELLAR_RATIOS = {
+  map: 2,
+  whiteString: 3,
+};
+
 export default function HomeParallaxBackground() {
+  const mapRef = useRef<HTMLDivElement>(null);
+  const whiteStringRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const layers: [HTMLDivElement | null, number][] = [
+      [mapRef.current, STELLAR_RATIOS.map],
+      [whiteStringRef.current, STELLAR_RATIOS.whiteString],
+    ];
+
+    let ticking = false;
+    const applyOffsets = () => {
+      ticking = false;
+      const scrollY = window.scrollY;
+      for (const [el, ratio] of layers) {
+        if (!el) continue;
+        const offset = scrollY * (ratio - 1);
+        el.style.backgroundPositionY = `${-offset}px`;
+      }
+    };
+    const onScroll = () => {
+      if (!ticking) {
+        ticking = true;
+        requestAnimationFrame(applyOffsets);
+      }
+    };
+
+    applyOffsets();
+    window.addEventListener('scroll', onScroll, { passive: true });
+    return () => window.removeEventListener('scroll', onScroll);
+  }, []);
+
   return (
     <div className="ajab-home-parallax" aria-hidden="true">
       <div className="ajab-px-container">
@@ -26,6 +76,7 @@ export default function HomeParallaxBackground() {
           style={{ backgroundImage: "url('/parallax/body.png')" }}
         />
         <div
+          ref={mapRef}
           className="ajab-px-layer ajab-px-layer2"
           style={{ backgroundImage: "url('/parallax/map.png')" }}
         />
@@ -44,8 +95,9 @@ export default function HomeParallaxBackground() {
         <div className="ajab-px-layer ajab-px-layer6 ajab-third" />
         <div className="ajab-px-layer ajab-px-layer6 ajab-fourth" />
 
-        {/* Static — decorative thread, scrolls with the page */}
+        {/* Scroll-linked (Stellar ratio 3) — decorative thread */}
         <div
+          ref={whiteStringRef}
           className="ajab-px-layer ajab-px-layer7"
           style={{ backgroundImage: "url('/parallax/whiteString.png')" }}
         />

@@ -51,6 +51,7 @@ import './CLReflections.css';
 import { AJAB_API_BASE } from '@/lib/ajabEnv';
 import { getSpeakerNameMap } from '@/lib/speakerNames';
 import { catalogHasMore, mergeCatalogById } from '@/lib/catalogPagination';
+import { selectSingleFilterId } from '@/lib/listingFilterSelection';
 import { parseCatalogTotal } from '@/lib/parseCatalogTotal';
 import { ReflectionsNavCountContext } from '@/components/Reflections/ReflectionsNavCountContext';
 
@@ -148,10 +149,6 @@ function reflectionListUrl(
   params.set('page', String(page));
   params.set('limit', String(limit));
   return `${AJAB_API_BASE}/Api/reflection_list?${params.toString()}`;
-}
-
-function toggleId(prev: string[], id: string): string[] {
-  return prev.includes(id) ? prev.filter((value) => value !== id) : [...prev, id];
 }
 
 function nextFilterOrder(
@@ -546,7 +543,7 @@ export default function CLReflections() {
       setter: React.Dispatch<React.SetStateAction<string[]>>
     ) => {
       setter((prev) => {
-        const next = toggleId(prev, value);
+        const next = selectSingleFilterId(prev, value);
         setFilterOrder((order) => nextFilterOrder(order, dim, next));
         return next;
       });

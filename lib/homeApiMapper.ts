@@ -24,14 +24,37 @@ export type HomeLatestPayload = {
   film: HomeFilmCard | null;
 };
 
-function htmlToPlainText(raw: string): string {
-  if (!raw || typeof raw !== 'string') return '';
+function decodeBasicHtmlEntities(raw: string): string {
   return raw
-    .replace(/<br\s*\/?>/gi, '\n')
-    .replace(/<\/p>/gi, '\n')
-    .replace(/<[^>]+>/g, '')
     .replace(/&nbsp;/gi, ' ')
     .replace(/&amp;/g, '&')
+    .replace(/&lt;/g, '<')
+    .replace(/&gt;/g, '>')
+    .replace(/&quot;/g, '"')
+    .replace(/&#0*10;/g, '\n')
+    .replace(/&#0*13;/g, '\n')
+    /* U+2028 line separator often appears as &#8232; in poem HTML */
+    .replace(/&#8232;|&#x2028;/gi, '\n')
+    .replace(/&#(\d+);/g, (_, n) => {
+      const code = Number(n);
+      return Number.isFinite(code) ? String.fromCharCode(code) : '';
+    })
+    .replace(/&#x([0-9a-f]+);/gi, (_, h) => {
+      const code = parseInt(h, 16);
+      return Number.isFinite(code) ? String.fromCharCode(code) : '';
+    });
+}
+
+function htmlToPlainText(raw: string): string {
+  if (!raw || typeof raw !== 'string') return '';
+  return decodeBasicHtmlEntities(
+    raw
+      .replace(/<br\s*\/?>/gi, '\n')
+      .replace(/<\/p>/gi, '\n')
+      .replace(/<\/div>/gi, '\n')
+      .replace(/<[^>]+>/g, '')
+  )
+    .replace(/\u2028|\u2029/g, '\n')
     .replace(/\n{3,}/g, '\n\n')
     .trim();
 }
@@ -140,9 +163,62 @@ function pickRecordImage(record: Record<string, unknown>, mockPath?: string): st
   );
 }
 
+/** Truncate at the last whole word (never mid-word). */
 function truncate(text: string, max = 320): string {
-  if (text.length <= max) return text;
-  return text.slice(0, max).replace(/\s+\S*$/, '') + '…';
+  const cleaned = text.replace(/\s+/g, ' ').trim();
+  if (cleaned.length <= max) return cleaned;
+  const slice = cleaned.slice(0, max);
+  const lastSpace = slice.lastIndexOf(' ');
+  const cut = lastSpace > Math.floor(max * 0.5) ? slice.slice(0, lastSpace) : slice;
+  return `${cut.trimEnd()}…`;
+}
+
+function sameCardText(a: string, b: string): boolean {
+  return a.replace(/\s+/g, ' ').trim().toLowerCase() === b.replace(/\s+/g, ' ').trim().toLowerCase();
+}
+
+/** 1 singer → "sings"; 2+ → "sing". Prefer singer_ids; else parse names for & / and. */
+function resolveSongSingsLabel(record: Record<string, unknown>, singerDisplay: string): 'sing' | 'sings' {
+  if (Array.isArray(record.singer_ids) && record.singer_ids.length > 0) {
+    return record.singer_ids.length === 1 ? 'sings' : 'sing';
+  }
+
+  const labels: string[] = [];
+  if (Array.isArray(record.singer_names) && record.singer_names.length > 0) {
+    for (const entry of record.singer_names) {
+      const label = firstDisplayName(entry);
+      if (label) labels.push(label);
+    }
+  } else if (singerDisplay) {
+    labels.push(singerDisplay);
+  }
+
+  const count = labels
+    .join(' & ')
+    .split(/\s*(?:&|,|\/|\band\b)\s*/i)
+    .map((p) => p.trim())
+    .filter(Boolean).length;
+
+  return count <= 1 ? 'sings' : 'sing';
+}
+
+/** CMS ⊙ Translated title — skip when it merely repeats the transliteration. */
+function resolveSongTitleTranslation(record: Record<string, unknown>, title: string): string {
+  const candidates = [
+    record.songtitletraan,
+    record.song_title_translation,
+    record.songTitleTranslation,
+    record.song_title_english,
+    record.songTitle,
+    record.english_translation,
+  ];
+  for (const candidate of candidates) {
+    const value = firstString(candidate);
+    if (!value) continue;
+    if (title && sameCardText(value, title)) continue;
+    return value;
+  }
+  return '';
 }
 
 /** Visible placeholder when CMS `thumbnail_excerpt` is empty — keeps home card layout intact. */
@@ -186,28 +262,43 @@ function mapSong(raw: unknown, mock: HomeSongCard, apiOnly: boolean): HomeSongCa
   const record = raw as Record<string, unknown>;
   if (apiOnly && !hasRecordId(record)) return null;
 
-  const description = resolveHomeCardDescription(record, mock.description, apiOnly, 220);
+  /* Home song blurb — English thumbnail excerpt only (not about / meta). */
+  const description = resolveHomeCardDescription(
+    record,
+    mock.description,
+    apiOnly,
+    220,
+    ['thumbnailexcerpt', 'thumbnail_excerpt']
+  );
+
+  const title =
+    firstString(
+      record.Songtitle_transliteration,
+      record.song_title_transliteration,
+      record.songTitleTransliteration,
+      record.umbrellaTitleText,
+      record.umbrellaTitle
+    ) || (!apiOnly ? mock.title : '');
+
+  const subtitle =
+    resolveSongTitleTranslation(record, title) || (!apiOnly && !hasRecordId(record) ? mock.subtitle : '');
+
+  const singer =
+    firstDisplayName(
+      record.singer_names,
+      record.singer_display,
+      record.singer,
+      record.singer_name
+    ).toUpperCase() || (!apiOnly ? mock.singer : '');
 
   return {
     id: (record.id ?? mock.id) as HomeSongCard['id'],
-    title:
-      firstString(
-        record.Songtitle_transliteration,
-        record.song_title_transliteration,
-        record.songTitleTransliteration
-      ) || (!apiOnly ? mock.title : ''),
-    subtitle:
-      firstString(
-        record.songtitletraan,
-        record.song_title_translation,
-        record.songTitleTranslation,
-        record.english_translation
-      ) || (!apiOnly ? mock.subtitle : ''),
-    singer:
-      firstString(record.singer, record.singer_name, record.singer_display).toUpperCase() ||
-      (!apiOnly ? mock.singer : ''),
+    title,
+    subtitle,
+    singsLabel: singer ? resolveSongSingsLabel(record, singer) : mock.singsLabel,
+    singer,
     poet:
-      firstString(record.poet, record.poet_name, record.poet_display).toUpperCase() ||
+      firstDisplayName(record.poet_names, record.poet_display, record.poet, record.poet_name).toUpperCase() ||
       (!apiOnly ? mock.poet : ''),
     description,
     image: pickRecordImage(record, apiOnly ? undefined : mock.image),
@@ -239,14 +330,14 @@ function mapPoem(raw: unknown, mock: HomePoemCard, apiOnly: boolean): HomePoemCa
     record.couplet_translation
   );
 
-  let translation = joinVerseLines(htmlToVerseLines(translationHtml, 4));
-  let transliteration = joinVerseLines(htmlToVerseLines(transliterationHtml, 2));
+  /* Keep CMS paragraph / <br> line breaks; do not collapse verses. */
+  let translation = joinVerseLines(htmlToVerseLines(translationHtml));
+  let transliteration = joinVerseLines(htmlToVerseLines(transliterationHtml));
 
   // Legacy CMS fields — Hindi original only when no English verse is available.
   if (!transliteration) {
     const legacy = htmlToVerseLines(
-      firstString(record.original_text, record.couplet_hindi, record.hindi_text),
-      2
+      firstString(record.original_text, record.couplet_hindi, record.hindi_text)
     );
     transliteration = joinVerseLines(legacy);
   }
@@ -257,9 +348,9 @@ function mapPoem(raw: unknown, mock: HomePoemCard, apiOnly: boolean): HomePoemCa
   const poet =
     firstDisplayName(
       record.attributed_poet,
+      record.poet_names,
       record.poet_name,
       record.poet,
-      record.poet_names,
       record.poet_id_raw
     ).toUpperCase() || (!apiOnly ? mock.poet : '');
 
@@ -280,12 +371,13 @@ function mapReflection(
   const record = raw as Record<string, unknown>;
   if (apiOnly && !hasRecordId(record)) return null;
 
+  /* Reflection home card — English thumbnail excerpt; media is always the thumb (not YT). */
   const description = resolveHomeCardDescription(
     record,
     mock.description,
     apiOnly,
     140,
-    ['thumbnailexcerpt', 'thumbnail_excerpt', 'reflection_excerpt']
+    ['thumbnailexcerpt', 'thumbnail_excerpt']
   );
 
   return {
@@ -294,7 +386,7 @@ function mapReflection(
       firstString(record.title, record.audio_story_title) ||
       (!apiOnly ? mock.title : ''),
     saysBy:
-      firstString(
+      firstDisplayName(
         record.speaker_names,
         record.speaker_name,
         record.speaker,
@@ -303,10 +395,7 @@ function mapReflection(
       ).toUpperCase() || (!apiOnly ? mock.saysBy : ''),
     description,
     image: pickRecordImage(record, apiOnly ? undefined : mock.image),
-    youtubeVideoId:
-      extractYouTubeId(
-        firstString(record.youtube_video_id, record.interview_video, record.youtubeVideoId)
-      ) || (!apiOnly ? mock.youtubeVideoId : ''),
+    youtubeVideoId: '',
     soundCloudUrl:
       firstString(
         record.soundcloud_track_id,

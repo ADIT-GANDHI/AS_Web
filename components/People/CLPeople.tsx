@@ -31,6 +31,7 @@ import '@/components/Songs/CLSongs.css';
 import './CLPeople.css';
 import { AJAB_API_BASE } from '@/lib/ajabEnv';
 import { catalogHasMore, mergeCatalogById } from '@/lib/catalogPagination';
+import { selectSingleFilterId } from '@/lib/listingFilterSelection';
 import { mapPersonProfileTags, mapPersonRole } from '@/lib/mapPersonDetail';
 import { parseCatalogTotal } from '@/lib/parseCatalogTotal';
 import { PeopleNavCountContext } from '@/components/People/PeopleNavCountContext';
@@ -181,9 +182,7 @@ export default function CLPeople() {
 
   const handleFilterSelect = (type: FilterType, value: string) => {
     if (type !== 'Singer') return;
-    setSelectedCategories((prev) =>
-      prev.includes(value) ? prev.filter((x) => x !== value) : [...prev, value]
-    );
+    setSelectedCategories((prev) => selectSingleFilterId(prev, value));
   };
 
   const handleRemoveFilter = (type: FilterType, value: string) => {

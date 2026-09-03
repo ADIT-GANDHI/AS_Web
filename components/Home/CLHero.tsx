@@ -31,11 +31,13 @@ import {
 } from '@/lib/ajabNewsPopup';
 import HomeCardImage from './HomeCardImage';
 import HomeCardShell from './HomeCardShell';
-import HomeCardVideo from './HomeCardVideo';
 import HomeCardMediaActions from './HomeCardMediaActions';
-import HomeCardBodyLink from './HomeCardBodyLink';
-// [Claude] these changes have been recommended by claude — live-site parallax background (see file for full source/revert notes)
-import HomeParallaxBackground from './HomeParallaxBackground';
+// [Claude] these changes have been recommended by claude — selectable parallax
+// background system (see lib/homeBackgrounds.ts). `backgroundId` defaults to
+// 'featured', the original background already live on the home page, so
+// app/page.tsx is unaffected — this only changes behavior for callers that
+// explicitly pass a different id (the /home-preview/* routes).
+import { HOME_BACKGROUNDS, DEFAULT_HOME_BACKGROUND, type HomeBackgroundId } from '@/lib/homeBackgrounds';
 
 const NEWS_ASSET_BASE = `${AJAB_API_BASE}/`;
 
@@ -47,6 +49,7 @@ const toImageUrl = (value?: string) => {
 
 function SongCard({ data, imageFallback }: { data: HomeSongCard; imageFallback: string }) {
   const detailHref = `/songs/details/${data.id}`;
+  const singsLabel = data.singsLabel === 'sings' ? 'sings' : 'sing';
 
   return (
     <HomeCardShell
@@ -66,7 +69,7 @@ function SongCard({ data, imageFallback }: { data: HomeSongCard; imageFallback: 
       {data.subtitle && <div className="clh-card-subtitle">{data.subtitle}</div>}
       {data.singer && (
         <div className="clh-card-meta">
-          <span className="clh-card-meta-label">sing </span>
+          <span className="clh-card-meta-label">{singsLabel} </span>
           <span className="clh-card-meta-name">{data.singer}</span>
         </div>
       )}
@@ -87,7 +90,7 @@ function SongCard({ data, imageFallback }: { data: HomeSongCard; imageFallback: 
 
 function PoemCard({ data }: { data: HomePoemCard }) {
   return (
-    <HomeCardShell className="clh-poem-card" href={`/poems/details/${data.id}`}>
+    <HomeCardShell className="clh-poem-card" href={`/poems?id=${data.id}`}>
       <div className="clh-poem-content">
         {data.translation && <div className="clh-poem-translation">{data.translation}</div>}
         <div className="clh-poem-spacer" />
@@ -95,7 +98,7 @@ function PoemCard({ data }: { data: HomePoemCard }) {
         <div className="clh-poem-divider" />
         {data.poet ? (
           <div className="clh-poem-poet">
-            <span className="clh-poem-poet-label">poet </span>
+            <span className="clh-poem-poet-label">Poet </span>
             <span className="clh-poem-poet-name">{data.poet}</span>
           </div>
         ) : null}
@@ -115,10 +118,25 @@ function ReflectionCard({
   imageFallback: string;
 }) {
   const detailHref = `/reflections/details/${data.id}`;
-  const hasVideo = Boolean(data.youtubeVideoId);
 
-  const body = (
-    <>
+  return (
+    <HomeCardShell
+      className="clh-reflection-card"
+      href={detailHref}
+      media={
+        <>
+          <HomeCardImage
+            src={data.image}
+            fallbackSrc={imageFallback}
+            alt={data.title || 'Reflection'}
+          />
+          <HomeCardMediaActions
+            soundCloudUrl={data.soundCloudUrl}
+            downloadUrl={data.downloadUrl}
+          />
+        </>
+      }
+    >
       <div className="clh-card-title">{data.title}</div>
       {data.saysBy && (
         <div className="clh-card-meta">
@@ -131,34 +149,6 @@ function ReflectionCard({
       <div className="clh-card-footer">
         <span className="clh-card-cta">EXPLORE REFLECTION</span>
       </div>
-    </>
-  );
-
-  return (
-    <HomeCardShell
-      className="clh-reflection-card"
-      href={hasVideo ? undefined : detailHref}
-      media={
-        <>
-          {hasVideo ? (
-            <HomeCardVideo videoId={data.youtubeVideoId!} title={data.title || 'Reflection'} />
-          ) : (
-            <HomeCardImage
-              src={data.image}
-              fallbackSrc={imageFallback}
-              alt={data.title || 'Reflection'}
-            />
-          )}
-          <HomeCardMediaActions
-            soundCloudUrl={data.soundCloudUrl}
-            downloadUrl={data.downloadUrl}
-          />
-        </>
-      }
-    >
-      <HomeCardBodyLink detailHref={detailHref} active={hasVideo}>
-        {body}
-      </HomeCardBodyLink>
     </HomeCardShell>
   );
 }
@@ -217,8 +207,13 @@ function FilmCard({ data, imageFallback }: { data: HomeFilmCard; imageFallback: 
   );
 }
 
-export default function CLHero() {
+export default function CLHero({
+  backgroundId = DEFAULT_HOME_BACKGROUND,
+}: {
+  backgroundId?: HomeBackgroundId;
+} = {}) {
   const homeApiOnly = isHomeApiOnlyMode();
+  const ActiveBackground = HOME_BACKGROUNDS[backgroundId];
 
   const [homeLoading, setHomeLoading] = useState(homeApiOnly);
 
@@ -294,8 +289,8 @@ export default function CLHero() {
 
   return (
     <div className="cl-home-page-root">
-      {/* [Claude] these changes have been recommended by claude — live-site parallax background, sits behind everything below */}
-      <HomeParallaxBackground />
+      {/* [Claude] these changes have been recommended by claude — selected parallax background, sits behind everything below */}
+      <ActiveBackground />
       <div className="cl-home-layout">
         <Header />
         <main className="relative z-10 flex-1">

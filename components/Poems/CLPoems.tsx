@@ -28,6 +28,7 @@ import '@/styles/CustomStyle.css';
 import '@/components/Songs/CLSongs.css';
 import './CLPoems.css';
 import { AJAB_API_BASE } from '@/lib/ajabEnv';
+import { selectSingleFilterId } from '@/lib/listingFilterSelection';
 import { mapPoemListItem } from '@/lib/mapPoemListItem';
 import { poemCreditForScript, poemTextForScript } from '@/lib/poemScriptView';
 import { parseCatalogTotal } from '@/lib/parseCatalogTotal';
@@ -102,21 +103,11 @@ export default function CLPoems() {
 
   const handleFilterSelect = (type: ListingFilterCategory, value: string) => {
     if (type === 'Poet') {
-      const removing = selectedPoetIds.includes(value);
-      if (removing) {
-        setSelectedPoetIds(selectedPoetIds.filter((x) => x !== value));
-      } else {
-        setSelectedPoetIds([...selectedPoetIds, value]);
-      }
+      setSelectedPoetIds((prev) => selectSingleFilterId(prev, value));
       return;
     }
     if (type === 'Theme') {
-      const removing = selectedThemeIds.includes(value);
-      if (removing) {
-        setSelectedThemeIds(selectedThemeIds.filter((x) => x !== value));
-      } else {
-        setSelectedThemeIds([...selectedThemeIds, value]);
-      }
+      setSelectedThemeIds((prev) => selectSingleFilterId(prev, value));
     }
   };
 

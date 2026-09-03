@@ -1,0 +1,192 @@
+/* [Claude] these changes have been recommended by claude —
+   REFLECTIONS BACKGROUND — ported 1:1 from
+   https://ajabshahar.com/reflections/featured, inspected via raw CSSOM on
+   2026-09-01. Assets extracted from the single clean layered PSD
+   (Home_Page_2/Background 4 Assets/ALLreflections_Background01.05.2025.psd)
+   — every layer was named to match its live element exactly
+   (`background BACK fixed`, `EYES right to left`, `TREE moves from down to
+   top`, `white FISH big circle movement clockwise`, 4x `Chakra rotate`),
+   so this is a direct source-quality extraction, not a live re-download.
+
+   NOTE: the extracted PSD layers are slightly larger than the live site's
+   declared CSS box (eg. eyes.png native is 933x1541 vs the live box of
+   828x1541) — the PSD appears to be a newer/higher-res export than what's
+   currently deployed. overflow:hidden is added defensively on layers where
+   this could cause visible spillover; revisit if the first visual compare
+   shows unwanted cropping instead. */
+
+.ajab-refl-parallax {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+  z-index: 0;
+  pointer-events: none;
+  background-color: #fff; /* live .reflection-parallax { background-color: rgb(255,255,255) } */
+}
+
+/* .reflection-parallax-bg — opaque base image */
+.ajab-refl-bg {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-image: url('/parallax/reflections/background_image.jpg');
+  background-position: 0px 0px;
+  background-repeat: no-repeat;
+  background-size: cover;
+}
+
+/* .transparent-bg — soft overlay layered on top of the opaque base */
+.ajab-refl-transparent-bg {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-image: url('/parallax/reflections/background_transparent.png');
+  background-position: 0px 0px;
+  background-repeat: no-repeat;
+  background-size: cover;
+}
+
+@media (max-width: 1024px) {
+  .ajab-refl-transparent-bg {
+    display: none;
+  }
+}
+
+/* .tree — very faint (5% opacity) vertically-scrolling watermark behind everything */
+.ajab-refl-tree {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 1280px;
+  height: 3600px;
+  overflow: hidden;
+  background-image: url('/parallax/reflections/tree.png');
+  background-position: 0px 0px;
+  opacity: 0.05;
+  animation: ajab-refl-tree-scroll 180s linear 0s infinite normal none running;
+}
+
+@keyframes ajab-refl-tree-scroll {
+  0% {
+    background-position: 0px 0px;
+  }
+  100% {
+    background-position: 0px -2610px;
+  }
+}
+
+/* .eyes — repeating eye motif, drifts right-to-left and wraps */
+.ajab-refl-eyes {
+  position: absolute;
+  left: 60px;
+  top: 200px;
+  width: 828px;
+  height: 1541px;
+  overflow: hidden;
+  background-image: url('/parallax/reflections/eyes.png');
+  background-size: contain;
+  background-repeat: no-repeat;
+  animation: ajab-refl-eyes-drift 70s linear -2s infinite normal none running;
+}
+
+@keyframes ajab-refl-eyes-drift {
+  0% {
+    transform: translate(100%, 0px);
+  }
+  100% {
+    transform: translate(-100%, 0px);
+  }
+}
+
+/* .fish — large square fish-pattern, rotates slowly in place */
+.ajab-refl-fish {
+  position: absolute;
+  width: 1280px;
+  height: 1280px;
+  overflow: hidden;
+  background-image: url('/parallax/reflections/fish-sqare.png');
+  background-size: contain;
+  background-repeat: no-repeat;
+  animation: ajab-refl-spin-cw 150s linear 0s infinite normal none running;
+}
+
+/* .chakra / .chakra1 / .chakra2 / .chakra3 — 4 small spinning chakra glyphs,
+   verbatim positions from the live CSS. */
+.ajab-refl-chakra {
+  position: absolute;
+  overflow: hidden;
+  background-repeat: no-repeat;
+  animation: ajab-refl-spin-cw 30s linear 0s infinite normal none running;
+}
+
+@keyframes ajab-refl-spin-cw {
+  0% {
+    transform: rotate(0deg);
+  }
+  100% {
+    transform: rotate(360deg);
+  }
+}
+
+.ajab-refl-chakra0 {
+  background-image: url('/parallax/reflections/chakra.png');
+  left: 160px;
+  top: 350px;
+  width: 72px;
+  height: 73px;
+}
+
+.ajab-refl-chakra1 {
+  background-image: url('/parallax/reflections/chakra-2.png');
+  right: 100px;
+  top: 800px;
+  width: 103px;
+  height: 114px;
+}
+
+.ajab-refl-chakra2 {
+  background-image: url('/parallax/reflections/chakra-3.png');
+  left: 160px;
+  top: 1500px;
+  width: 70px;
+  height: 78px;
+}
+
+.ajab-refl-chakra3 {
+  background-image: url('/parallax/reflections/chakra-4.png');
+  right: 150px;
+  top: 2200px;
+  width: 53px;
+  height: 59px;
+}
+
+/* .edges — same 30px side_pattern strip reused from the home background */
+.ajab-refl-edges::before,
+.ajab-refl-edges::after {
+  content: '';
+  display: inline-block;
+  width: 30px;
+  height: 100%;
+  background-image: url('/parallax/side_pattern.png');
+  background-repeat: repeat-y;
+}
+.ajab-refl-edges::before {
+  float: left;
+}
+.ajab-refl-edges::after {
+  float: right;
+  transform: rotate(180deg);
+}
+
+@media screen and (max-width: 1140px) {
+  .ajab-refl-edges::before,
+  .ajab-refl-edges::after {
+    display: none;
+  }
+}

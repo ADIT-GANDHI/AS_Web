@@ -151,6 +151,11 @@ header button.about-text.active {
   line-height: 1;
 }
 
+.nav-link-label .nav-link-text {
+  font-size: 20px;
+  letter-spacing: 1px;
+}
+
 .nav-link--songs {
   min-width: 72px;
   width: auto;

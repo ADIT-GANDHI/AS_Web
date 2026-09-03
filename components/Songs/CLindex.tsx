@@ -14,6 +14,7 @@ import './CLSongs.css';
 import { SongsNavCountContext } from '@/components/Songs/SongsNavCountContext';
 import { AJAB_API_BASE } from '@/lib/ajabEnv';
 import { catalogHasMore, mergeCatalogById } from '@/lib/catalogPagination';
+import { selectSingleFilterId } from '@/lib/listingFilterSelection';
 import { parseCatalogTotal } from '@/lib/parseCatalogTotal';
 
 type FilterType = 'Singer' | 'Poet' | 'Theme';
@@ -121,10 +122,6 @@ function buildFilterQuery(order: FilterDim[], ids: Record<FilterDim, string[]>):
     if (values.length > 0) params.set(dim, values.join(','));
   }
   return params.toString();
-}
-
-function toggleId(prev: string[], id: string): string[] {
-  return prev.includes(id) ? prev.filter((x) => x !== id) : [...prev, id];
 }
 
 function nextFilterOrder(
@@ -283,19 +280,19 @@ export default function CLSongsIndex() {
     const dim = DIM_FROM_TYPE[type];
     if (dim === 'singer') {
       setSingerIds((prev) => {
-        const next = toggleId(prev, value);
+        const next = selectSingleFilterId(prev, value);
         setFilterOrder((order) => nextFilterOrder(order, dim, next));
         return next;
       });
     } else if (dim === 'poet') {
       setPoetIds((prev) => {
-        const next = toggleId(prev, value);
+        const next = selectSingleFilterId(prev, value);
         setFilterOrder((order) => nextFilterOrder(order, dim, next));
         return next;
       });
     } else {
       setThemeIds((prev) => {
-        const next = toggleId(prev, value);
+        const next = selectSingleFilterId(prev, value);
         setFilterOrder((order) => nextFilterOrder(order, dim, next));
         return next;
       });
