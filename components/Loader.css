@@ -43,8 +43,9 @@ body:has(.loader-overlay:not(.loader-overlay--panel)) .floating-actions {
 }
 
 .loader-spinner {
-  width: 200px;
-  height: 200px;
+  /* 15 Oct — loading spinner larger */
+  width: 280px;
+  height: 280px;
   object-fit: contain;
 }
 
@@ -67,7 +68,7 @@ body:has(.loader-overlay:not(.loader-overlay--panel)) .floating-actions {
 
 @media screen and (max-width: 768px) {
   .loader-spinner {
-    width: 120px;
-    height: 120px;
+    width: 168px;
+    height: 168px;
   }
 }

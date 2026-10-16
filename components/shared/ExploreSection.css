@@ -61,10 +61,19 @@
   background: none;
   border: none;
   cursor: pointer;
-  padding: 0 0 6px;
+  padding: 0;
   letter-spacing: 0;
   text-transform: none;
   line-height: 1.2;
+}
+
+.explore-theme-mark {
+  display: inline-block;
+  max-width: 100%;
+  padding-bottom: 6px;
+  /* Underline paints only on this text run — not the chip's "|" prefix */
+  box-decoration-break: clone;
+  -webkit-box-decoration-break: clone;
 }
 
 .explore-theme-translit {
@@ -80,10 +89,14 @@
 
 .explore-theme.active {
   color: var(--ajab-ink-900);
+}
+
+.explore-theme.active .explore-theme-mark {
+  /* Exact under-text dotted rule; whole dots via `space` (no end bleed) */
   background-image: radial-gradient(circle, var(--ajab-pink-primary) 1.25px, transparent 1.3px);
   background-size: 6px 3px;
   background-position: left bottom;
-  background-repeat: repeat-x;
+  background-repeat: space no-repeat;
 }
 
 .explore-theme.active .explore-theme-translation {
@@ -384,4 +397,60 @@
   letter-spacing: 0.04em;
   color: var(--ajab-pink-primary);
   text-transform: uppercase;
+}
+
+/* ── Songs detail Explore (15 Oct client) ── */
+.cld-page .clp-related .explore-format {
+  font-size: 16px;
+  letter-spacing: 0.04em;
+  color: var(--ajab-ink-300);
+}
+
+.cld-page .clp-related .explore-itemtitle {
+  font-size: 24px;
+  max-width: none;
+  white-space: normal;
+  overflow: visible;
+  text-overflow: unset;
+  flex: 1 1 auto;
+}
+
+.cld-page .clp-related .explore-itemsubtitle {
+  font-size: 20px;
+  white-space: normal;
+  overflow: visible;
+  text-overflow: unset;
+  color: var(--ajab-ink-400);
+}
+
+.cld-page .clp-related .explore-titlerow {
+  flex-wrap: wrap;
+}
+
+.cld-page .clp-related .explore-itemdesc {
+  font-family: var(--ajab-font-alegreya, 'Alegreya', serif);
+  font-size: 18px;
+  line-height: 1.5;
+  color: var(--ajab-ink-700);
+  /* Tighten space above SONG format tag */
+  margin-bottom: 4px;
+}
+
+.cld-page .clp-related .explore-format {
+  margin-top: 0;
+  padding-top: 0;
+}
+
+/* PDF grey dotted line between cards (15 Oct — match PDF, not solid) */
+.cld-page .clp-related .explore-item:not(:last-child) {
+  border-bottom: 1px dotted #b9b9b9;
+}
+
+.cld-page .clp-related .explore-item:not(:last-child) .explore-body {
+  border-bottom: 0;
+}
+
+/* See more — half the previous gap */
+.cld-page .clp-related .explore-seemore {
+  margin-top: 14px;
 }

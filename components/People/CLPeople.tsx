@@ -10,9 +10,9 @@ import {
   useState,
 } from 'react';
 import Link from 'next/link';
-import LoadMoreButton from '@/components/shared/LoadMoreButton';
 import Header from '@/components/Header';
 import Loader from '@/components/Loader';
+import InfiniteLoadSentinel from '@/components/shared/InfiniteLoadSentinel';
 import ListingFilterBar from '@/components/shared/ListingFilterBar';
 import RepeatingPageBackground from '@/components/shared/RepeatingPageBackground';
 // OLD single-plate listing bg (revert: restore PEOPLE_LISTING_BG + commented usage below)
@@ -31,6 +31,7 @@ import '@/components/Songs/CLSongs.css';
 import './CLPeople.css';
 import { AJAB_API_BASE } from '@/lib/ajabEnv';
 import { catalogHasMore, mergeCatalogById } from '@/lib/catalogPagination';
+import { catalogCountLabel } from '@/lib/catalogCountLabel';
 import { selectSingleFilterId } from '@/lib/listingFilterSelection';
 import { mapPersonProfileTags, mapPersonRole } from '@/lib/mapPersonDetail';
 import { parseCatalogTotal } from '@/lib/parseCatalogTotal';
@@ -289,7 +290,7 @@ export default function CLPeople() {
       ? totalPeople
       : filtered.length;
 
-  const handleLoadMore = () => {
+  const handleLoadMore = useCallback(() => {
     if (loadingMore) return;
 
     if (visibleCount < filtered.length) {
@@ -302,7 +303,15 @@ export default function CLPeople() {
         setVisibleCount((prev) => prev + PEOPLE_VISIBLE_STEP);
       });
     }
-  };
+  }, [
+    loadingMore,
+    visibleCount,
+    filtered.length,
+    totalPeople,
+    people.length,
+    apiPage,
+    fetchPeoplePage,
+  ]);
 
   useEffect(() => {
     setVisibleCount(PEOPLE_VISIBLE_STEP);
@@ -333,7 +342,9 @@ export default function CLPeople() {
             <p className="clpe-intro">{PEOPLE_INTRO}</p>
 
             <div className="cl-songs-count-row">
-              <h1 className="cl-songs-count">{headingCount} People</h1>
+              <h1 className="cl-songs-count">
+                {catalogCountLabel(headingCount, 'Person', 'People')}
+              </h1>
             </div>
 
             <ListingFilterBar
@@ -399,13 +410,11 @@ export default function CLPeople() {
               )}
             </div>
 
-            {hasMore && (
-              <LoadMoreButton
-                onClick={handleLoadMore}
-                ariaLabel="Load more people"
-                disabled={loadingMore}
-              />
-            )}
+            <InfiniteLoadSentinel
+              hasMore={hasMore}
+              onLoadMore={handleLoadMore}
+              watchKey={displayedPeople.length}
+            />
           </div>
         </main>
       </div>

@@ -301,7 +301,7 @@ body:has(.clp-page) footer.footer-bg .footer-inner {
   background-image: radial-gradient(circle, var(--ajab-pink-primary) 1.25px, transparent 1.3px);
   background-size: 6px 3px;
   background-position: left bottom;
-  background-repeat: repeat-x;
+  background-repeat: space no-repeat;
 }
 
 .clp-actions .sep {
@@ -309,15 +309,7 @@ body:has(.clp-page) footer.footer-bg .footer-inner {
 }
 
 /* AI wavy divider before Explore (extracted from Poems_27June2026.ai) */
-/* Poems filter parda — AI ~446px wide */
-.clp-page-root-wrap .ajab-filter-drawer,
-body:has(.clp-page) .ajab-filter-drawer {
-  width: 446px !important;
-}
-
-body:has(.clp-page) .ajab-filter-drawer img[alt=''] {
-  width: 446px !important;
-}
+/* Filter parda width comes from shared FILTER_DRAWER_DEFAULT_WIDTH (380). */
 
 /* Poems filter chips — AI pink labels + × */
 body:has(.clp-page) .ajab-filter-selections button {

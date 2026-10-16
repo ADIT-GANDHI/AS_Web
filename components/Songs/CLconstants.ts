@@ -1,5 +1,5 @@
 export const SONGS_INTRO =
-  'The utterances of Bhakti, Sufi and Baul poets have been kept alive over centuries through song, and that is what you find here - live recordings of oral poetry all the way from Pakistan in the west to Bengal in the east, pulsating to rhythm and melody, sung and recorded in contexts as diverse as urban stages and village squares, on trains and road journeys, in living rooms and under the wide open sky.';
+  'The utterances of mystics, Bhakti poets and Sufis have been kept alive over centuries through song, and that is what you find here - live recordings of oral poetry from Pakistan in the west, through Kutch, Rajasthan and Malwa to Bengal in the east, sung in village squares and urban stages, on trains and road journeys, in living rooms and under the wide open sky.';
 
 export const SONGS_FILTER = [
   'All',

@@ -2,6 +2,7 @@
 
 import Link from 'next/link';
 import { resolveCmsAssetUrl } from '@/lib/resolveCmsAssetUrl';
+import { resolveSongSingsLabel } from '@/lib/resolveSongSingsLabel';
 import WavyCard from '@/components/shared/WavyCard';
 import { toEnglishPoet } from './poetTransliteration';
 import './CLSongs.css';
@@ -17,6 +18,8 @@ export default function CLSongCard(item: any) {
     item.singer_display || item.singer || (Array.isArray(item.singer_names) ? item.singer_names[0] : item.singer_names) || '';
   const singerDisplay = rawSinger ? String(rawSinger).toUpperCase() : '';
   const poetDisplay = item.poet ? toEnglishPoet(item.poet).toUpperCase() : '';
+  /* 1 performer → "sings"; 2+ (incl. "Name & Name" under one CMS id) → "sing" */
+  const singsLabel = resolveSongSingsLabel(item, singerDisplay);
 
   const inner = (
     <WavyCard
@@ -27,14 +30,16 @@ export default function CLSongCard(item: any) {
       bodyClassName="cl-song-card-body"
     >
       <div className="cl-song-card-title">
-        {item.Songtitle_transliteration || '\u00A0'}
+        <span className="cl-song-card-title-text">
+          {item.Songtitle_transliteration || '\u00A0'}
+        </span>
       </div>
 
       <div className="cl-song-card-subtitle">{item.songtitletraan || ''}</div>
 
       {singerDisplay && (
         <div className="cl-song-card-meta" title={singerDisplay}>
-          <span className="cl-song-card-meta-label">sings </span>
+          <span className="cl-song-card-meta-label">{singsLabel} </span>
           <span className="cl-song-card-meta-value">{singerDisplay}</span>
         </div>
       )}

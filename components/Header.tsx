@@ -1,6 +1,6 @@
 'use client';
 
-import { useContext, useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import Link from 'next/link';
 import { Menu, X } from 'lucide-react';
 import { usePathname, useRouter } from 'next/navigation';
@@ -14,11 +14,6 @@ import headerCurve from '../public/songs-assets/Header.png';
 import '../styles/Header.css';
 import { AJAB_API_BASE } from '@/lib/ajabEnv';
 import { SEARCH_ENDPOINT, emptySearchResponse, normalizeSearchPayload, type SearchApiResponse } from '@/lib/utils/search';
-import { SongsNavCountContext } from '@/components/Songs/SongsNavCountContext';
-import { ReflectionsNavCountContext } from '@/components/Reflections/ReflectionsNavCountContext';
-import { PoemsNavCountContext } from '@/components/Poems/PoemsNavCountContext';
-import { PeopleNavCountContext } from '@/components/People/PeopleNavCountContext';
-import { FilmsNavCountContext } from '@/components/Films/FilmsNavCountContext';
 
 type SearchCategory = 'songs' | 'poems' | 'reflections' | 'people' | 'films';
 
@@ -83,11 +78,6 @@ export default function Header() {
   const pathname = usePathname(); // ✅ Get current path
   const router = useRouter();
   const isRadioPage = pathname?.startsWith('/radio');
-  const { total: songsNavTotal } = useContext(SongsNavCountContext);
-  const { total: reflectionsNavTotal } = useContext(ReflectionsNavCountContext);
-  const { total: poemsNavTotal } = useContext(PoemsNavCountContext);
-  const { total: peopleNavTotal } = useContext(PeopleNavCountContext);
-  const { total: filmsNavTotal } = useContext(FilmsNavCountContext);
 
   useEffect(() => {
     if (!isSearchOpen) {
@@ -202,14 +192,8 @@ export default function Header() {
               {/* Desktop Navigation */}
               <nav className="hidden md:flex items-center header-main-nav">
                 {navigationItems.map((item) => {
-                  const isSongs = item.name === 'SONGS';
-                  const isPoems = item.name === 'POEMS';
-                  const isReflections = item.name === 'REFLECTIONS';
-                  const isPeople = item.name === 'PEOPLE';
-                  const isFilms = item.name === 'FILMS';
                   /* [Claude] these changes have been recommended by claude —
-                     startsWith covers listing + detail pages.
-                     Poems count uses context (same pattern as Songs/Reflections). */
+                     startsWith covers listing + detail pages. */
                   const isActive = pathname.startsWith(item.href);
                   return (
                     <Link
@@ -218,34 +202,7 @@ export default function Header() {
                       className={`nav-link nav-link--${item.name.toLowerCase()} ${isActive ? 'active' : ''}`}
                     >
                       <span className="nav-link-label">
-                        <span className="nav-link-text">
-                          {item.name}
-                          {isSongs && songsNavTotal != null && songsNavTotal > 0 && (
-                            <span className="nav-link-songs-count" aria-hidden="true">
-                              ({songsNavTotal})
-                            </span>
-                          )}
-                          {isPoems && poemsNavTotal != null && poemsNavTotal > 0 && (
-                            <span className="nav-link-poems-count" aria-hidden="true">
-                              ({poemsNavTotal})
-                            </span>
-                          )}
-                          {isReflections && reflectionsNavTotal != null && (
-                            <span className="nav-link-reflections-count" aria-hidden="true">
-                              ({reflectionsNavTotal})
-                            </span>
-                          )}
-                          {isPeople && peopleNavTotal != null && peopleNavTotal > 0 && (
-                            <span className="nav-link-people-count" aria-hidden="true">
-                              ({peopleNavTotal})
-                            </span>
-                          )}
-                          {isFilms && filmsNavTotal != null && filmsNavTotal > 0 && (
-                            <span className="nav-link-films-count" aria-hidden="true">
-                              ({filmsNavTotal})
-                            </span>
-                          )}
-                        </span>
+                        <span className="nav-link-text">{item.name}</span>
                       </span>
                     </Link>
                   );
@@ -311,11 +268,6 @@ export default function Header() {
             <div className="header-mobile-drawer md:hidden">
               <nav className="flex flex-col space-y-6 p-6">
                 {navigationItems.map((item) => {
-                  const isSongs = item.name === 'SONGS';
-                  const isPoems = item.name === 'POEMS';
-                  const isReflections = item.name === 'REFLECTIONS';
-                  const isPeople = item.name === 'PEOPLE';
-                  const isFilms = item.name === 'FILMS';
                   /* [Claude] these changes have been recommended by claude —
                      startsWith covers both listing (/songs) and detail (/songs/details/1)
                      pages so the correct nav item stays highlighted on detail views. */
@@ -328,34 +280,7 @@ export default function Header() {
                       onClick={() => setIsMenuOpen(false)}
                     >
                       <span className="nav-link-label">
-                        <span className="nav-link-text">
-                          {item.name}
-                          {isSongs && songsNavTotal != null && songsNavTotal > 0 && (
-                            <span className="nav-link-songs-count" aria-hidden="true">
-                              ({songsNavTotal})
-                            </span>
-                          )}
-                          {isPoems && poemsNavTotal != null && poemsNavTotal > 0 && (
-                            <span className="nav-link-poems-count" aria-hidden="true">
-                              ({poemsNavTotal})
-                            </span>
-                          )}
-                          {isReflections && reflectionsNavTotal != null && (
-                            <span className="nav-link-reflections-count" aria-hidden="true">
-                              ({reflectionsNavTotal})
-                            </span>
-                          )}
-                          {isPeople && peopleNavTotal != null && peopleNavTotal > 0 && (
-                            <span className="nav-link-people-count" aria-hidden="true">
-                              ({peopleNavTotal})
-                            </span>
-                          )}
-                          {isFilms && filmsNavTotal != null && filmsNavTotal > 0 && (
-                            <span className="nav-link-films-count" aria-hidden="true">
-                              ({filmsNavTotal})
-                            </span>
-                          )}
-                        </span>
+                        <span className="nav-link-text">{item.name}</span>
                       </span>
                     </Link>
                   );

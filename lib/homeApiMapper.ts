@@ -8,6 +8,7 @@ import {
 import { formatFilmDirector } from '@/components/Films/filmFieldUtils';
 import { AJAB_API_BASE } from '@/lib/ajabEnv';
 import { mapPersonProfileTags } from '@/lib/mapPersonDetail';
+import { resolveSongSingsLabel } from '@/lib/resolveSongSingsLabel';
 import { extractYouTubeId } from '@/lib/youtube';
 
 export type HomeSongCard = typeof MOCK_HOME_SONG;
@@ -175,31 +176,6 @@ function truncate(text: string, max = 320): string {
 
 function sameCardText(a: string, b: string): boolean {
   return a.replace(/\s+/g, ' ').trim().toLowerCase() === b.replace(/\s+/g, ' ').trim().toLowerCase();
-}
-
-/** 1 singer → "sings"; 2+ → "sing". Prefer singer_ids; else parse names for & / and. */
-function resolveSongSingsLabel(record: Record<string, unknown>, singerDisplay: string): 'sing' | 'sings' {
-  if (Array.isArray(record.singer_ids) && record.singer_ids.length > 0) {
-    return record.singer_ids.length === 1 ? 'sings' : 'sing';
-  }
-
-  const labels: string[] = [];
-  if (Array.isArray(record.singer_names) && record.singer_names.length > 0) {
-    for (const entry of record.singer_names) {
-      const label = firstDisplayName(entry);
-      if (label) labels.push(label);
-    }
-  } else if (singerDisplay) {
-    labels.push(singerDisplay);
-  }
-
-  const count = labels
-    .join(' & ')
-    .split(/\s*(?:&|,|\/|\band\b)\s*/i)
-    .map((p) => p.trim())
-    .filter(Boolean).length;
-
-  return count <= 1 ? 'sings' : 'sing';
 }
 
 /** CMS ⊙ Translated title — skip when it merely repeats the transliteration. */

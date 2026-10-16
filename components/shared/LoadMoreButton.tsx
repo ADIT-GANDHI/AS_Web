@@ -8,7 +8,7 @@ type LoadMoreButtonProps = {
   disabled?: boolean;
 };
 
-/** Pink “Load More” + single down chevron — shared across listing pages. */
+/** Pink “Load More” + chevron — for related / expand controls, not listing auto-scroll. */
 export default function LoadMoreButton({
   onClick,
   ariaLabel = 'Load more',

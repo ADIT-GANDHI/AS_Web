@@ -1,0 +1,52 @@
+/* Poster facade — only the red YouTube play control until click. */
+.ajab-yt-facade {
+  display: block;
+  width: 100%;
+  height: 100%;
+  margin: 0;
+  padding: 0;
+  border: 0;
+  cursor: pointer;
+  background-color: #000;
+  background-position: center;
+  background-size: cover;
+  background-repeat: no-repeat;
+  position: relative;
+  overflow: hidden;
+}
+
+.ajab-yt-play {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 68px;
+  height: 48px;
+  border-radius: 14px;
+  background: #f00;
+  box-shadow: 0 0 0.5px rgba(0, 0, 0, 0.35);
+  transition: background 0.15s ease, transform 0.15s ease;
+}
+
+.ajab-yt-facade:hover .ajab-yt-play,
+.ajab-yt-facade:focus-visible .ajab-yt-play {
+  background: #cc0000;
+  transform: translate(-50%, -50%) scale(1.04);
+}
+
+.ajab-yt-play-tri {
+  position: absolute;
+  top: 50%;
+  left: 54%;
+  transform: translate(-50%, -50%);
+  width: 0;
+  height: 0;
+  border-style: solid;
+  border-width: 10px 0 10px 18px;
+  border-color: transparent transparent transparent #fff;
+}
+
+.ajab-yt-facade:focus-visible {
+  outline: 2px solid #e31e79;
+  outline-offset: 2px;
+}

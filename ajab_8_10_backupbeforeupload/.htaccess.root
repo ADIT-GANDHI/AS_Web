@@ -1,0 +1,28 @@
+# Ajab Shahar static export — root deploy (ajabuifinal.damnetworks.com)
+Options -Indexes
+
+RewriteEngine On
+RewriteBase /
+
+# Next.js static assets — never rewrite to HTML stubs
+RewriteRule ^_next/ - [L]
+
+# 1. Real files (JS, CSS, images, fonts) — serve directly
+RewriteCond %{REQUEST_FILENAME} -f
+RewriteRule ^ - [L]
+
+# 2. Exact .html exists on disk
+RewriteCond %{DOCUMENT_ROOT}/$1.html -f
+RewriteRule ^(.+?)/?$ $1.html [L]
+
+# 3. SPA stub for detail routes (e.g. songs/details/230 -> songs/details/0.html)
+RewriteCond %{REQUEST_URI} !^/_next/
+RewriteCond %{REQUEST_URI} ^/(.+)/[^./]+/?$
+RewriteCond %{DOCUMENT_ROOT}/%1/0.html -f
+RewriteRule ^(.+)/[^./]+/?$ $1/0.html [L]
+
+# 4. Fallback (pages only — not asset extensions)
+RewriteCond %{REQUEST_URI} !\.(js|css|png|jpg|jpeg|gif|svg|webp|ico|woff2?|ttf|eot|map|json|txt)$
+RewriteRule ^ /index.html [L]
+
+ErrorDocument 404 /404.html

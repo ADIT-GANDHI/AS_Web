@@ -69,12 +69,10 @@ async function buildMotifTile(srcPath, top, outPath) {
 }
 
 async function buildCompositeMirror() {
+  /* Triangles motif removed per client — marble + tamburas only. */
   const moduleBuf = await sharp(SRC.marble)
     .resize(W, MODULE_H, { fit: 'fill' })
-    .composite([
-      { input: SRC.triangles, top: TRI_TOP, left: 0 },
-      { input: SRC.tamburas, top: TAM_TOP, left: 0 },
-    ])
+    .composite([{ input: SRC.tamburas, top: TAM_TOP, left: 0 }])
     .png()
     .toBuffer();
   const flipped = await sharp(moduleBuf).flip('vertical').toBuffer();
@@ -95,12 +93,14 @@ async function buildCompositeMirror() {
 }
 
 await buildMarbleMirror();
+/* Keep triangles tile file for rollback, but do not composite into the live sheet. */
 await buildMotifTile(SRC.triangles, TRI_TOP, OUT.trianglesTile);
 await buildMotifTile(SRC.tamburas, TAM_TOP, OUT.tamburasTile);
 await buildCompositeMirror();
 
-console.log('✅ songs listing bg (3900px module, synced repeats)');
+console.log('✅ songs listing bg (3900px module, synced repeats; no triangles in composite)');
 console.log(`   marble mirror:     ${OUT.marbleMirror}`);
-console.log(`   triangles tile:    ${OUT.trianglesTile} (y=${TRI_TOP})`);
+console.log(`   triangles tile:    ${OUT.trianglesTile} (unused in composite, y=${TRI_TOP})`);
 console.log(`   tamburas tile:     ${OUT.tamburasTile} (y=${TAM_TOP})`);
-console.log(`   composite mirror:  ${OUT.compositeMirror} (QA / fallback)`);
+console.log(`   composite mirror:  ${OUT.compositeMirror}`);
+

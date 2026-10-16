@@ -77,8 +77,9 @@
   --cld-rail-margin-left: calc(var(--cld-col-center-nudge) + var(--cld-rail-shift));
   /* PDF vertical rhythm (artboard px → scaled) — lyrics stanza rules unchanged */
   --cld-gap-versions-header: min(86px, calc(100vw * 114 / var(--cld-artboard-w)));
-  --cld-gap-header-video: min(8px, calc(100vw * 8 / var(--cld-artboard-w)));
-  --cld-gap-video-about: min(43px, calc(100vw * 43 / var(--cld-artboard-w)));
+  /* 15 Oct — header → YT 4px; YT → about ~half of prior 43 */
+  --cld-gap-header-video: 4px;
+  --cld-gap-video-about: min(22px, calc(100vw * 22 / var(--cld-artboard-w)));
   --cld-gap-about-lang: min(64px, calc(100vw * 86 / var(--cld-artboard-w)));
   --cld-gap-lang-title: min(44px, calc(100vw * 58 / var(--cld-artboard-w)));
   --cld-gap-title-lyrics: min(32px, calc(100vw * 42 / var(--cld-artboard-w)));
@@ -311,7 +312,8 @@
   width: 100%;
   max-width: 100%;
   margin: 0 0 var(--cld-gap-header-video);
-  padding: 0;
+  /* 15 Oct — text above YT 1px more inset */
+  padding: 0 1px;
   box-sizing: border-box;
 }
 
@@ -326,14 +328,15 @@
 .cld-song-header-left {
   display: flex;
   align-items: baseline;
-  gap: 12px;
+  /* Match credits gap so space on both sides of “sings” reads equal */
+  gap: 8px;
   flex-wrap: wrap;
 }
 
-/* Figma 361:1463: "Aarshi Nogor" Lora Regular 28 var(--ajab-ink-700) */
+/* 15 Oct — heading 24px */
 .cld-song-header-title-name {
   font-family: var(--ajab-font-serif);
-  font-size: 21px;
+  font-size: 24px;
   font-weight: 400;
   color: var(--ajab-ink-700);
   line-height: 1.2;
@@ -343,22 +346,22 @@
   display: inline-flex;
   align-items: baseline;
   flex-wrap: wrap;
-  gap: 6px;
+  /* Equal gap both sides of “sings” */
+  gap: 8px;
 }
 
-/* Figma 361:1434/1463: "sings PARVATHY BAUL" is rendered as one
-   Merriweather Sans Light 16 var(--ajab-ink-700) run (NOT pink) */
 .cld-song-header-sings {
   font-family: var(--ajab-font-sans);
   font-weight: 300;
   font-size: 14px;
   line-height: 1.35;
-  color: #666666;
+  color: var(--ajab-ink-400);
 }
 
+/* 15 Oct — singer name weight 300 */
 .cld-song-header-singer {
   font-family: var(--ajab-font-sans);
-  font-weight: 400;
+  font-weight: 300;
   font-size: 14px;
   line-height: 1.35;
   color: var(--ajab-pink-primary);
@@ -384,27 +387,30 @@
   font-family: var(--ajab-font-sans);
   font-weight: 300;
   font-size: 14px;
-  color: #666666;
+  color: var(--ajab-ink-400);
   text-align: right;
   white-space: nowrap;
+  /* 15 Oct — meta above YT 1px more inset */
+  padding-right: 1px;
 }
 
-/* ── Video section — 16:9 embed width aligned to PDF / standard YouTube proportions. */
+/* ── Video section — 16:9; 15 Oct border 6px; avoid black letterbox fill. */
 .cld-video-wrap {
   width: 100%;
   max-width: 100%;
   margin: 0 0 var(--cld-gap-video-about);
   aspect-ratio: 1027 / 588;
-  background: #000;
+  background: #1a1a1a;
   border-radius: 4px;
   overflow: hidden;
-  border: 4px solid #FFFFFF;
-  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.15);
+  border: 6px solid #FFFFFF;
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.12);
   box-sizing: border-box;
 }
 
 .cld-video-wrap iframe,
-.cld-video-wrap > div {
+.cld-video-wrap > div,
+.cld-video-wrap .ajab-yt-facade {
   display: block;
   width: 100% !important;
   height: 100% !important;
@@ -422,18 +428,18 @@
   font-family: var(--ajab-font-sans);
 }
 
-/* ── Description — Figma 361:1473: Merriweather Sans Light 15px, left-aligned. ── */
+/* ── Description — 15 Oct: 7px inset each side (14 total), lh 1.6em ── */
 .cld-description {
   font-family: var(--ajab-font-sans);
   font-weight: 300;
   font-size: 15px;
-  line-height: 1.45;
+  line-height: 1.6em;
   color: var(--ajab-ink-700);
   text-align: left;
   width: 100%;
   max-width: 100%;
   margin: 0 0 var(--cld-gap-about-lang);
-  padding: 0;
+  padding: 0 7px;
   box-sizing: border-box;
 }
 
@@ -444,9 +450,9 @@
 }
 
 .cld-description-body--clamped {
-  line-height: 1.45;
-  min-height: calc(1.45em * 3);
-  max-height: calc(1.45em * 3);
+  line-height: 1.6em;
+  min-height: calc(1.6em * 3);
+  max-height: calc(1.6em * 3);
   overflow: hidden;
   white-space: normal;
 }
@@ -480,7 +486,8 @@
 .cld-description-more {
   display: inline;
   margin: 0;
-  padding: 0;
+  /* 15 Oct — “…less” 3px padding above */
+  padding: 3px 0 0;
   border: 0;
   background: none;
   cursor: pointer;
@@ -507,10 +514,10 @@
 .cld-song-title {
   font-family: var(--ajab-font-serif);
   font-weight: 400;
-  font-size: 36px;
+  /* 15 Oct — title above song 34px */
+  font-size: 34px;
   color: var(--ajab-ink-700);
   margin: 0 0 9px;
-  /* increased spacing between title and translation by 1pt (1px) */
 }
 
 .cld-song-translation {
@@ -527,7 +534,8 @@
 .cld-song-poet {
   font-family: var(--ajab-font-sans);
   font-weight: 300;
-  font-size: var(--ajab-fs-body);
+  /* 15 Oct — poet label + name 16px */
+  font-size: 16px;
   color: var(--ajab-pink-primary);
   letter-spacing: 0;
 }
@@ -698,10 +706,23 @@
   font-style: normal;
   font-weight: 400;
   font-size: 16px;
-  line-height: 1.75;
+  /* 15 Oct — consistent lh; override via --cld-lyrics-lh from API when present */
+  line-height: var(--cld-lyrics-lh, 1.75);
   color: var(--ajab-ink-400);
   text-align: center;
   white-space: pre-wrap;
+}
+
+/* 15 Oct — white double-line separator (about ↔ poem, and before Explore) */
+.cld-double-rule {
+  width: min(856px, 100%);
+  max-width: min(856px, 100%);
+  margin: 28px auto 24px;
+  height: 5px;
+  border-top: 1px solid #ffffff;
+  border-bottom: 1px solid #ffffff;
+  box-sizing: border-box;
+  pointer-events: none;
 }
 
 .cld-lyrics-stanza {
@@ -738,8 +759,22 @@
 
 .cld-lyrics em,
 .cld-lyrics i,
-.cld-lyrics [style*='italic'] {
-  font-style: italic;
+.cld-lyrics [style*='italic'],
+.cld-lyrics--html em,
+.cld-lyrics--html i,
+.cld-lyrics--html [style*='font-style:italic'],
+.cld-lyrics--html [style*='font-style: italic'] {
+  font-style: italic !important;
+}
+
+/* English lyrics view — preserve CMS italics even when wrappers strip styles */
+.cld-lyrics-stage[data-script='english'] .cld-lyrics--html,
+.cld-lyrics-stage[data-script='english'] .cld-lyrics {
+  font-style: normal;
+}
+.cld-lyrics-stage[data-script='english'] .cld-lyrics--html em,
+.cld-lyrics-stage[data-script='english'] .cld-lyrics--html i {
+  font-style: italic !important;
 }
 
 .cld-lyrics-translation {

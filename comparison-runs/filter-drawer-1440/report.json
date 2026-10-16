@@ -1,0 +1,388 @@
+[
+  {
+    "name": "songs",
+    "path": "/songs",
+    "ok": true,
+    "data": {
+      "width": 380,
+      "height": 900,
+      "backgroundColor": "rgb(255, 255, 255)",
+      "bgOpacity": "1",
+      "close": {
+        "left": 341,
+        "right": 360,
+        "top": 234
+      },
+      "headerLabels": [
+        {
+          "t": "Filter by",
+          "left": 20,
+          "right": 89,
+          "top": 236,
+          "bottom": 263,
+          "h": 27
+        },
+        {
+          "t": "Singer",
+          "left": 99,
+          "right": 154,
+          "top": 236,
+          "bottom": 263,
+          "h": 27
+        },
+        {
+          "t": "|",
+          "left": 159,
+          "right": 166,
+          "top": 236,
+          "bottom": 263,
+          "h": 27
+        },
+        {
+          "t": "Poet",
+          "left": 171,
+          "right": 210,
+          "top": 236,
+          "bottom": 263,
+          "h": 27
+        },
+        {
+          "t": "|",
+          "left": 215,
+          "right": 222,
+          "top": 236,
+          "bottom": 263,
+          "h": 27
+        },
+        {
+          "t": "Theme",
+          "left": 227,
+          "right": 288,
+          "top": 236,
+          "bottom": 263,
+          "h": 27
+        },
+        {
+          "t": "Theme",
+          "left": 227,
+          "right": 288,
+          "top": 236,
+          "bottom": 263,
+          "h": 27
+        }
+      ],
+      "sameLine": true,
+      "gapToClose": 53,
+      "overlaps": [],
+      "stack": [
+        {
+          "tag": "LI",
+          "cls": "",
+          "inDrawer": true
+        },
+        {
+          "tag": "UL",
+          "cls": "",
+          "inDrawer": true
+        },
+        {
+          "tag": "DIV",
+          "cls": "ajab-filter-list",
+          "inDrawer": true
+        },
+        {
+          "tag": "DIV",
+          "cls": "",
+          "inDrawer": true
+        },
+        {
+          "tag": "DIV",
+          "cls": "",
+          "inDrawer": true
+        },
+        {
+          "tag": "DIV",
+          "cls": "ajab-filter-drawer",
+          "inDrawer": true
+        }
+      ],
+      "overflowPastDrawer": false
+    },
+    "shot": "comparison-runs\\filter-drawer-1440\\songs.png"
+  },
+  {
+    "name": "reflections",
+    "path": "/reflections",
+    "ok": true,
+    "data": {
+      "width": 380,
+      "height": 900,
+      "backgroundColor": "rgb(255, 255, 255)",
+      "bgOpacity": "1",
+      "close": {
+        "left": 341,
+        "right": 360,
+        "top": 234
+      },
+      "headerLabels": [
+        {
+          "t": "Filter by",
+          "left": 20,
+          "right": 89,
+          "top": 236,
+          "bottom": 263,
+          "h": 27
+        },
+        {
+          "t": "Speaker",
+          "left": 99,
+          "right": 168,
+          "top": 236,
+          "bottom": 263,
+          "h": 27
+        },
+        {
+          "t": "|",
+          "left": 173,
+          "right": 180,
+          "top": 236,
+          "bottom": 263,
+          "h": 27
+        },
+        {
+          "t": "Theme",
+          "left": 185,
+          "right": 245,
+          "top": 236,
+          "bottom": 263,
+          "h": 27
+        },
+        {
+          "t": "|",
+          "left": 250,
+          "right": 258,
+          "top": 236,
+          "bottom": 263,
+          "h": 27
+        },
+        {
+          "t": "Format",
+          "left": 263,
+          "right": 324,
+          "top": 236,
+          "bottom": 263,
+          "h": 27
+        },
+        {
+          "t": "Format",
+          "left": 263,
+          "right": 324,
+          "top": 236,
+          "bottom": 263,
+          "h": 27
+        }
+      ],
+      "sameLine": true,
+      "gapToClose": 17,
+      "overlaps": [],
+      "stack": [
+        {
+          "tag": "LI",
+          "cls": "",
+          "inDrawer": true
+        },
+        {
+          "tag": "UL",
+          "cls": "",
+          "inDrawer": true
+        },
+        {
+          "tag": "DIV",
+          "cls": "ajab-filter-list",
+          "inDrawer": true
+        },
+        {
+          "tag": "DIV",
+          "cls": "",
+          "inDrawer": true
+        },
+        {
+          "tag": "DIV",
+          "cls": "",
+          "inDrawer": true
+        },
+        {
+          "tag": "DIV",
+          "cls": "ajab-filter-drawer",
+          "inDrawer": true
+        }
+      ],
+      "overflowPastDrawer": false
+    },
+    "shot": "comparison-runs\\filter-drawer-1440\\reflections.png"
+  },
+  {
+    "name": "people",
+    "path": "/people",
+    "ok": true,
+    "data": {
+      "width": 380,
+      "height": 900,
+      "backgroundColor": "rgb(255, 255, 255)",
+      "bgOpacity": "1",
+      "close": {
+        "left": 341,
+        "right": 360,
+        "top": 234
+      },
+      "headerLabels": [
+        {
+          "t": "Filter by",
+          "left": 20,
+          "right": 89,
+          "top": 236,
+          "bottom": 263,
+          "h": 27
+        }
+      ],
+      "sameLine": true,
+      "gapToClose": null,
+      "overlaps": [],
+      "stack": [
+        {
+          "tag": "LI",
+          "cls": "",
+          "inDrawer": true
+        },
+        {
+          "tag": "UL",
+          "cls": "",
+          "inDrawer": true
+        },
+        {
+          "tag": "DIV",
+          "cls": "ajab-filter-list",
+          "inDrawer": true
+        },
+        {
+          "tag": "DIV",
+          "cls": "",
+          "inDrawer": true
+        },
+        {
+          "tag": "DIV",
+          "cls": "",
+          "inDrawer": true
+        },
+        {
+          "tag": "DIV",
+          "cls": "ajab-filter-drawer",
+          "inDrawer": true
+        }
+      ],
+      "overflowPastDrawer": false
+    },
+    "shot": "comparison-runs\\filter-drawer-1440\\people.png"
+  },
+  {
+    "name": "poems",
+    "path": "/poems",
+    "ok": true,
+    "data": {
+      "width": 446,
+      "height": 900,
+      "backgroundColor": "rgb(255, 255, 255)",
+      "bgOpacity": "1",
+      "close": {
+        "left": 407,
+        "right": 426,
+        "top": 234
+      },
+      "headerLabels": [
+        {
+          "t": "Filter by",
+          "left": 20,
+          "right": 89,
+          "top": 236,
+          "bottom": 263,
+          "h": 27
+        },
+        {
+          "t": "Poets",
+          "left": 99,
+          "right": 147,
+          "top": 236,
+          "bottom": 263,
+          "h": 27
+        },
+        {
+          "t": "|",
+          "left": 152,
+          "right": 159,
+          "top": 236,
+          "bottom": 263,
+          "h": 27
+        },
+        {
+          "t": "Themes",
+          "left": 164,
+          "right": 233,
+          "top": 236,
+          "bottom": 263,
+          "h": 27
+        },
+        {
+          "t": "Themes",
+          "left": 164,
+          "right": 233,
+          "top": 236,
+          "bottom": 263,
+          "h": 27
+        }
+      ],
+      "sameLine": true,
+      "gapToClose": 174,
+      "overlaps": [],
+      "stack": [
+        {
+          "tag": "SPAN",
+          "cls": "",
+          "inDrawer": true
+        },
+        {
+          "tag": "LI",
+          "cls": "",
+          "inDrawer": true
+        },
+        {
+          "tag": "UL",
+          "cls": "",
+          "inDrawer": true
+        },
+        {
+          "tag": "DIV",
+          "cls": "ajab-filter-list",
+          "inDrawer": true
+        },
+        {
+          "tag": "DIV",
+          "cls": "",
+          "inDrawer": true
+        },
+        {
+          "tag": "DIV",
+          "cls": "",
+          "inDrawer": true
+        }
+      ],
+      "overflowPastDrawer": false
+    },
+    "shot": "comparison-runs\\filter-drawer-1440\\poems.png"
+  },
+  {
+    "name": "radio",
+    "path": "/radio",
+    "ok": false,
+    "error": "no radio filter control"
+  }
+]

@@ -63,15 +63,17 @@ body:has(.clrd-page) footer.footer-bg .footer-inner {
   margin-bottom: 12px;
 }
 
-/* Align Filters | All under the "N Reflections" count (same inset as count row). */
+/* Align Filters | All under the "N Reflections" count (same inset as count row).
+   Rule: same placement as before; nudge left end in ~10px only. */
 .clr-page.clr-listing-page .cl-filter-bar {
   padding-left: clamp(80px, 16vw, 307px);
   padding-right: clamp(80px, 16vw, 307px);
 }
 
 .clr-page.clr-listing-page .cl-filter-bar::before {
-  left: clamp(80px, 16vw, 307px);
+  left: calc(clamp(80px, 16vw, 307px) + 10px);
   right: clamp(80px, 16vw, 307px);
+  background: var(--ajab-sep-grey, #c0c0c0);
 }
 
 .clr-grid-status {
@@ -101,8 +103,8 @@ body:has(.clrd-page) footer.footer-bg .footer-inner {
 }
 
 .clr-card:hover {
-  /* OLD: box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15), 0 0 0 1.5px #ffffff; */
-  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15);
+  /* Idle shadow only — no hover grow / deepen. */
+  box-shadow: 0 0 2px #a2a2a8;
 }
 
 /* Lower wave: use default WavyCard ::after (song-card-bottom-shadow.png, 108% width). */
@@ -132,7 +134,8 @@ body:has(.clrd-page) footer.footer-bg .footer-inner {
   font-size: 19px;
   line-height: 1.2;
   color: var(--ajab-pink-card);
-  margin: 0 0 6px;
+  /* 14 Oct — title → says gap 3px (was 6; same rhythm as Songs title→sub) */
+  margin: 0 0 3px;
 }
 
 /* [Claude] these changes have been recommended by claude —
@@ -144,7 +147,7 @@ body:has(.clrd-page) footer.footer-bg .footer-inner {
   color: var(--ajab-ink-400);
   letter-spacing: 0;
   padding-bottom: 14px;
-  border-bottom: 1px solid #e0e0e0;
+  border-bottom: 1px solid var(--ajab-sep-grey, #c0c0c0);
   margin-bottom: 9px;
 }
 
@@ -321,7 +324,8 @@ body:has(.clrd-page) .nav-link--songs .nav-link-songs-count {
   box-sizing: border-box;
 }
 
-.clrd-video-wrap iframe {
+.clrd-video-wrap iframe,
+.clrd-video-wrap .ajab-yt-facade {
   width: 100% !important;
   height: 100% !important;
   border: 0;

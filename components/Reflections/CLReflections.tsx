@@ -32,7 +32,7 @@ function CardDesc({ text }: { text: string }) {
     </p>
   );
 }
-import LoadMoreButton from '@/components/shared/LoadMoreButton';
+import InfiniteLoadSentinel from '@/components/shared/InfiniteLoadSentinel';
 import Header from '@/components/Header';
 import Loader from '@/components/Loader';
 import ListingFilterBar from '@/components/shared/ListingFilterBar';
@@ -51,6 +51,7 @@ import './CLReflections.css';
 import { AJAB_API_BASE } from '@/lib/ajabEnv';
 import { getSpeakerNameMap } from '@/lib/speakerNames';
 import { catalogHasMore, mergeCatalogById } from '@/lib/catalogPagination';
+import { catalogCountLabel } from '@/lib/catalogCountLabel';
 import { selectSingleFilterId } from '@/lib/listingFilterSelection';
 import { parseCatalogTotal } from '@/lib/parseCatalogTotal';
 import { ReflectionsNavCountContext } from '@/components/Reflections/ReflectionsNavCountContext';
@@ -115,10 +116,21 @@ function parseReflectionFilters(data: Record<string, unknown> | undefined) {
         last_name?: string;
       })
     ),
-    themes: parseFilterOptions(
-      bucket.theme,
-      (row) => String(row.word_transliteration ?? row.name ?? '')
-    ),
+    themes: parseFilterOptions(bucket.theme, (row) => {
+      /* Same CMS keys as Songs / Explore: word_transliteration (+ word_translation). */
+      const translit = String(row.word_transliteration ?? row.name ?? '').trim();
+      const translation = String(
+        row.word_translation ?? row.translation ?? row.english_translation ?? ''
+      ).trim();
+      if (
+        translit &&
+        translation &&
+        translation.toLowerCase() !== translit.toLowerCase()
+      ) {
+        return `${translit} (${translation})`;
+      }
+      return translit;
+    }),
     formats: parseFilterOptions(
       bucket.format,
       (row) => String(row.name ?? row.id ?? '')
@@ -429,7 +441,7 @@ export default function CLReflections() {
     []
   );
 
-  const handleLoadMore = () => {
+  const handleLoadMore = useCallback(() => {
     if (loadingMore || filterLoading) return;
 
     if (visibleCount < filteredReflections.length) {
@@ -442,7 +454,17 @@ export default function CLReflections() {
         setVisibleCount((prev) => prev + REFLECTIONS_PER_PAGE);
       });
     }
-  };
+  }, [
+    loadingMore,
+    filterLoading,
+    visibleCount,
+    filteredReflections.length,
+    hasActiveFilters,
+    catalogTotal,
+    browseReflections.length,
+    browsePage,
+    fetchBrowsePage,
+  ]);
 
   useEffect(() => {
     setVisibleCount(REFLECTIONS_PER_PAGE);
@@ -620,7 +642,9 @@ export default function CLReflections() {
             <p className="clr-intro">{REFLECTIONS_INTRO}</p>
 
             <div className="cl-songs-count-row">
-              <h1 className="cl-songs-count">{headingCount} Reflections</h1>
+              <h1 className="cl-songs-count">
+                {catalogCountLabel(headingCount, 'Reflection', 'Reflections')}
+              </h1>
             </div>
 
             <ListingFilterBar
@@ -638,7 +662,6 @@ export default function CLReflections() {
                 availableThemes: filterLists.themes,
                 categoryLabels: { Singer: 'Speaker', Poet: 'Format', Theme: 'Theme' },
                 categoryOrder: ['Singer', 'Theme', 'Poet'],
-                filterTriggerAlwaysPink: true,
               }}
             />
 
@@ -656,13 +679,11 @@ export default function CLReflections() {
               )}
             </div>
 
-            {hasMore && (
-              <LoadMoreButton
-                onClick={handleLoadMore}
-                ariaLabel="Load more reflections"
-                disabled={loadingMore || filterLoading}
-              />
-            )}
+            <InfiniteLoadSentinel
+              hasMore={hasMore}
+              onLoadMore={handleLoadMore}
+              watchKey={displayedReflections.length}
+            />
           </div>
         </main>
       </div>

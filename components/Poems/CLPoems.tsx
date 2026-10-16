@@ -32,6 +32,7 @@ import { selectSingleFilterId } from '@/lib/listingFilterSelection';
 import { mapPoemListItem } from '@/lib/mapPoemListItem';
 import { poemCreditForScript, poemTextForScript } from '@/lib/poemScriptView';
 import { parseCatalogTotal } from '@/lib/parseCatalogTotal';
+import { catalogCountLabel } from '@/lib/catalogCountLabel';
 import { fetchPoemFilterOptions } from '@/lib/poemFilters';
 import {
   fetchPoemListen,
@@ -347,7 +348,9 @@ export default function CLPoems() {
             <p className="clp-intro">{POEMS_INTRO}</p>
 
             <div className="clp-toolbar">
-              <h1 className="clp-count">{displayCount} Poems</h1>
+              <h1 className="clp-count">
+                {catalogCountLabel(displayCount, 'Poem', 'Poems')}
+              </h1>
               <div className="clp-toolbar-right">
                 <CLFilterPanel
                   hideTrigger
@@ -363,7 +366,6 @@ export default function CLPoems() {
                   categoryLabels={{ Poet: 'Poets', Theme: 'Themes' }}
                   categoryOrder={['Poet', 'Theme']}
                   filterTriggerAlwaysPink
-                  drawerWidth={446}
                   catalogList={{
                     items: catalogEntries,
                     onSelect: selectPoemById,

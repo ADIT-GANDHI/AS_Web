@@ -12,7 +12,7 @@ type HomeCardShellProps = {
 };
 
 /**
- * Media cards: one 2px-padded surface → media slot → wavy sheet (no extra nested boxes).
+ * Media cards: one 3px-padded surface → media slot → wavy sheet (no extra nested boxes).
  * Pass `href` to make the entire card a clickable link; omit for non-linked cards.
  */
 export default function HomeCardShell({ className, media, children, href }: HomeCardShellProps) {

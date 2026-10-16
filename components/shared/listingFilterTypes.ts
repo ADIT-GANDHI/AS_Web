@@ -3,8 +3,9 @@ import type { ReactNode } from 'react';
 
 export type ListingFilterCategory = 'Singer' | 'Poet' | 'Theme';
 
-/** Songs listing uses `{ id, label }` (API IDs). Other modules may still pass plain name strings. */
-export type ListingFilterOption = { id: string; label: string };
+/** Songs listing uses `{ id, label }` (API IDs). Other modules may still pass plain name strings.
+ *  Optional `translation` — Theme: shown after double space in italics (no parentheses). */
+export type ListingFilterOption = { id: string; label: string; translation?: string };
 
 export type ListingFilterOptionInput = string | ListingFilterOption;
 
@@ -73,6 +74,12 @@ export type ListingFilterPanelProps = ListingFilterHandlers &
     /** Controlled open state for the filter drawer. */
     open?: boolean;
     onOpenChange?: (open: boolean) => void;
-    /** Drawer width in px (default 422). Poems AI uses ~446. */
+    /** Drawer width in px (default ~380). */
     drawerWidth?: number;
+    /**
+     * Songs listing parda chrome (9 Oct): 20px left inset, 20px top pad,
+     * 16/12 list type, #c0c0c0 separators, fixed-width header rules, scrollbar colours.
+     * Pair with drawerWidth 360.
+     */
+    songsPardaLayout?: boolean;
   };

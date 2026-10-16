@@ -27,7 +27,7 @@
   --wc-width: var(--ajab-card-w, 288px);
   --wc-thumb-h: 156px;
   --wc-radius: var(--ajab-card-radius, 4px);
-  --wc-shadow: var(--ajab-card-shadow, 0 4px 14px rgba(0, 0, 0, 0.10));
+  --wc-shadow: var(--ajab-card-shadow, 0 0 2px #a2a2a8);
 
   width: var(--wc-width);
   background: var(--ajab-surface, #fff);
@@ -43,7 +43,9 @@
 }
 
 .wc-card:hover {
-  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15);
+  /* PREV: box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15); */
+  /* 9 Oct Songs: idle-only shadow; deepen hover commented — keep subtle match to idle */
+  box-shadow: 0 0 2px #a2a2a8;
 }
 
 .wc-card.is-clickable { cursor: pointer; }
@@ -91,8 +93,7 @@
 
 /* ── Body ── flexes to fill the rest of the card; consumers stack their
    own content (title, subtitle, meta, etc.) inside. The body OWNS the wavy
-   top seam so it overlaps the thumbnail by 18 px (matches Figma group
-   361:1414 — the outer Vector with a wavy bottom). */
+   top seam over the thumbnail (torn-paper look). */
 .wc-body {
   flex: 1;
   display: flex;
@@ -107,7 +108,8 @@
   width: 100%;
   height: 22px;
   position: absolute;
-  top: -18px;
+  /* 9 Oct: overlap 12px (PREV -18px / ~18px cover). Songs + Reflections via shared WavyCard. */
+  top: -12px;
   left: 0;
   z-index: 2;
   pointer-events: none;

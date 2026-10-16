@@ -3,10 +3,10 @@
 import Loader from '@/components/Loader';
 import Header from '@/components/Header';
 import { useCallback, useContext, useEffect, useMemo, useRef, useState } from 'react';
-import LoadMoreButton from '@/components/shared/LoadMoreButton';
 import RepeatingPageBackground from '@/components/shared/RepeatingPageBackground';
 import { SONGS_LISTING_BG } from '@/lib/pageBackgroundTiles';
 import { MOCK_SONGS, SONGS_FILTER, SONGS_INTRO } from './CLconstants';
+import InfiniteLoadSentinel from '@/components/shared/InfiniteLoadSentinel';
 import ListingFilterBar from '@/components/shared/ListingFilterBar';
 import type { ListingFilterOption } from '@/components/shared/listingFilterTypes';
 import CLSongCard from './CLSongCard';
@@ -14,6 +14,7 @@ import './CLSongs.css';
 import { SongsNavCountContext } from '@/components/Songs/SongsNavCountContext';
 import { AJAB_API_BASE } from '@/lib/ajabEnv';
 import { catalogHasMore, mergeCatalogById } from '@/lib/catalogPagination';
+import { catalogCountLabel } from '@/lib/catalogCountLabel';
 import { selectSingleFilterId } from '@/lib/listingFilterSelection';
 import { parseCatalogTotal } from '@/lib/parseCatalogTotal';
 
@@ -106,12 +107,71 @@ function parseSongFiltersResponse(data: Record<string, unknown> | undefined) {
     : Array.isArray(bucket.them)
       ? bucket.them
       : [];
-  const themes = parseFilterOptions(themeBucket, [
-    'word_transliteration',
-    'theme_name',
-    'name',
-  ]);
+  /* 9 Oct — Theme label: transliteration (translation); wrap at word boundaries in parda. */
+  const themes = parseThemeFilterOptions(themeBucket);
   return { singers, poets, themes };
+}
+
+/**
+ * Theme row field lookup — same CMS keys as Explore / Glossary / related:
+ *   word_transliteration  → primary label
+ *   word_translation      → shown in parentheses when present
+ * Falls back to older aliases so a new key lights up the UI immediately.
+ */
+function themeRowField(row: Record<string, unknown>, keys: string[]): string {
+  for (const key of keys) {
+    if (row[key] != null && String(row[key]).trim()) {
+      return formatFilterLabel(String(row[key]));
+    }
+  }
+  /* Case-insensitive match (e.g. Word_Translation from some CMS exports). */
+  const lowerMap = new Map(
+    Object.keys(row).map((k) => [k.toLowerCase(), k] as const)
+  );
+  for (const key of keys) {
+    const actual = lowerMap.get(key.toLowerCase());
+    if (actual != null && row[actual] != null && String(row[actual]).trim()) {
+      return formatFilterLabel(String(row[actual]));
+    }
+  }
+  return '';
+}
+
+function parseThemeFilterOptions(rows: unknown[] | undefined): ListingFilterOption[] {
+  if (!Array.isArray(rows)) return [];
+  const seen = new Set<string>();
+  const out: ListingFilterOption[] = [];
+  for (const raw of rows) {
+    const row = raw as Record<string, unknown>;
+    const id = String(row.id ?? '').trim();
+    if (!id || seen.has(id)) continue;
+    const translit = themeRowField(row, [
+      'word_transliteration',
+      'theme_name',
+      'name',
+      'theme',
+    ]);
+    if (!translit) continue;
+    /* Canonical translation key (site-wide): word_translation */
+    const translation = themeRowField(row, [
+      'word_translation',
+      'translation',
+      'english_translation',
+      'meaning',
+      'glossary_meaning',
+    ]);
+    /* 15 Oct — no ( ); translation italic, separate field for wrap-as-unit */
+    seen.add(id);
+    out.push({
+      id,
+      label: translit,
+      translation:
+        translation && translation.toLowerCase() !== translit.toLowerCase()
+          ? translation
+          : undefined,
+    });
+  }
+  return out.sort((a, b) => a.label.localeCompare(b.label));
 }
 
 /** Build query string with dims in hierarchy order (first key = base layer). */
@@ -538,7 +598,7 @@ export default function CLSongsIndex() {
     ? filteredSongs.length
     : catalogTotal ?? filteredSongs.length;
 
-  const handleLoadMore = () => {
+  const handleLoadMore = useCallback(() => {
     if (loadingMore) return;
 
     if (hasActiveFilters) {
@@ -558,7 +618,16 @@ export default function CLSongsIndex() {
         setVisibleCount((prev) => prev + SONGS_PER_PAGE);
       });
     }
-  };
+  }, [
+    loadingMore,
+    hasActiveFilters,
+    visibleCount,
+    filteredSongs.length,
+    catalogTotal,
+    allSongs.length,
+    apiPage,
+    fetchSongsPage,
+  ]);
 
   useEffect(() => {
     setVisibleCount(SONGS_PER_PAGE);
@@ -582,7 +651,9 @@ export default function CLSongsIndex() {
             <p className="cl-songs-intro">{SONGS_INTRO}</p>
 
             <div className="cl-songs-count-row">
-              <h1 className="cl-songs-count">{headingCount} Songs</h1>
+              <h1 className="cl-songs-count">
+                {catalogCountLabel(headingCount, 'Song', 'Songs')}
+              </h1>
             </div>
 
             <ListingFilterBar
@@ -606,6 +677,9 @@ export default function CLSongsIndex() {
                 availableSingers: panelSingers,
                 availablePoets: panelPoets,
                 availableThemes: panelThemes,
+                /* 9 Oct — Songs-only parda width + chrome (360 / left 20) */
+                drawerWidth: 360,
+                songsPardaLayout: true,
               }}
               azRow={
                 <div className="cl-az-row">
@@ -632,17 +706,15 @@ export default function CLSongsIndex() {
               ) : filterLoading ? (
                 <p className="cl-no-results">Loading songs…</p>
               ) : (
-                <p className="cl-no-results">No songs found matching active filters.</p>
+                <p className="cl-no-results">No songs found</p>
               )}
             </div>
 
-            {hasMore && (
-              <LoadMoreButton
-                onClick={handleLoadMore}
-                ariaLabel="Load more songs"
-                disabled={loadingMore}
-              />
-            )}
+            <InfiniteLoadSentinel
+              hasMore={hasMore}
+              onLoadMore={handleLoadMore}
+              watchKey={displayedSongs.length}
+            />
           </div>
         </main>
       </div>

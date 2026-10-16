@@ -20,11 +20,24 @@
   border-radius: 999px;
   padding: 0;
   font-family: var(--ajab-font-serif);
-  font-size: 22px;
+  /* 15 Oct — +1px vs prior 22 */
+  font-size: 23px;
   line-height: 1;
+  /* 15 Oct — glyph optically centered in the circle */
+  text-align: center;
   color: var(--ajab-pink-primary);
   cursor: pointer;
   box-shadow: 0 2px 10px rgba(0, 0, 0, 0.08);
+}
+
+.cld-lang-btn > span {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  height: 100%;
+  line-height: 1;
+  transform: translateY(0.5px);
 }
 
 .cld-lang-btn:hover {

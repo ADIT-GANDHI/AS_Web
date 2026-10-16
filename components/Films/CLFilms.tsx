@@ -4,7 +4,7 @@ import { useCallback, useContext, useEffect, useMemo, useRef, useState } from 'r
 import { useRouter } from 'next/navigation';
 import Header from '@/components/Header';
 import Loader from '@/components/Loader';
-import LoadMoreButton from '@/components/shared/LoadMoreButton';
+import InfiniteLoadSentinel from '@/components/shared/InfiniteLoadSentinel';
 import { FilmEntry, FilmSeries } from './CLFilmsMocks';
 import FilmPopupModal, { type FilmPopupData } from './FilmPopupModal';
 import { FILMS_CONSTANTS } from './constants';
@@ -25,6 +25,7 @@ import {
   type NormalizedFilmSeries,
 } from '@/lib/filmListApi';
 import { parseCatalogTotal } from '@/lib/parseCatalogTotal';
+import { catalogCountLabel } from '@/lib/catalogCountLabel';
 
 /** Matches CMS page size in the series-mixed film_list contract. */
 const FILMS_API_PAGE_SIZE = 10;
@@ -183,10 +184,10 @@ export default function CLFilms() {
 
   const hasMore = apiPage < totalPages;
 
-  const handleLoadMore = () => {
+  const handleLoadMore = useCallback(() => {
     if (loadingMore || !hasMore) return;
     void fetchFilmsPage(apiPage + 1, false);
-  };
+  }, [loadingMore, hasMore, apiPage, fetchFilmsPage]);
 
   const goToDetail = (filmId: string) => {
     router.push(`/films/details/${filmId}`);
@@ -207,7 +208,11 @@ export default function CLFilms() {
 
             <div className="clf-count-row">
               <h1 className="clf-count">
-                {apiTotal > 0 ? apiTotal : loadedFilmSlots} Films
+                {catalogCountLabel(
+                  apiTotal > 0 ? apiTotal : loadedFilmSlots,
+                  'Film',
+                  'Films'
+                )}
               </h1>
             </div>
 
@@ -276,13 +281,11 @@ export default function CLFilms() {
               </section>
             ))}
 
-            {hasMore && (
-              <LoadMoreButton
-                onClick={handleLoadMore}
-                ariaLabel="Load more films"
-                disabled={loadingMore}
-              />
-            )}
+            <InfiniteLoadSentinel
+              hasMore={hasMore}
+              onLoadMore={handleLoadMore}
+              watchKey={loadedFilmSlots}
+            />
           </div>
         </main>
       </div>

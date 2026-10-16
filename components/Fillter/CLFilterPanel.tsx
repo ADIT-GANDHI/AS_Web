@@ -12,16 +12,18 @@ import type {
 import {
   FILTER_DRAWER_BACKDROP_TOP,
   FILTER_DRAWER_BG_OPACITY,
-  FILTER_DRAWER_CONTENT_INSET_TOP,
-  FILTER_DRAWER_HEIGHT,
-  FILTER_DRAWER_SELECTION_MAX_ROWS,
-  FILTER_DRAWER_SELECTION_ROW_PX,
+  FILTER_DRAWER_DEFAULT_WIDTH,
+  FILTER_DRAWER_SONGS_BG_OPACITY,
+  FILTER_DRAWER_SONGS_SCROLL_RIGHT_PX,
+  FILTER_DRAWER_SONGS_SCROLL_TRACK_PX,
   FILTER_DRAWER_TOP,
   FILTER_DRAWER_Z_BACKDROP,
   FILTER_DRAWER_Z_PANEL,
+  measureFilterDrawerFooterOverlapPx,
 } from '@/lib/filterDrawerLayout';
 import { dedupeOrderedStrings } from '@/lib/dedupeStrings';
 import { FILTER_PANEL_SHAPE } from '@/lib/resolveCmsAssetUrl';
+import FilterSelectionChips from '@/components/Fillter/FilterSelectionChips';
 
 export type { ListingFilterCategory, ListingFilterPanelProps };
 
@@ -44,11 +46,36 @@ function normalizeFilterOptions(list: ListingFilterOptionInput[] | undefined): L
       typeof item === 'string'
         ? String(item ?? '').replace(/\s+/g, ' ').trim()
         : String(item?.label ?? '').replace(/\s+/g, ' ').trim();
+    const translation =
+      typeof item === 'string'
+        ? undefined
+        : item?.translation
+          ? String(item.translation).replace(/\s+/g, ' ').trim()
+          : undefined;
     if (!id || !label || seen.has(id)) continue;
     seen.add(id);
-    out.push({ id, label });
+    out.push({ id, label, ...(translation ? { translation } : {}) });
   }
   return out;
+}
+
+function FilterOptionLabel({ label, translation }: { label: string; translation?: string }) {
+  if (!translation) return <span>{label}</span>;
+  return (
+    <span style={{ display: 'inline' }}>
+      <span>{label}</span>
+      <span>{'  '}</span>
+      <em
+        style={{
+          fontStyle: 'italic',
+          fontWeight: 300,
+          whiteSpace: 'nowrap',
+        }}
+      >
+        {translation}
+      </em>
+    </span>
+  );
 }
 
 function cleanList(list: any[]) {
@@ -119,12 +146,45 @@ export default function CLFilterPanel({
   showClearAllAlways = false,
   categoryFooter,
   catalogList,
-  drawerWidth = 422,
+  drawerWidth = FILTER_DRAWER_DEFAULT_WIDTH,
+  songsPardaLayout = false,
 }: ListingFilterPanelProps) {
   const panelWidthPx = `${drawerWidth}px`;
+  /* Songs: left 28; × + scrollbar inset from wavy edge; Filter-by keeps Theme visible. */
+  const pardaPadL = songsPardaLayout ? 28 : 20;
+  const pardaPadR = songsPardaLayout ? 20 : 20;
+  const pardaTopPad = songsPardaLayout ? 20 : 24;
+  const scrollRight = songsPardaLayout ? FILTER_DRAWER_SONGS_SCROLL_RIGHT_PX : 20;
+  const scrollTrackW = songsPardaLayout ? FILTER_DRAWER_SONGS_SCROLL_TRACK_PX : 6;
+  /* Center line of scrollbar (= × center). */
+  const scrollCenter = scrollRight + scrollTrackW / 2;
+  /* List clears the track only — no extra “× padding” stealing Theme width. */
+  const listPadR = songsPardaLayout ? scrollRight + scrollTrackW + 4 : 40;
+  /* Filter-by row: clear the × glyph only (absolute); tighter than listPadR. */
+  const filterByPadR = songsPardaLayout ? Math.ceil(scrollCenter + 10) : 36;
+  const sepColor = songsPardaLayout ? '#c0c0c0' : '#B1B1B1';
+  /* 15 Oct — all filter words 17px (Songs + others in this panel). */
+  const listFontPx = '17px';
+  const listPadY = songsPardaLayout ? '12px' : undefined;
+  /* Keep increased Singer | Poet | Theme gaps (do not lose). */
+  const catBtnPadX = songsPardaLayout ? 3 : 0;
+  const ruleInset = songsPardaLayout ? 4 : 0;
+  /* All 3 grey rules share this width — end at × column (15 Oct). */
+  const songsRuleWidth = songsPardaLayout
+    ? `calc(100% - ${scrollCenter}px - ${ruleInset}px)`
+    : '100%';
+  const songsRuleMarginLeft = songsPardaLayout ? `${ruleInset}px` : 0;
+  /* List top clear so first word isn’t clipped (client: 6–8px). */
+  const listTopClearPx = songsPardaLayout ? 7 : 3;
+  const scrollTrack = songsPardaLayout ? '#dedede' : '#e0e0e0';
+  const scrollThumb = songsPardaLayout ? '#818181' : '#999999';
+  const panelBgOpacity = songsPardaLayout
+    ? FILTER_DRAWER_SONGS_BG_OPACITY
+    : FILTER_DRAWER_BG_OPACITY;
   // Derives whether any filter is currently active — used for trigger colour
   const hasActiveFilters = selectedSingers.length > 0 || selectedPoets.length > 0 || selectedThemes.length > 0;
-  const triggerPink = filterTriggerAlwaysPink || hasActiveFilters;
+  /* Idle = black; pink only while one or more filters are selected. */
+  const triggerPink = hasActiveFilters;
   const [openUncontrolled, setOpenUncontrolled] = useState(false);
   const open = openProp ?? openUncontrolled;
   const setOpen = useCallback(
@@ -148,15 +208,26 @@ export default function CLFilterPanel({
   // Tracks the header's current bottom edge in the viewport so the filter content
   // starts exactly below the header at page-top and fills the full panel when scrolled.
   const [headerBottom, setHeaderBottom] = useState(191);
+  /** Footer overlap into the viewport — pad list chrome; parda stays full-height. */
+  const [footerOverlapPx, setFooterOverlapPx] = useState(0);
   useEffect(() => {
     if (!open) return;
     let rafId: number;
-    let last = -1;
+    let lastHeader = -1;
+    let lastOverlap = -1;
     const tick = () => {
       const header = document.querySelector('header');
       if (header) {
         const b = Math.max(0, Math.round(header.getBoundingClientRect().bottom));
-        if (b !== last) { last = b; setHeaderBottom(b); }
+        if (b !== lastHeader) {
+          lastHeader = b;
+          setHeaderBottom(b);
+        }
+      }
+      const overlap = measureFilterDrawerFooterOverlapPx();
+      if (overlap !== lastOverlap) {
+        lastOverlap = overlap;
+        setFooterOverlapPx(overlap);
       }
       rafId = requestAnimationFrame(tick);
     };
@@ -164,12 +235,21 @@ export default function CLFilterPanel({
     return () => cancelAnimationFrame(rafId);
   }, [open]);
 
+  /** Mark body so the site footer can paint above the parda (wave covers the curtain). */
+  useEffect(() => {
+    if (!open) return;
+    document.body.classList.add('ajab-filter-drawer-open');
+    return () => document.body.classList.remove('ajab-filter-drawer-open');
+  }, [open]);
+
+  // Full viewport curtain — never hard-cut above the footer (that looked broken).
+  const panelHeightCss = '100dvh';
+
   // Issue 11: List of singers should continue till the end of the screen.
   // We use a dynamic calculation based on clientHeight instead of hardcoded LIST_MAX_H.
   const [listMaxHeight, setListMaxHeight] = useState(480);
   const [showScrollbar, setShowScrollbar] = useState(false);
   const scrollRef = useRef<HTMLDivElement>(null);
-  const selectionsScrollRef = useRef<HTMLDivElement>(null);
   const [thumbTop, setThumbTop] = useState(0);
   const [thumbHeight, setThumbHeight] = useState(480);
   // LOCKED_SCROLL: uncomment panelRef + ref on motion.div below when re-enabling scroll lock.
@@ -193,37 +273,68 @@ export default function CLFilterPanel({
     };
   }, [availableSingers, availablePoets, availableThemes, useSongsMockFallback]);
 
-  const labelById = useMemo(() => {
-    const map = new Map<string, string>();
+  const optionById = useMemo(() => {
+    const map = new Map<string, ListingFilterOption>();
     (['Singer', 'Poet', 'Theme'] as FilterType[]).forEach((cat) => {
-      filterLists[cat].forEach((opt) => map.set(`${cat}:${opt.id}`, opt.label));
+      filterLists[cat].forEach((opt) => map.set(`${cat}:${opt.id}`, opt));
     });
     return map;
   }, [filterLists]);
 
   const selectedFilters = useMemo(
     () => [
-      ...selectedSingers.map((value: string) => ({
-        type: 'Singer' as const,
-        value,
-        label: labelById.get(`Singer:${value}`) || value,
-      })),
-      ...selectedPoets.map((value: string) => ({
-        type: 'Poet' as const,
-        value,
-        label: labelById.get(`Poet:${value}`) || value,
-      })),
-      ...selectedThemes.map((value: string) => ({
-        type: 'Theme' as const,
-        value,
-        label: labelById.get(`Theme:${value}`) || value,
-      })),
+      ...selectedSingers.map((value: string) => {
+        const opt = optionById.get(`Singer:${value}`);
+        return {
+          type: 'Singer' as const,
+          value,
+          label: opt?.label || value,
+          translation: opt?.translation,
+        };
+      }),
+      ...selectedPoets.map((value: string) => {
+        const opt = optionById.get(`Poet:${value}`);
+        return {
+          type: 'Poet' as const,
+          value,
+          label: opt?.label || value,
+          translation: opt?.translation,
+        };
+      }),
+      ...selectedThemes.map((value: string) => {
+        const opt = optionById.get(`Theme:${value}`);
+        return {
+          type: 'Theme' as const,
+          value,
+          label: opt?.label || value,
+          translation: opt?.translation,
+        };
+      }),
     ],
-    [selectedSingers, selectedPoets, selectedThemes, labelById]
+    [selectedSingers, selectedPoets, selectedThemes, optionById]
   );
 
   const maxFiltersLimit =
     maxFilters != null && Number.isFinite(maxFilters) ? maxFilters : Infinity;
+
+  const filterJumpLetters = useMemo(() => {
+    const present = new Set<string>();
+    if (catalogMode) return present;
+    filterLists[activeCategory].forEach((opt) => {
+      const ch = opt.label.trim().charAt(0).toUpperCase();
+      if (ch >= 'A' && ch <= 'Z') present.add(ch);
+    });
+    return present;
+  }, [filterLists, activeCategory, catalogMode]);
+
+  const jumpToFilterLetter = useCallback((letter: string) => {
+    const root = scrollRef.current;
+    if (!root) return;
+    const el = root.querySelector(
+      `[data-filter-letter="${letter}"]`
+    ) as HTMLElement | null;
+    el?.scrollIntoView({ block: 'start', behavior: 'smooth' });
+  }, []);
 
   const handleFilterSelect = useCallback(
     (type: FilterType, value: string) => {
@@ -316,17 +427,6 @@ export default function CLFilterPanel({
     };
   }, [open, filterLists, activeCategory, catalogMode, selectedFilters.length, recalcThumb]);
 
-  // Keep footer chip area at 2 rows — scroll up so newest selections stay visible.
-  useEffect(() => {
-    const el = selectionsScrollRef.current;
-    if (!el) return;
-    const scrollToEnd = () => {
-      el.scrollTop = el.scrollHeight;
-    };
-    scrollToEnd();
-    requestAnimationFrame(scrollToEnd);
-  }, [selectedFilters.length]);
-
   // Only render overlay after hydration (fixed layers are client-only).
   useEffect(() => setMounted(true), []);
 
@@ -396,14 +496,14 @@ export default function CLFilterPanel({
   return (
     <div className="relative inline-block">
       {/* ── Trigger button ── */}
-      {/* colour: grey (#828282) when no filters active, pink when any filter selected — matches PDF spec */}
+      {/* Idle black; pink (#E31E79) only when filters are selected. */}
       {!hideTrigger && (
       <button
         onClick={() => setOpen((v) => !v)}
         style={{
-          color: triggerPink ? '#E31E79' : '#828282',
+          color: triggerPink ? '#E31E79' : '#1a1a1a',
           fontFamily: FONT,
-          fontWeight: 600,
+          fontWeight: 400,
           fontSize: '18px',   /* --ajab-fs-button = 21px per design tokens */
           lineHeight: '100%',
           letterSpacing: '0.04em',
@@ -445,7 +545,7 @@ export default function CLFilterPanel({
                     onClick={() => setOpen(false)}
                   />
 
-                  {/* Portaled drawer — wavy bg from top:0; header stacks above (z-index 10000). */}
+                  {/* Portaled drawer — full-height curtain; footer wave paints on top when in view. */}
                   <motion.div
                   // LOCKED_SCROLL: ref={panelRef}
                   className="ajab-filter-drawer"
@@ -454,8 +554,8 @@ export default function CLFilterPanel({
                     top: FILTER_DRAWER_TOP,
                     left: 0,
                     width: panelWidthPx,
-                    height: FILTER_DRAWER_HEIGHT,
-                    minHeight: FILTER_DRAWER_HEIGHT,
+                    height: panelHeightCss,
+                    maxHeight: panelHeightCss,
                     boxSizing: 'border-box',
                     display: 'flex',
                     flexDirection: 'column',
@@ -464,6 +564,7 @@ export default function CLFilterPanel({
                     overflow: 'hidden',
                     pointerEvents: 'auto',
                     overscrollBehavior: 'contain',
+                    backgroundColor: '#FFFFFF',
                   }}
                   initial={{ x: '-100%', opacity: 0 }}
                   animate={{ x: 0, opacity: 1 }}
@@ -471,13 +572,13 @@ export default function CLFilterPanel({
                   transition={{ type: 'spring', stiffness: 140, damping: 22 }}
                   onAnimationComplete={recalcThumb}
                 >
-                  {/* Wavy panel bg — 0.92 opacity so page texture shows through slightly */}
+                  {/* Wavy panel bg — opaque so page text (counts / Filters | All) does not bleed through */}
                   <div
                     aria-hidden="true"
                     style={{
                       position: 'absolute',
                       inset: 0,
-                      opacity: FILTER_DRAWER_BG_OPACITY,
+                      opacity: panelBgOpacity,
                       pointerEvents: 'none',
                     }}
                   >
@@ -488,16 +589,18 @@ export default function CLFilterPanel({
                         background: '#FFFFFF',
                       }}
                     />
+                    {/* PREV objectFit:'fill' stretched X/Y independently → flatter/longer waves.
+                        cover + right anchor = uniform scale (SVG 422×1424), keep wavy right edge. */}
                     <img
                       src={FILTER_PANEL_SHAPE}
                       alt=""
                       style={{
                         position: 'absolute',
                         inset: 0,
-                        width: panelWidthPx,
+                        width: '100%',
                         height: '100%',
-                        minHeight: '100%',
-                        objectFit: 'fill',
+                        objectFit: 'cover',
+                        objectPosition: 'right center',
                         userSelect: 'none',
                       }}
                     />
@@ -511,18 +614,47 @@ export default function CLFilterPanel({
                       flex: '1 1 auto',
                       minHeight: 0,
                       paddingTop: `${headerBottom}px`,
+                      /* Keep list / chips above the footer wave while artwork fills the screen */
+                      paddingBottom: footerOverlapPx > 0 ? `${footerOverlapPx}px` : undefined,
                       boxSizing: 'border-box',
                     }}
                   >
-                  <div style={{ padding: '24px 44px 0', flex: '0 0 auto' }}>
-                    <div style={{ height: '1px', background: '#B1B1B1' }} />
+                  <div
+                    style={{
+                      position: 'relative',
+                      /* Songs: left inset 30; right gutter for × / scrollbar column. */
+                      padding: songsPardaLayout
+                        ? `${pardaTopPad}px 0 0 ${pardaPadL}px`
+                        : `${pardaTopPad}px ${pardaPadR}px 0 ${pardaPadL}px`,
+                      flex: '0 0 auto',
+                      width: '100%',
+                      boxSizing: 'border-box',
+                      flexShrink: 0,
+                    }}
+                  >
+                    {/* Rules: ~4px left inset, same width for all — end at × (15 Oct) */}
                     <div
                       style={{
+                        height: '1px',
+                        background: sepColor,
+                        width: songsRuleWidth,
+                        marginLeft: songsRuleMarginLeft,
+                        flexShrink: 0,
+                      }}
+                    />
+                    <div
+                      style={{
+                        position: 'relative',
                         display: 'flex',
                         alignItems: 'center',
-                        justifyContent: 'space-between',
-                        padding: '20px 0 18px',
+                        /* Songs: pad only for × — not the full list gutter (keeps “Theme” visible). */
+                        padding: songsPardaLayout
+                          ? `20px ${filterByPadR}px 18px 0`
+                          : '20px 36px 18px 0',
                         gap: '8px',
+                        minWidth: 0,
+                        width: '100%',
+                        boxSizing: 'border-box',
                       }}
                     >
                       <div
@@ -533,6 +665,8 @@ export default function CLFilterPanel({
                           gap: 0,
                           minWidth: 0,
                           flex: 1,
+                          /* visible so “Theme” is never mid-word clipped */
+                          overflow: 'visible',
                         }}
                       >
                         <span
@@ -541,7 +675,7 @@ export default function CLFilterPanel({
                             fontSize: '18px',
                             fontWeight: 400,
                             color: '#333333',
-                            marginRight: singleListMode ? 0 : '16px',
+                            marginRight: singleListMode ? 0 : songsPardaLayout ? '6px' : '10px',
                             whiteSpace: 'nowrap',
                             flexShrink: 0,
                           }}
@@ -551,7 +685,7 @@ export default function CLFilterPanel({
 
                         {!singleListMode &&
                           categories.map((cat, idx) => (
-                            <span key={cat} style={{ display: 'inline-flex', alignItems: 'center' }}>
+                            <span key={cat} style={{ display: 'inline-flex', alignItems: 'center', flexShrink: 0 }}>
                               <button
                                 onClick={() => {
                                   setCatalogMode(false);
@@ -568,7 +702,7 @@ export default function CLFilterPanel({
                                   background: 'none',
                                   border: 'none',
                                   cursor: 'pointer',
-                                  padding: 0,
+                                  padding: `0 ${catBtnPadX}px`,
                                   whiteSpace: 'nowrap',
                                 }}
                               >
@@ -577,10 +711,10 @@ export default function CLFilterPanel({
                               {idx < categories.length - 1 && (
                                 <span
                                   style={{
-                                    color: '#333333',
+                                    color: songsPardaLayout ? '#c0c0c0' : '#333333',
                                     fontSize: '18px',
                                     fontWeight: 300,
-                                    margin: '0 6px',
+                                    margin: songsPardaLayout ? '0 3px' : '0 5px',
                                   }}
                                 >
                                   |
@@ -590,30 +724,139 @@ export default function CLFilterPanel({
                           ))}
                       </div>
 
-                      {/* Close × */}
+                      {!songsPardaLayout && (
+                        <button
+                          onClick={() => setOpen(false)}
+                          aria-label="Close filters"
+                          style={{
+                            position: 'absolute',
+                            right: 0,
+                            top: '50%',
+                            transform: 'translateY(-50%)',
+                            color: '#E6257A',
+                            fontSize: '22px',
+                            lineHeight: 1,
+                            background: 'none',
+                            border: 'none',
+                            cursor: 'pointer',
+                            padding: '4px 2px',
+                            flexShrink: 0,
+                          }}
+                        >
+                          ×
+                        </button>
+                      )}
+                    </div>
+                    <div
+                      style={{
+                        height: '1px',
+                        background: sepColor,
+                        width: songsRuleWidth,
+                        marginLeft: songsRuleMarginLeft,
+                        flexShrink: 0,
+                      }}
+                    />
+
+                    {/* Songs: × with no side padding; center aligned to scrollbar track */}
+                    {songsPardaLayout && (
                       <button
                         onClick={() => setOpen(false)}
                         aria-label="Close filters"
                         style={{
+                          position: 'absolute',
+                          right: scrollCenter,
+                          /* Center on Filter-by row: topPad + rule + half of row */
+                          top: `calc(${pardaTopPad}px + 1px + 20px + 14px)`,
+                          transform: 'translate(50%, -50%)',
                           color: '#E6257A',
-                          fontSize: '22px',
+                          fontSize: '28px',
                           lineHeight: 1,
                           background: 'none',
                           border: 'none',
                           cursor: 'pointer',
-                          padding: '0 4px',
-                          flexShrink: 0,
-                          marginLeft: '12px',
+                          padding: 0,
+                          zIndex: 2,
                         }}
                       >
                         ×
                       </button>
-                    </div>
-                    <div style={{ height: '1px', background: '#B1B1B1' }} />
+                    )}
                   </div>
 
+                  {/* 6–8px clear below grey rule so first list word isn’t clipped (15 Oct) */}
+                  <div
+                    aria-hidden="true"
+                    style={{
+                      height: `${listTopClearPx}px`,
+                      flexShrink: 0,
+                      background: 'transparent',
+                    }}
+                  />
+
                   {/* ── Filter list ── */}
-                  <div style={{ position: 'relative', paddingLeft: '44px', paddingRight: '72px', flex: '1 1 0%', minHeight: 0, display: 'flex', flexDirection: 'column' }}>
+                  <div
+                    style={{
+                      position: 'relative',
+                      paddingLeft: `${pardaPadL}px`,
+                      paddingRight: `${listPadR}px`,
+                      flex: '1 1 0%',
+                      minHeight: 0,
+                      display: 'flex',
+                      flexDirection: 'column',
+                      width: '100%',
+                      boxSizing: 'border-box',
+                    }}
+                  >
+                    {/* 15 Oct — A–Z jump while list scrolls (Songs parda) */}
+                    {songsPardaLayout && !catalogMode && (
+                      <nav
+                        aria-label="Jump to letter"
+                        style={{
+                          position: 'absolute',
+                          /* Sit just left of the custom scrollbar column */
+                          right: `${scrollRight + scrollTrackW + 1}px`,
+                          top: '20px',
+                          bottom: '28px',
+                          zIndex: 3,
+                          display: 'flex',
+                          flexDirection: 'column',
+                          alignItems: 'center',
+                          justifyContent: 'space-between',
+                          pointerEvents: 'auto',
+                          padding: '2px 0',
+                        }}
+                      >
+                        {Array.from({ length: 26 }, (_, i) => String.fromCharCode(65 + i)).map(
+                          (letter) => {
+                            const enabled = filterJumpLetters.has(letter);
+                            return (
+                              <button
+                                key={`jump-${letter}`}
+                                type="button"
+                                disabled={!enabled}
+                                onClick={() => enabled && jumpToFilterLetter(letter)}
+                                style={{
+                                  fontFamily: FONT,
+                                  fontSize: '9px',
+                                  fontWeight: 400,
+                                  lineHeight: 1,
+                                  padding: 0,
+                                  margin: 0,
+                                  border: 'none',
+                                  background: 'none',
+                                  cursor: enabled ? 'pointer' : 'default',
+                                  color: enabled ? '#6F6F72' : '#c8c8c8',
+                                  minWidth: '12px',
+                                  textAlign: 'center',
+                                }}
+                              >
+                                {letter}
+                              </button>
+                            );
+                          }
+                        )}
+                      </nav>
+                    )}
                     <div
                       ref={scrollRef}
                       className="ajab-filter-list"
@@ -622,10 +865,13 @@ export default function CLFilterPanel({
                         overflowY: 'scroll',
                         flex: '1 1 0%',
                         minHeight: 0,
-                        paddingTop: '14px',
+                        paddingTop: '11px',
                         paddingBottom: '24px',
-                        width: hasCatalog ? '100%' : '258px',
-                        overflowWrap: hasCatalog ? 'anywhere' : undefined,
+                        width: '100%',
+                        maxWidth: '100%',
+                        boxSizing: 'border-box',
+                        overflowWrap: 'normal',
+                        wordBreak: 'normal',
                         overscrollBehavior: 'contain',
                         touchAction: 'pan-y',
                       }}
@@ -641,13 +887,16 @@ export default function CLFilterPanel({
                                 style={{
                                   fontFamily: FONT,
                                   fontWeight: isActive ? 400 : 300,
-                                  fontSize: '17px',
+                                  fontSize: listFontPx,
                                   lineHeight: '1.3',
                                   color: isActive ? '#E31E79' : '#6F6F72',
                                   cursor: 'pointer',
-                                  padding: '11px 0',
-                                  overflowWrap: 'anywhere',
-                                  wordBreak: 'break-word',
+                                  padding: listPadY ? `${listPadY} 0` : '11px 0',
+                                  /* Wrap long titles onto next line at word boundaries — never mid-word */
+                                  whiteSpace: 'normal',
+                                  overflowWrap: 'normal',
+                                  wordBreak: 'normal',
+                                  hyphens: 'none',
                                 }}
                               >
                                 <span style={{ display: 'block' }}>{entry.label}</span>
@@ -659,6 +908,10 @@ export default function CLFilterPanel({
                                       fontSize: '14px',
                                       color: '#9A9A9C',
                                       marginTop: '2px',
+                                      whiteSpace: 'normal',
+                                      overflowWrap: 'normal',
+                                      wordBreak: 'normal',
+                                      hyphens: 'none',
                                     }}
                                   >
                                     {entry.sublabel}
@@ -682,25 +935,34 @@ export default function CLFilterPanel({
                               : activeCategory === 'Poet'
                                 ? selectedPoets.includes(item.id)
                                 : selectedThemes.includes(item.id);
+                          const letter = item.label.trim().charAt(0).toUpperCase();
                           return (
                             <li
                               key={`${activeCategory}-${index}-${item.id}`}
+                              data-filter-letter={letter}
                               onClick={() => handleFilterSelect(activeCategory, item.id)}
                               style={{
                                 fontFamily: FONT,
                                 fontWeight: isSelected ? 400 : 300,
-                                fontSize: '17px',
+                                fontSize: listFontPx,
                                 lineHeight: '1.3',
                                 color: isSelected ? '#E31E79' : '#6F6F72',
                                 cursor: 'pointer',
-                                padding: '13px 0',
+                                padding: listPadY ? `${listPadY} 0` : '13px 0',
                                 display: 'flex',
-                                alignItems: 'center',
-                                overflowWrap: 'anywhere',
-                                wordBreak: 'break-word',
+                                alignItems: 'flex-start',
+                                flexWrap: 'wrap',
+                                /* Word-boundary wrap — never mid-word; Theme translation nowrap unit */
+                                whiteSpace: 'normal',
+                                overflowWrap: 'normal',
+                                wordBreak: 'normal',
+                                hyphens: 'none',
                               }}
                             >
-                              <span>{item.label}</span>
+                              <FilterOptionLabel
+                                label={item.label}
+                                translation={item.translation}
+                              />
                             </li>
                           );
                         })}
@@ -724,20 +986,21 @@ export default function CLFilterPanel({
                         style={{
                           position: 'absolute',
                           top: '24px',
-                          right: '44px',
-                          width: '6px',
+                          right: `${scrollRight}px`,
+                          width: `${scrollTrackW}px`,
                           height: `${listMaxHeight - 48}px`,
-                          background: '#e0e0e0',
+                          background: scrollTrack,
                           borderRadius: '3px',
+                          pointerEvents: 'none',
                         }}
                       >
                         <div
                           style={{
                             position: 'absolute',
                             top: `${(thumbTop / listMaxHeight) * (listMaxHeight - 48)}px`,
-                            width: '6px',
+                            width: `${scrollTrackW}px`,
                             height: `${(thumbHeight / listMaxHeight) * (listMaxHeight - 48)}px`,
-                            background: '#999999',
+                            background: scrollThumb,
                             borderRadius: '3px',
                             transition: 'top 0.05s linear',
                           }}
@@ -749,73 +1012,45 @@ export default function CLFilterPanel({
                   {(showClearAllAlways || selectedFilters.length > 0) && onClearAll && (
                     <div
                       style={{
-                        padding: '14px 44px 28px',
-                        borderTop: '1px solid #B1B1B1',
+                        /* 15 Oct — no extra bottom pad; top rule same width as header rules (till ×) */
+                        padding: songsPardaLayout
+                          ? `10px ${pardaPadR}px 4px ${pardaPadL}px`
+                          : `14px ${pardaPadR}px 28px ${pardaPadL}px`,
+                        borderTop: 'none',
                         flex: '0 0 auto',
+                        width: '100%',
+                        boxSizing: 'border-box',
                       }}
                     >
-                      {/* Selected items — plain text + pink ×, 2 per row (PDF spec) */}
-                      {selectedFilters.length > 0 && (
+                      {songsPardaLayout && (
                         <div
-                          ref={selectionsScrollRef}
-                          className="ajab-filter-selections"
+                          aria-hidden="true"
                           style={{
-                            display: 'grid',
-                            gridTemplateColumns: '1fr 1fr',
-                            rowGap: 0,
-                            columnGap: '8px',
-                            marginBottom: '6px',
-                            maxHeight: `${
-                              FILTER_DRAWER_SELECTION_MAX_ROWS * FILTER_DRAWER_SELECTION_ROW_PX
-                            }px`,
-                            overflowY: 'auto',
-                            overflowX: 'hidden',
+                            height: '1px',
+                            background: sepColor,
+                            width: songsRuleWidth,
+                            marginLeft: songsRuleMarginLeft,
+                            marginBottom: '10px',
                           }}
-                        >
-                          {selectedFilters.map(({ type, value, label }) => (
-                            <button
-                              key={`${type}-${value}`}
-                              type="button"
-                              onClick={() => onRemoveFilter(type, value)}
-                              style={{
-                                fontFamily: FONT,
-                                fontSize: '17px',
-                                fontWeight: 300,
-                                color: '#6F6F72',
-                                background: 'none',
-                                border: 'none',
-                                cursor: 'pointer',
-                                padding: '5px 0',
-                                textAlign: 'left',
-                                display: 'flex',
-                                alignItems: 'center',
-                                gap: '5px',
-                                minWidth: 0,
-                              }}
-                            >
-                              <span
-                                style={{
-                                  overflow: 'hidden',
-                                  textOverflow: 'ellipsis',
-                                  whiteSpace: 'nowrap',
-                                  minWidth: 0,
-                                }}
-                              >
-                                {label}
-                              </span>
-                              <span
-                                style={{
-                                  color: '#E31E79',
-                                  fontWeight: 400,
-                                  flexShrink: 0,
-                                  lineHeight: 1,
-                                }}
-                              >
-                                ×
-                              </span>
-                            </button>
-                          ))}
-                        </div>
+                        />
+                      )}
+                      {!songsPardaLayout && (
+                        <div
+                          aria-hidden="true"
+                          style={{
+                            height: '1px',
+                            background: sepColor,
+                            width: '100%',
+                            marginBottom: '14px',
+                          }}
+                        />
+                      )}
+                      {/* Selected items — one per row (14 Oct) */}
+                      {selectedFilters.length > 0 && (
+                        <FilterSelectionChips
+                          items={selectedFilters}
+                          onRemove={onRemoveFilter}
+                        />
                       )}
 
                       {/* CLEAR ALL */}

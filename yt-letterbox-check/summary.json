@@ -1,0 +1,437 @@
+[
+  {
+    "id": "186",
+    "ok": true,
+    "title": "",
+    "vw": 1440,
+    "wrapW": 856,
+    "wrapH": 490,
+    "ar": 1.7466,
+    "ytId": "eUdODkpQNAk",
+    "hasFacade": true,
+    "poster": {
+      "topAvg": 205.1,
+      "midAvg": 175.1,
+      "botAvg": 204.1,
+      "letterboxLikely": false,
+      "dims": "856x491"
+    },
+    "play": {
+      "topAvg": 46.2,
+      "midAvg": 2.7,
+      "botAvg": 19.7,
+      "letterboxLikely": false,
+      "dims": "856x491"
+    },
+    "thumb": "hqdefault",
+    "tw": 480,
+    "th": 360,
+    "tar": 1.3333
+  },
+  {
+    "id": "77",
+    "ok": true,
+    "title": "",
+    "vw": 1440,
+    "wrapW": 856,
+    "wrapH": 490,
+    "ar": 1.7466,
+    "ytId": "ojVm7plVKqs",
+    "hasFacade": true,
+    "poster": {
+      "topAvg": 205.1,
+      "midAvg": 175,
+      "botAvg": 204.1,
+      "letterboxLikely": false,
+      "dims": "856x491"
+    },
+    "play": {
+      "topAvg": 46.5,
+      "midAvg": 5.6,
+      "botAvg": 14.6,
+      "letterboxLikely": false,
+      "dims": "856x491"
+    },
+    "thumb": "hqdefault",
+    "tw": 480,
+    "th": 360,
+    "tar": 1.3333
+  },
+  {
+    "id": "29",
+    "ok": true,
+    "title": "",
+    "vw": 1440,
+    "wrapW": 856,
+    "wrapH": 490,
+    "ar": 1.7466,
+    "ytId": "Yjk8xUH9a2A",
+    "hasFacade": true,
+    "poster": {
+      "topAvg": 205.1,
+      "midAvg": 174.1,
+      "botAvg": 204.1,
+      "letterboxLikely": false,
+      "dims": "856x491"
+    },
+    "play": {
+      "topAvg": 27.6,
+      "midAvg": 2.2,
+      "botAvg": 16,
+      "letterboxLikely": false,
+      "dims": "856x491"
+    },
+    "thumb": "hqdefault",
+    "tw": 480,
+    "th": 360,
+    "tar": 1.3333
+  },
+  {
+    "id": "216",
+    "ok": true,
+    "title": "",
+    "vw": 1440,
+    "wrapW": 856,
+    "wrapH": 490,
+    "ar": 1.7466,
+    "ytId": "O0kmN1rRdYc",
+    "hasFacade": true,
+    "poster": {
+      "topAvg": 205.1,
+      "midAvg": 174.1,
+      "botAvg": 204.1,
+      "letterboxLikely": false,
+      "dims": "856x491"
+    },
+    "play": {
+      "topAvg": 38.2,
+      "midAvg": 5.9,
+      "botAvg": 20.5,
+      "letterboxLikely": false,
+      "dims": "856x491"
+    },
+    "thumb": "hqdefault",
+    "tw": 480,
+    "th": 360,
+    "tar": 1.3333
+  },
+  {
+    "id": "6",
+    "ok": true,
+    "title": "",
+    "vw": 1440,
+    "wrapW": 856,
+    "wrapH": 490,
+    "ar": 1.7466,
+    "ytId": "y9hPZ7_KQkI",
+    "hasFacade": true,
+    "poster": {
+      "topAvg": 205.1,
+      "midAvg": 174.1,
+      "botAvg": 204.1,
+      "letterboxLikely": false,
+      "dims": "856x491"
+    },
+    "play": {
+      "topAvg": 39.4,
+      "midAvg": 3.5,
+      "botAvg": 14.2,
+      "letterboxLikely": false,
+      "dims": "856x491"
+    },
+    "thumb": "hqdefault",
+    "tw": 480,
+    "th": 360,
+    "tar": 1.3333
+  },
+  {
+    "id": "52",
+    "ok": true,
+    "title": "",
+    "vw": 1440,
+    "wrapW": 856,
+    "wrapH": 490,
+    "ar": 1.7466,
+    "ytId": "bakaqO_gk1U",
+    "hasFacade": true,
+    "poster": {
+      "topAvg": 205.1,
+      "midAvg": 175,
+      "botAvg": 204.1,
+      "letterboxLikely": false,
+      "dims": "856x491"
+    },
+    "play": {
+      "topAvg": 40.1,
+      "midAvg": 6.6,
+      "botAvg": 14.6,
+      "letterboxLikely": false,
+      "dims": "856x491"
+    },
+    "thumb": "hqdefault",
+    "tw": 480,
+    "th": 360,
+    "tar": 1.3333
+  },
+  {
+    "id": "86",
+    "ok": true,
+    "title": "",
+    "vw": 1440,
+    "wrapW": 856,
+    "wrapH": 490,
+    "ar": 1.7466,
+    "ytId": "BnMoTz0W9AM",
+    "hasFacade": true,
+    "poster": {
+      "topAvg": 205.1,
+      "midAvg": 174.1,
+      "botAvg": 204.1,
+      "letterboxLikely": false,
+      "dims": "856x491"
+    },
+    "play": {
+      "topAvg": 33.7,
+      "midAvg": 1.5,
+      "botAvg": 18.3,
+      "letterboxLikely": false,
+      "dims": "856x491"
+    },
+    "thumb": "hqdefault",
+    "tw": 480,
+    "th": 360,
+    "tar": 1.3333
+  },
+  {
+    "id": "26",
+    "ok": true,
+    "title": "",
+    "vw": 1440,
+    "wrapW": 856,
+    "wrapH": 490,
+    "ar": 1.7466,
+    "ytId": "sSZx0vF_tfQ",
+    "hasFacade": true,
+    "poster": {
+      "topAvg": 205.1,
+      "midAvg": 174.1,
+      "botAvg": 204.1,
+      "letterboxLikely": false,
+      "dims": "856x491"
+    },
+    "play": {
+      "topAvg": 44.4,
+      "midAvg": 12.5,
+      "botAvg": 15.8,
+      "letterboxLikely": false,
+      "dims": "856x491"
+    },
+    "thumb": "hqdefault",
+    "tw": 480,
+    "th": 360,
+    "tar": 1.3333
+  },
+  {
+    "id": "199",
+    "ok": true,
+    "title": "",
+    "vw": 1440,
+    "wrapW": 856,
+    "wrapH": 490,
+    "ar": 1.7466,
+    "ytId": "PXQd7m3HKOk",
+    "hasFacade": true,
+    "poster": {
+      "topAvg": 205.1,
+      "midAvg": 174.1,
+      "botAvg": 204.1,
+      "letterboxLikely": false,
+      "dims": "856x491"
+    },
+    "play": {
+      "topAvg": 38.1,
+      "midAvg": 6.1,
+      "botAvg": 20.2,
+      "letterboxLikely": false,
+      "dims": "856x491"
+    },
+    "thumb": "hqdefault",
+    "tw": 480,
+    "th": 360,
+    "tar": 1.3333
+  },
+  {
+    "id": "247",
+    "ok": true,
+    "title": "",
+    "vw": 1440,
+    "wrapW": 856,
+    "wrapH": 490,
+    "ar": 1.7466,
+    "ytId": "KfcBrpqub50",
+    "hasFacade": true,
+    "poster": {
+      "topAvg": 73.4,
+      "midAvg": 63.1,
+      "botAvg": 184.3,
+      "letterboxLikely": false,
+      "dims": "856x491"
+    },
+    "play": {
+      "topAvg": 42.2,
+      "midAvg": 1.5,
+      "botAvg": 13.8,
+      "letterboxLikely": false,
+      "dims": "856x491"
+    },
+    "thumb": "maxresdefault",
+    "tw": 1280,
+    "th": 720,
+    "tar": 1.7778
+  },
+  {
+    "id": "106",
+    "ok": true,
+    "title": "",
+    "vw": 1440,
+    "wrapW": 856,
+    "wrapH": 490,
+    "ar": 1.7466,
+    "ytId": "0CJNOAg_KyI",
+    "hasFacade": true,
+    "poster": {
+      "topAvg": 205.1,
+      "midAvg": 174.1,
+      "botAvg": 204.1,
+      "letterboxLikely": false,
+      "dims": "856x491"
+    },
+    "play": {
+      "topAvg": 38.9,
+      "midAvg": 5.7,
+      "botAvg": 15.8,
+      "letterboxLikely": false,
+      "dims": "856x491"
+    },
+    "thumb": "hqdefault",
+    "tw": 480,
+    "th": 360,
+    "tar": 1.3333
+  },
+  {
+    "id": "184",
+    "ok": true,
+    "title": "",
+    "vw": 1440,
+    "wrapW": 856,
+    "wrapH": 490,
+    "ar": 1.7466,
+    "ytId": "ztyTsQvwGTA",
+    "hasFacade": true,
+    "poster": {
+      "topAvg": 205.1,
+      "midAvg": 174.1,
+      "botAvg": 204.1,
+      "letterboxLikely": false,
+      "dims": "856x491"
+    },
+    "play": {
+      "topAvg": 33.3,
+      "midAvg": 4.6,
+      "botAvg": 19.5,
+      "letterboxLikely": false,
+      "dims": "856x491"
+    },
+    "thumb": "hqdefault",
+    "tw": 480,
+    "th": 360,
+    "tar": 1.3333
+  },
+  {
+    "id": "56",
+    "ok": true,
+    "title": "",
+    "vw": 1440,
+    "wrapW": 856,
+    "wrapH": 490,
+    "ar": 1.7466,
+    "ytId": "zRuOAjnY5aQ",
+    "hasFacade": true,
+    "poster": {
+      "topAvg": 205.1,
+      "midAvg": 174.1,
+      "botAvg": 204.1,
+      "letterboxLikely": false,
+      "dims": "856x491"
+    },
+    "play": {
+      "topAvg": 44.2,
+      "midAvg": 7.3,
+      "botAvg": 19.5,
+      "letterboxLikely": false,
+      "dims": "856x491"
+    },
+    "thumb": "hqdefault",
+    "tw": 480,
+    "th": 360,
+    "tar": 1.3333
+  },
+  {
+    "id": "205",
+    "ok": true,
+    "title": "",
+    "vw": 1440,
+    "wrapW": 856,
+    "wrapH": 490,
+    "ar": 1.7466,
+    "ytId": "7z9dM2E1Zl8",
+    "hasFacade": true,
+    "poster": {
+      "topAvg": 205.1,
+      "midAvg": 175,
+      "botAvg": 204.1,
+      "letterboxLikely": false,
+      "dims": "856x491"
+    },
+    "play": {
+      "topAvg": 51,
+      "midAvg": 3.5,
+      "botAvg": 14.4,
+      "letterboxLikely": false,
+      "dims": "856x491"
+    },
+    "thumb": "hqdefault",
+    "tw": 480,
+    "th": 360,
+    "tar": 1.3333
+  },
+  {
+    "id": "207",
+    "ok": true,
+    "title": "",
+    "vw": 1440,
+    "wrapW": 856,
+    "wrapH": 490,
+    "ar": 1.7466,
+    "ytId": "dzABOeTmL6s",
+    "hasFacade": true,
+    "poster": {
+      "topAvg": 205.1,
+      "midAvg": 174.1,
+      "botAvg": 204.1,
+      "letterboxLikely": false,
+      "dims": "856x491"
+    },
+    "play": {
+      "topAvg": 38.2,
+      "midAvg": 2.3,
+      "botAvg": 17.7,
+      "letterboxLikely": false,
+      "dims": "856x491"
+    },
+    "thumb": "hqdefault",
+    "tw": 480,
+    "th": 360,
+    "tar": 1.3333
+  }
+]

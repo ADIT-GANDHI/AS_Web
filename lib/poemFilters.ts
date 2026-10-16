@@ -19,11 +19,30 @@ export async function fetchPoemFilterOptions(): Promise<{
           .trim(),
       }))
       .filter((p: ListingFilterOption) => p.id && p.label);
+    /* Same keys as Songs filter / Explore: word_transliteration + word_translation */
     const themes: ListingFilterOption[] = (data.themes || [])
-      .map((t: { id?: string; word_transliteration?: string }) => ({
-        id: String(t.id || ''),
-        label: String(t.word_transliteration || '').trim(),
-      }))
+      .map(
+        (t: {
+          id?: string;
+          word_transliteration?: string;
+          word_translation?: string;
+          translation?: string;
+        }) => {
+          const translit = String(t.word_transliteration || '')
+            .replace(/\s+/g, ' ')
+            .trim();
+          const translation = String(t.word_translation || t.translation || '')
+            .replace(/\s+/g, ' ')
+            .trim();
+          const label =
+            translit &&
+            translation &&
+            translation.toLowerCase() !== translit.toLowerCase()
+              ? `${translit} (${translation})`
+              : translit;
+          return { id: String(t.id || ''), label };
+        }
+      )
       .filter((t: ListingFilterOption) => t.id && t.label);
     return { poets, themes };
   } catch {

@@ -37,6 +37,15 @@
   margin-right: calc(50% - 50vw);
 }
 
+/*
+ * Filter parda stays full viewport height. Raise the footer above it while open
+ * so the transparent wave sits over the curtain (no hard white cut-off).
+ * !important: listing pages set footer z-index: 10 via body:has(...) rules.
+ */
+body.ajab-filter-drawer-open footer.footer-bg {
+  z-index: 10002 !important;
+}
+
 .footer-right {
   margin: -6px 0 0;
 }

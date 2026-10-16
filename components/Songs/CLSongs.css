@@ -181,21 +181,18 @@ body:has(.cl-home-page-root) footer.footer-bg .footer-inner {
   font-family: var(--ajab-font-serif);
   font-weight: 400;
   font-style: italic;
-  font-size: 16.5px;
-  /* ← FONT SIZE IS HERE — was 20px (PDF), nudged to 19px */
-  line-height: 1.3;
+  font-size: 18px;
+  line-height: 1.6em;
   letter-spacing: 0;
   /* PDF Lora uses fi/fl/ffi ligatures, compressing ~2% of character widths.
      Enable them in the web font to match the PDF's 4-line wrap. */
   font-variant-ligatures: common-ligatures;
   font-feature-settings: "liga" 1, "calt" 1;
   text-align: center;
-  /* Web Lora renders wider than PDF embedded Lora. 68vw gives ~115 chars/line
-     so 409-char text reflows to 4 lines. Caps at 800px (constrain readability). */
-  max-width: clamp(530px, 60vw, 830px);
-  width: 100%;
+  max-width: 830px;
+  width: 830px;
   padding: 0;
-  margin: 0 auto clamp(20px, 2.5vw, 34px);
+  margin: 0 auto 45px;
 }
 
 /* ── Songs listing only: title, Filters, and the divider share one gutter.
@@ -211,13 +208,52 @@ body:has(.cl-home-page-root) footer.footer-bg .footer-inner {
   padding-right: var(--cl-listing-inline);
 }
 
-.cl-songs-listing-page .cl-filter-bar::before {
-  left: var(--cl-listing-inline);
-  right: var(--cl-listing-inline);
+/* Client export — Songs filter bar spacing / weight only (not People/Reflections). */
+.cl-songs-page .cl-filter-bar {
+  padding-bottom: 35px;
+  font-weight: 400;
 }
 
-/* Pinned filter bar — Songs, Reflections, People listing pages only.
-   Pins Filters | All | A–Z to the top of the viewport (header scrolls away). */
+/* Rule above A–Z: span Filters → Z only (vars from PinnedFilterBarShell measure).
+   A–Z letters stay space-between — do not pack / fit-content the bar. */
+.cl-songs-listing-page .cl-filter-bar::before {
+  left: var(--cl-filter-rule-left, var(--cl-listing-inline));
+  right: var(--cl-filter-rule-right, var(--cl-listing-inline));
+  z-index: 1;
+}
+
+/* 15 Oct — soft Filters | All | A–Z box (unpinned). Does not change letter layout. */
+.cl-songs-listing-page .cl-filter-bar:not(.cl-filter-bar--pinned)::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: var(--cl-listing-inline);
+  right: var(--cl-listing-inline);
+  background-color: rgba(232, 232, 232, 0.78);
+  border-radius: 2px;
+  z-index: 0;
+  pointer-events: none;
+}
+
+/* Z sits on the content edge so the measured rule end matches the letter. */
+.cl-songs-listing-page .cl-az-row {
+  padding-right: 0;
+  position: relative;
+  z-index: 1;
+}
+
+.cl-songs-listing-page .cl-filter-trigger-wrap,
+.cl-songs-listing-page .cl-filter-sep,
+.cl-songs-listing-page .cl-az-btn--all {
+  position: relative;
+  z-index: 1;
+}
+
+/* Pinned filter bar — Songs, Reflections, People, Glossary.
+   Pins Filters | All | A–Z near top on scroll. Background is a light grey
+   band only behind the bar content (same insets as the bar padding) — not
+   full viewport width. Unpinned = no fill (same as before). */
 .cl-songs-listing-page .cl-filter-bar--pinned,
 .clr-page.clr-listing-page .cl-filter-bar--pinned,
 .clpe-page .cl-filter-bar--pinned,
@@ -228,6 +264,41 @@ body:has(.cl-home-page-root) footer.footer-bg .footer-inner {
   right: 0;
   z-index: 5000;
   background: transparent;
+}
+
+.cl-songs-listing-page .cl-filter-bar--pinned::after,
+.clr-page.clr-listing-page .cl-filter-bar--pinned::after,
+.clpe-page .cl-filter-bar--pinned::after,
+.glossary-container .cl-filter-bar--pinned::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  /* Match each page’s horizontal padding so the grey hugs Filters…Z only */
+  left: var(--cl-filter-bar-pinned-inset, clamp(60px, 15vw, 307px));
+  right: var(--cl-filter-bar-pinned-inset, clamp(60px, 15vw, 307px));
+  z-index: -1;
+  pointer-events: none;
+  /* Neutral light grey (not page cream/marble). Site already uses #e5e5e5 / ink-100 family. */
+  background-color: #e8e8e8;
+}
+
+/* 15 Oct — Songs pinned A–Z: more opaque band + equal side inset (~12px each). */
+.cl-songs-listing-page {
+  --cl-filter-bar-pinned-inset: calc(var(--cl-listing-inline) + 12px);
+}
+
+.cl-songs-listing-page .cl-filter-bar--pinned::after {
+  background-color: rgba(220, 220, 220, 0.97);
+}
+
+.clr-page.clr-listing-page,
+.clpe-page {
+  --cl-filter-bar-pinned-inset: clamp(80px, 16vw, 307px);
+}
+
+.glossary-container {
+  --cl-filter-bar-pinned-inset: clamp(80px, 16vw, 307px);
 }
 
 .cl-songs-listing-page .cl-filter-bar--pinned::before,
@@ -294,7 +365,8 @@ body:has(.cl-home-page-root) footer.footer-bg .footer-inner {
   left: clamp(60px, 15.1vw, 290px);
   right: clamp(60px, 15.1vw, 290px);
   height: 1px;
-  background: var(--ajab-ink-100);
+  /* PREV 8 Oct: background: #a2a2a8;  earlier: var(--ajab-ink-100) (#B1B1B1) */
+  background: var(--ajab-sep-grey, #c0c0c0);
   pointer-events: none;
 }
 
@@ -343,7 +415,8 @@ body:has(.cl-home-page-root) footer.footer-bg .footer-inner {
   font-family: var(--ajab-font-sans);
   /* PDF measured: 17.8px MerriweatherSans-Light → 18px */
   font-size: 17px;
-  font-weight: 300;
+  /* PREV: font-weight: 300; — Songs A–Z row uses regular 400 */
+  font-weight: 400;
   font-style: normal;
   line-height: 100%;
   letter-spacing: 0.04em;
@@ -499,6 +572,7 @@ body:has(.cl-home-page-root) footer.footer-bg .footer-inner {
   column-gap: var(--ajab-grid-col-gap);
   row-gap: var(--ajab-grid-row-gap);
   justify-content: center;
+  /* 9 Oct — content-sized cards (short copy → shorter card). PREV: align-items: stretch */
   align-items: start;
   max-width: var(--ajab-grid-max-w);
   margin: 30px auto 64px;
@@ -509,11 +583,11 @@ body:has(.cl-home-page-root) footer.footer-bg .footer-inner {
   width: 100%;
   position: relative;
   display: flex;
-  align-items: stretch;
+  align-items: flex-start;
   justify-content: center;
 }
 
-/* Whole card is one `<a>` — stretch so the hit area matches the WavyCard, not a sliver. */
+/* Whole card is one `<a>` — hit area matches the WavyCard. */
 .cl-song-card-link {
   display: block;
   width: 100%;
@@ -537,68 +611,89 @@ body:has(.cl-home-page-root) footer.footer-bg .footer-inner {
 }
 
 .cl-song-card-link:focus-visible .cl-song-card {
-  box-shadow: 0 0 0 2px var(--ajab-pink-primary), var(--ajab-card-shadow, 0 4px 14px rgba(0, 0, 0, 0.10));
+  box-shadow: none;
+  outline: 2px solid var(--ajab-pink-primary);
+  outline-offset: 2px;
+  filter: drop-shadow(0 0 2px #a2a2a8);
 }
 
 /* ── Songs listing card overrides ──
-   The wavy paper shell, thumbnail wrapper and bottom drop-shadow now live
-   in components/shared/WavyCard.css. We only set Song-specific tokens
-   here. The card no longer enforces a fixed min-height — heights are
-   content-driven and rows top-align (see .cl-song-grid). The body keeps
-   a small min-height so cards with very short content (e.g. no poet)
-   still leave room for the wavy bottom decoration. */
+   Card height follows content (9 Oct). Lines pack top→bottom with no reserved empty slots. */
 .cl-song-card {
   --wc-width: var(--ajab-card-w);
-  /* PDF spec thumb: 141px × 280px card. Proportional clamp: 8.9vw hits 137px at
-     1536px and 141px at ~1584px — matching the spec at standard laptop widths.
-     Min raised to 100px so cards don't look disproportionate at mid tablet. */
-  --wc-thumb-h: clamp(100px, 8.9vw, 141px);
-  --wc-shadow: var(--ajab-card-shadow);
+  /* @1440 card is 240px. Thumb height scales with artboard. */
+  --wc-thumb-h: clamp(90px, calc(100vw * 120 / var(--ajab-artboard-w, 1440)), 160px);
+  /* drop-shadow so #a2a2a8 follows the full silhouette, including under the wave. */
+  --wc-shadow: none;
   --wc-radius: var(--ajab-card-radius);
+  box-shadow: none;
+  /* 15 Oct — softer shadow, ~4–5px, opacity ~−12% vs solid #a2a2a8 */
+  filter: drop-shadow(0 0 4.5px rgba(162, 162, 168, 0.88));
+  /* Client song-card export — body padding (shared WavyCard default: 12/16/18). */
+  --ajab-card-body-pad-t: 13px;
+  --ajab-card-body-pad-x: 14px;
+  --ajab-card-body-pad-b: 5px;
+  /* Thumb mat — 4px inset on top/left/right of photo (see .wc-thumb--inset). */
+  --ajab-card-thumb-pad: 4px;
+  /* 4px white lip on the bottom edge — matches the thumb mat on the other three sides. */
+  padding-bottom: 4px;
+  box-sizing: border-box;
 }
 
-/* Min-height reserves space for 2 title + 2 subtitle + 2 meta lines so short
-   cards don't look skinny next to tall neighbours (6-line max = ~145px body). */
+.cl-song-card:hover,
+.cl-song-card-link:hover .cl-song-card {
+  /* Idle shadow only — no hover grow / deepen (client). */
+  box-shadow: none;
+  filter: drop-shadow(0 0 4.5px rgba(162, 162, 168, 0.88));
+}
+
+/* PREV equal-row floor (commented 9 Oct — cards shrink with short content):
 .cl-song-card-body {
   min-height: 145px;
 }
+*/
 
-/* ── Pink title — Lora 24 / var(--ajab-pink-primary). Max 2 lines. */
+/* Client: title 21px / 1.15em / margin-bottom 3px (14 Oct; was 5px). Top-aligned; up to 2 lines. */
+.cl-song-card .wc-body .cl-song-card-title,
 .cl-song-card-title {
   color: var(--ajab-pink-primary);
   font-family: var(--ajab-font-serif);
   font-weight: 400;
   font-style: normal;
-  font-size: var(--ajab-fs-h5);
-  line-height: var(--ajab-lh-base);
+  /* PREV: font-size: 23px; min-height: calc(1.15em * 2); align-items: center; */
+  font-size: 21px;
   letter-spacing: 0;
-  word-break: break-word;
-  overflow-wrap: anywhere;
-  margin: 0 0 0px;
-  /* increased by 1pt/2px (was -2px) */
-  line-height: 1.25;
-  /* slightly tighter line height */
+  word-break: normal;
+  overflow-wrap: break-word;
+  margin: 0 0 3px;
+  line-height: 1.15em;
+  display: flex;
+  align-items: flex-start;
+}
+
+.cl-song-card-title-text {
   display: -webkit-box;
   -webkit-line-clamp: 2;
   -webkit-box-orient: vertical;
   overflow: hidden;
+  width: 100%;
+  word-break: normal;
+  overflow-wrap: break-word;
 }
 
-/* ── Italic subtitle (tokens) — Figma 361:717: Lora Italic 20 / var(--ajab-ink-300).
-   min-height 24 preserves the vertical slot when the API row has no
-   translation, so the meta block doesn't slide up. */
+/* Client: subtitle 17px / 1.4em / margin-bottom 5px. */
+.cl-song-card .wc-body .cl-song-card-subtitle,
 .cl-song-card-subtitle {
   color: var(--ajab-ink-300);
   font-family: var(--ajab-font-serif);
   font-weight: 400;
   font-style: italic;
-  font-size: var(--ajab-fs-body-lg);
-  line-height: 1.05;
-  /* reduced line-height by 2pt/px (was 1.2) */
+  /* PREV: font-size: 19px; line-height: 1.05; min-height: 24px; */
+  font-size: 17px;
+  /* 15 Oct — subtitle line-height 1.3em (was 1.4) */
+  line-height: 1.3em;
   letter-spacing: 0;
   margin: 0 0 5px;
-  /* reduced margin bottom to 5px (was 7px) */
-  min-height: 24px;
   display: -webkit-box;
   -webkit-line-clamp: 2;
   -webkit-box-orient: vertical;
@@ -606,23 +701,29 @@ body:has(.cl-home-page-root) footer.footer-bg .footer-inner {
 }
 
 .cl-song-card-subtitle:empty {
-  margin-bottom: 5px;
+  display: none;
 }
 
-/* ── Meta lines: sings / poet (tokens) — Figma 361:718: Merriweather
-   Sans Light 16 / var(--ajab-ink-700). Single-line per meta; ellipsis on overflow. */
+/* ── Meta lines: sing / poet — Merriweather Sans Light / #3c3c3b.
+   14 Oct: wrap up to 3 lines (no ellipsis cut). */
 .cl-song-card-meta {
   font-family: var(--ajab-font-sans);
-  font-size: var(--ajab-fs-body-sm);
-  line-height: var(--ajab-lh-base);
+  /* 9 Oct export: 14px / mb 4px (PREV: var(--ajab-fs-body-sm) 16px / mb 5px) */
+  font-size: 14px;
+  line-height: 1.4em;
   letter-spacing: 0;
-  color: var(--ajab-ink-700);
+  /* PREV: color: var(--ajab-ink-700); */
+  color: #3c3c3b;
   font-weight: 300;
   font-style: normal;
-  margin: 0;
-  white-space: nowrap;
+  margin: 0 0 4px;
+  white-space: normal;
   overflow: hidden;
-  text-overflow: ellipsis;
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 3;
+  overflow-wrap: break-word;
+  word-break: normal;
 }
 
 .cl-song-card-meta:last-child {
@@ -630,12 +731,12 @@ body:has(.cl-home-page-root) footer.footer-bg .footer-inner {
 }
 
 .cl-song-card-meta-label {
-  color: var(--ajab-ink-700);
+  color: #3c3c3b;
   font-weight: 300;
 }
 
 .cl-song-card-meta-value {
-  color: var(--ajab-ink-700);
+  color: #3c3c3b;
   font-weight: 300;
 }
 
@@ -736,6 +837,8 @@ body:has(.cld-page) .nav-link--songs .nav-link-songs-count {
 
   .cl-songs-intro {
     font-size: 17px;
+    width: min(830px, 100%);
+    max-width: 100%;
   }
 
   .cl-az-btn {

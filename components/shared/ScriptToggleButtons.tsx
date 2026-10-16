@@ -25,7 +25,7 @@ export default function ScriptToggleButtons({ script, onChange, className }: Pro
         aria-label="Devanagari"
         aria-selected={script === 'devanagari'}
       >
-        अ
+        <span>अ</span>
       </button>
       <button
         type="button"
@@ -34,7 +34,7 @@ export default function ScriptToggleButtons({ script, onChange, className }: Pro
         aria-label="Transliteration"
         aria-selected={script === 'transliteration'}
       >
-        ā
+        <span>ā</span>
       </button>
       <button
         type="button"
@@ -43,7 +43,7 @@ export default function ScriptToggleButtons({ script, onChange, className }: Pro
         aria-label="Latin / English"
         aria-selected={script === 'english'}
       >
-        a
+        <span>a</span>
       </button>
     </div>
   );

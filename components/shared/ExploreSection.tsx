@@ -111,7 +111,7 @@ export default function ExploreSection({
           className={`explore-theme${activeKeywordId === 'all' ? ' active' : ''}`}
           onClick={() => setActiveKeywordId('all')}
         >
-          All
+          <span className="explore-theme-mark">All</span>
         </button>
         {keywords.map((kw) => (
             <button
@@ -122,13 +122,15 @@ export default function ExploreSection({
               className={`explore-theme explore-theme--chip${activeKeywordId === kw.id ? ' active' : ''}`}
               onClick={() => setActiveKeywordId(kw.id)}
             >
-              <span className="explore-theme-translit">{kw.transliteration}</span>
-              {kw.translation ? (
-                <>
-                  {' '}
-                  <span className="explore-theme-translation">{kw.translation}</span>
-                </>
-              ) : null}
+              <span className="explore-theme-mark">
+                <span className="explore-theme-translit">{kw.transliteration}</span>
+                {kw.translation ? (
+                  <>
+                    {' '}
+                    <span className="explore-theme-translation">{kw.translation}</span>
+                  </>
+                ) : null}
+              </span>
             </button>
         ))}
       </div>

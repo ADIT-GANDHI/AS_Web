@@ -525,7 +525,8 @@ body:has(.clfd-page) .nav-link--films .nav-link-films-count {
   display: block;
 }
 
-.clfd-video-wrap iframe {
+.clfd-video-wrap iframe,
+.clfd-video-wrap .ajab-yt-facade {
   width: 100% !important;
   height: 100% !important;
   border: 0;

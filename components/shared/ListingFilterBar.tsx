@@ -37,7 +37,7 @@ export default function ListingFilterBar({
   const allButtonActive = allPinkWhenFiltered ? hasChipFilters || allActive : allActive;
 
   return (
-    <PinnedFilterBarShell>
+    <PinnedFilterBarShell alignTopRuleToAz={Boolean(azRow)}>
       <span className="cl-filter-trigger-wrap">
         <CLFilterPanel {...panel} />
       </span>

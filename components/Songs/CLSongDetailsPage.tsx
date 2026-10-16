@@ -15,6 +15,7 @@ import './CLSongDetails.css';
 import SongDetailBackground from '@/components/Songs/SongDetailBackground';
 import { truncateAtWord, truncateToFitLines } from '@/lib/truncateAtWord';
 import { resolveCmsAssetUrl, withAppBasePath } from '@/lib/resolveCmsAssetUrl';
+import { resolveSongSingsLabel } from '@/lib/resolveSongSingsLabel';
 
 function firstExploreSongsText(data: Record<string, unknown> | undefined, keys: string[]): string {
   if (!data) return '';
@@ -260,7 +261,22 @@ export default function CLSongDetailsPage({
     );
   }, [data, script]);
 
-  const singer = (getText(data?.singer_name) || getText(data?.singer) || '').toUpperCase();
+  const singer = (
+    getText(data?.singer_display) ||
+    getText(data?.singer_name) ||
+    getText(data?.singer) ||
+    ''
+  ).toUpperCase();
+  const singsLabel = resolveSongSingsLabel(
+    {
+      singer_ids: data?.singer_ids,
+      singer_names: data?.singer_names,
+      singer_display: data?.singer_display,
+      singer: data?.singer,
+      singer_name: data?.singer_name,
+    },
+    singer
+  );
   const poetName = (getText(data?.poet) || '').trim();
   const poet = poetName.toUpperCase();
   const poetHref = poetName ? `/searche?search=${encodeURIComponent(poetName)}` : '';
@@ -341,21 +357,29 @@ export default function CLSongDetailsPage({
     [lyrics]
   );
 
-  const versionCards = (songVersions || []).map((item) => ({
-    id: item?.id,
-    title:
-      getText(item?.umbrellaTitleText) ||
-      getText(item?.Songtitle_transliteration) ||
-      getText(item?.song_title_transliteration) ||
-      getText(item?.umbrellaTitle) ||
-      getText(item?.song_title) ||
-      'Untitled',
-    subtitle: getText(item?.songTitle) || getText(item?.songtitletraan) || '',
-    singer: (getText(item?.singer) || getText(item?.singer_display) || '').toUpperCase(),
-    poet: (getText(item?.poet) || '').toUpperCase(),
-    image: resolveCmsAssetUrl(item?.thumbnailUrl || item?.thumbnail_url),
-    year: getText(item?.year) || getText(item?.Year) || getText(item?.song_year) || '',
-  }));
+  const versionCards = (songVersions || []).map((item) => {
+    const versionSinger = (
+      getText(item?.singer_display) ||
+      getText(item?.singer) ||
+      ''
+    ).toUpperCase();
+    return {
+      id: item?.id,
+      title:
+        getText(item?.umbrellaTitleText) ||
+        getText(item?.Songtitle_transliteration) ||
+        getText(item?.song_title_transliteration) ||
+        getText(item?.umbrellaTitle) ||
+        getText(item?.song_title) ||
+        'Untitled',
+      subtitle: getText(item?.songTitle) || getText(item?.songtitletraan) || '',
+      singer: versionSinger,
+      singsLabel: resolveSongSingsLabel(item || {}, versionSinger),
+      poet: (getText(item?.poet) || '').toUpperCase(),
+      image: resolveCmsAssetUrl(item?.thumbnailUrl || item?.thumbnail_url),
+      year: getText(item?.year) || getText(item?.Year) || getText(item?.song_year) || '',
+    };
+  });
 
   const showVersionsNav = versionCards.length >= VERSIONS_NAV_MIN;
 
@@ -429,7 +453,9 @@ export default function CLSongDetailsPage({
                           <div className="cld-version-card-subtitle">{card.subtitle}</div>
                         )}
                         {card.singer && (
-                          <div className="cld-version-card-meta">sings {card.singer}</div>
+                          <div className="cld-version-card-meta">
+                            {card.singsLabel} {card.singer}
+                          </div>
                         )}
                         {card.poet && (
                           <div className="cld-version-card-meta">poet {card.poet}</div>
@@ -459,7 +485,7 @@ export default function CLSongDetailsPage({
                     <span className="cld-song-header-title-name">{title}</span>
                     {singer && (
                       <span className="cld-song-header-credits">
-                        <span className="cld-song-header-sings">sings</span>
+                        <span className="cld-song-header-sings">{singsLabel}</span>
                         <span className="cld-song-header-singer">
                           <Link
                             href={`/people/${data?.singer_ids?.[0] || data?.singer_raw || ''}`}
@@ -496,14 +522,33 @@ export default function CLSongDetailsPage({
               <SongAboutClamp html={aboutHtml} />
             </div>
 
+            {/* 15 Oct — white double line between about text and poem */}
+            <div className="cld-double-rule" aria-hidden="true" />
+
             {/* ===== Lyrics column: title + poem + notes/glossary (PDF) ===== */}
             <div className="cld-lyrics-notes-wrap">
-            <div className="cld-lyrics-stage">
+            <div
+              className="cld-lyrics-stage"
+              data-script={script}
+              style={
+                (() => {
+                  const raw =
+                    data?.lyrics_line_height ??
+                    data?.line_height ??
+                    data?.song_line_height ??
+                    data?.lyric_line_height;
+                  const n = typeof raw === 'number' ? raw : parseFloat(String(raw ?? ''));
+                  if (!Number.isFinite(n) || n <= 0) return undefined;
+                  const lh = n > 4 ? n / 16 : n; /* px → em if CMS sends px */
+                  return { ['--cld-lyrics-lh' as string]: String(lh) };
+                })()
+              }
+            >
               <div className="cld-song-title-block">
                 <h1 className="cld-song-title">{title}</h1>
                 {poet && (
                   <div>
-                    <span className="cld-song-poet-label cld-song-poet">poet </span>
+                    <span className="cld-song-poet-label cld-song-poet">– poet </span>
                     <Link href={poetHref} className="cld-song-poet cld-song-poet-link">
                       {poet}
                     </Link>
@@ -552,7 +597,7 @@ export default function CLSongDetailsPage({
                 </div>
               )}
 
-              {translatorName ? (
+              {translatorName && script === 'english' ? (
                 <p className="cld-lyrics-translation">
                   Translation{' '}
                   {translatorHref ? (
@@ -602,11 +647,11 @@ export default function CLSongDetailsPage({
             )}
             </div>
 
+            {/* 15 Oct — white double line before Explore */}
+            <div className="cld-double-rule" aria-hidden="true" />
+
             {/* ===== Explore section — Poems-style explore (shared clp-related skin) ===== */}
             <div className="cld-detail-body-align">
-              {/* OLD: default explore styling
-              <ExploreSection data={relatedData} className="cld-related" />
-              */}
               <ExploreSection
                 data={relatedData}
                 className="clp-related"
