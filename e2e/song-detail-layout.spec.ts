@@ -32,7 +32,7 @@ test.describe('Song detail — PDF layout & related fixes', () => {
     expect(styles.borderTopWidth).toBe('8px');
     expect(parseFloat(styles.maxWidth)).toBeCloseTo(expectedMax, -1);
     expect(styles.width).toBeCloseTo(expectedMax, -1);
-    expect(styles.aspectRatio).toBe('1027 / 588');
+    expect(styles.aspectRatio).toBe('16 / 9');
   });
 
   test('first version card aligns with video column', async ({ page }) => {

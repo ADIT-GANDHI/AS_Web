@@ -394,12 +394,13 @@
   padding-right: 1px;
 }
 
-/* ── Video section — 16:9; 15 Oct border 6px; avoid black letterbox fill. */
+/* ── Video section — true 16:9 (was 1027/588 ≈ 1.75, which added thin letterbox).
+   16 Oct — match YouTube native AR; border 6px kept. */
 .cld-video-wrap {
   width: 100%;
   max-width: 100%;
   margin: 0 0 var(--cld-gap-video-about);
-  aspect-ratio: 1027 / 588;
+  aspect-ratio: 16 / 9;
   background: #1a1a1a;
   border-radius: 4px;
   overflow: hidden;
