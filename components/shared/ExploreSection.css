@@ -412,7 +412,8 @@
   white-space: normal;
   overflow: visible;
   text-overflow: unset;
-  flex: 1 1 auto;
+  /* Don’t grow — short titles were stretching the gap before the subtitle */
+  flex: 0 1 auto;
 }
 
 .cld-page .clp-related .explore-itemsubtitle {
@@ -421,10 +422,13 @@
   overflow: visible;
   text-overflow: unset;
   color: var(--ajab-ink-400);
+  flex: 0 1 auto;
 }
 
 .cld-page .clp-related .explore-titlerow {
   flex-wrap: wrap;
+  /* Same title↔subtitle gap on every row (matches the first Explore item) */
+  gap: 8px 12px;
 }
 
 .cld-page .clp-related .explore-itemdesc {
@@ -450,7 +454,8 @@
   border-bottom: 0;
 }
 
-/* See more — half the previous gap */
+/* See more — sit a bit higher; extra space below for breathing room */
 .cld-page .clp-related .explore-seemore {
-  margin-top: 14px;
+  margin-top: 8px;
+  margin-bottom: 40px;
 }

@@ -37,7 +37,12 @@
   width: 100%;
   height: 100%;
   line-height: 1;
-  transform: translateY(0.5px);
+}
+
+/* Latin "a" is only x-height, so its ink sits ~3px lower than अ / ā.
+   Lift it so the circle has a little more space under the letter. */
+.cld-lang-btn--latin > span {
+  transform: translateY(-2.5px);
 }
 
 .cld-lang-btn:hover {

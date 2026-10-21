@@ -317,25 +317,6 @@ export default function CLFilterPanel({
   const maxFiltersLimit =
     maxFilters != null && Number.isFinite(maxFilters) ? maxFilters : Infinity;
 
-  const filterJumpLetters = useMemo(() => {
-    const present = new Set<string>();
-    if (catalogMode) return present;
-    filterLists[activeCategory].forEach((opt) => {
-      const ch = opt.label.trim().charAt(0).toUpperCase();
-      if (ch >= 'A' && ch <= 'Z') present.add(ch);
-    });
-    return present;
-  }, [filterLists, activeCategory, catalogMode]);
-
-  const jumpToFilterLetter = useCallback((letter: string) => {
-    const root = scrollRef.current;
-    if (!root) return;
-    const el = root.querySelector(
-      `[data-filter-letter="${letter}"]`
-    ) as HTMLElement | null;
-    el?.scrollIntoView({ block: 'start', behavior: 'smooth' });
-  }, []);
-
   const handleFilterSelect = useCallback(
     (type: FilterType, value: string) => {
       const isSelected =
@@ -807,56 +788,6 @@ export default function CLFilterPanel({
                       boxSizing: 'border-box',
                     }}
                   >
-                    {/* 15 Oct — A–Z jump while list scrolls (Songs parda) */}
-                    {songsPardaLayout && !catalogMode && (
-                      <nav
-                        aria-label="Jump to letter"
-                        style={{
-                          position: 'absolute',
-                          /* Sit just left of the custom scrollbar column */
-                          right: `${scrollRight + scrollTrackW + 1}px`,
-                          top: '20px',
-                          bottom: '28px',
-                          zIndex: 3,
-                          display: 'flex',
-                          flexDirection: 'column',
-                          alignItems: 'center',
-                          justifyContent: 'space-between',
-                          pointerEvents: 'auto',
-                          padding: '2px 0',
-                        }}
-                      >
-                        {Array.from({ length: 26 }, (_, i) => String.fromCharCode(65 + i)).map(
-                          (letter) => {
-                            const enabled = filterJumpLetters.has(letter);
-                            return (
-                              <button
-                                key={`jump-${letter}`}
-                                type="button"
-                                disabled={!enabled}
-                                onClick={() => enabled && jumpToFilterLetter(letter)}
-                                style={{
-                                  fontFamily: FONT,
-                                  fontSize: '9px',
-                                  fontWeight: 400,
-                                  lineHeight: 1,
-                                  padding: 0,
-                                  margin: 0,
-                                  border: 'none',
-                                  background: 'none',
-                                  cursor: enabled ? 'pointer' : 'default',
-                                  color: enabled ? '#6F6F72' : '#c8c8c8',
-                                  minWidth: '12px',
-                                  textAlign: 'center',
-                                }}
-                              >
-                                {letter}
-                              </button>
-                            );
-                          }
-                        )}
-                      </nav>
-                    )}
                     <div
                       ref={scrollRef}
                       className="ajab-filter-list"
@@ -935,11 +866,9 @@ export default function CLFilterPanel({
                               : activeCategory === 'Poet'
                                 ? selectedPoets.includes(item.id)
                                 : selectedThemes.includes(item.id);
-                          const letter = item.label.trim().charAt(0).toUpperCase();
                           return (
                             <li
                               key={`${activeCategory}-${index}-${item.id}`}
-                              data-filter-letter={letter}
                               onClick={() => handleFilterSelect(activeCategory, item.id)}
                               style={{
                                 fontFamily: FONT,

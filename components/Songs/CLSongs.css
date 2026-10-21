@@ -208,10 +208,17 @@ body:has(.cl-home-page-root) footer.footer-bg .footer-inner {
   padding-right: var(--cl-listing-inline);
 }
 
-/* Client export — Songs filter bar spacing / weight only (not People/Reflections). */
+/* Songs filter bar — equal vertical pad around letters (not bottom-heavy).
+   Extra space to cards lives in margin (unpinned only), not inside the grey band. */
 .cl-songs-page .cl-filter-bar {
-  padding-bottom: 35px;
+  padding-top: 8px;
+  padding-bottom: 8px;
+  margin-bottom: 25px;
   font-weight: 400;
+}
+
+.cl-songs-listing-page .cl-filter-bar--pinned {
+  margin-bottom: 0;
 }
 
 /* Rule above A–Z: span Filters → Z only (vars from PinnedFilterBarShell measure).
@@ -222,19 +229,7 @@ body:has(.cl-home-page-root) footer.footer-bg .footer-inner {
   z-index: 1;
 }
 
-/* 15 Oct — soft Filters | All | A–Z box (unpinned). Does not change letter layout. */
-.cl-songs-listing-page .cl-filter-bar:not(.cl-filter-bar--pinned)::after {
-  content: '';
-  position: absolute;
-  top: 0;
-  bottom: 0;
-  left: var(--cl-listing-inline);
-  right: var(--cl-listing-inline);
-  background-color: rgba(232, 232, 232, 0.78);
-  border-radius: 2px;
-  z-index: 0;
-  pointer-events: none;
-}
+/* Unpinned: no soft grey box — grey only when scrolled (.cl-filter-bar--pinned::after). */
 
 /* Z sits on the content edge so the measured rule end matches the letter. */
 .cl-songs-listing-page .cl-az-row {
@@ -283,13 +278,37 @@ body:has(.cl-home-page-root) footer.footer-bg .footer-inner {
   background-color: #e8e8e8;
 }
 
-/* 15 Oct — Songs pinned A–Z: more opaque band + equal side inset (~12px each). */
+/* Songs pinned A–Z: opaque band; +10px past Filters (left) and Z (right). */
 .cl-songs-listing-page {
-  --cl-filter-bar-pinned-inset: calc(var(--cl-listing-inline) + 12px);
+  --cl-filter-bar-pinned-inset: calc(var(--cl-listing-inline) - 10px);
+}
+
+/* Must come AFTER shared `.cl-filter-bar--pinned { top: 10px }` block */
+.cl-songs-listing-page .cl-filter-bar--pinned {
+  top: 0;
+  isolation: isolate;
 }
 
 .cl-songs-listing-page .cl-filter-bar--pinned::after {
-  background-color: rgba(220, 220, 220, 0.97);
+  /* Paint above page content (override shared z-index: -1) */
+  z-index: 0;
+  /*
+   * Grey A–Z band, then 5px transparent lip (same idea as parda listTopClear):
+   * cut sits 5px below the grey — lip does not paint cream.
+   */
+  bottom: -5px;
+  background: linear-gradient(
+    to bottom,
+    #dcdcdc 0,
+    #dcdcdc calc(100% - 5px),
+    transparent calc(100% - 5px)
+  );
+}
+
+/* Spacer: bar height + 5px cut lip */
+.cl-songs-listing-page .cl-filter-bar-spacer {
+  padding-bottom: 5px;
+  box-sizing: content-box;
 }
 
 .clr-page.clr-listing-page,

@@ -25,6 +25,15 @@ function embedSrc(id: string, autoplay: boolean): string {
   return `https://www.youtube-nocookie.com/embed/${id}?${params.toString()}`;
 }
 
+/** Poster candidates — maxres often 404s as a tiny 120×90 placeholder (HTTP 200). */
+function posterCandidates(id: string): string[] {
+  return [
+    `https://i.ytimg.com/vi/${id}/maxresdefault.jpg`,
+    `https://i.ytimg.com/vi/${id}/sddefault.jpg`,
+    `https://i.ytimg.com/vi/${id}/hqdefault.jpg`,
+  ];
+}
+
 /**
  * Detail-page player: poster + red YouTube play only until the user clicks.
  * Avoids the native pre-play chrome (title, Watch later, Share).
@@ -37,6 +46,8 @@ export default function YouTubeEmbedFrame({
 }: YouTubeEmbedFrameProps) {
   const id = extractYouTubeId(videoId);
   const [playing, setPlaying] = useState(autoplay);
+  const [posterIdx, setPosterIdx] = useState(0);
+
   if (!id) return null;
 
   if (playing) {
@@ -51,18 +62,33 @@ export default function YouTubeEmbedFrame({
     );
   }
 
-  /* Prefer 16:9 maxres; fall back to hq if missing. */
-  const posterMax = `https://i.ytimg.com/vi/${id}/maxresdefault.jpg`;
-  const posterHq = `https://i.ytimg.com/vi/${id}/hqdefault.jpg`;
+  const posters = posterCandidates(id);
+  const posterSrc = posters[Math.min(posterIdx, posters.length - 1)];
 
   return (
     <button
       type="button"
       className={['ajab-yt-facade', className].filter(Boolean).join(' ')}
-      style={{ backgroundImage: `url(${posterMax}), url(${posterHq})` }}
       onClick={() => setPlaying(true)}
       aria-label={`Play video: ${title}`}
     >
+      {/* img (not CSS bg): detect YouTube’s tiny fake maxres and fall through */}
+      <img
+        className="ajab-yt-poster"
+        src={posterSrc}
+        alt=""
+        draggable={false}
+        onLoad={(e) => {
+          const img = e.currentTarget;
+          /* Missing maxres returns ~120×90 grey placeholder with HTTP 200 */
+          if (img.naturalWidth > 0 && img.naturalWidth < 320 && posterIdx < posters.length - 1) {
+            setPosterIdx((i) => i + 1);
+          }
+        }}
+        onError={() => {
+          if (posterIdx < posters.length - 1) setPosterIdx((i) => i + 1);
+        }}
+      />
       <span className="ajab-yt-play" aria-hidden="true">
         <span className="ajab-yt-play-tri" />
       </span>

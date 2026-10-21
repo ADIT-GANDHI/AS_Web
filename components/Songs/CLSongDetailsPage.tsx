@@ -522,7 +522,7 @@ export default function CLSongDetailsPage({
               <SongAboutClamp html={aboutHtml} />
             </div>
 
-            {/* 15 Oct — white double line between about text and poem */}
+            {/* Poems wave divider (full-bleed) between about text and poem */}
             <div className="cld-double-rule" aria-hidden="true" />
 
             {/* ===== Lyrics column: title + poem + notes/glossary (PDF) ===== */}
@@ -647,7 +647,7 @@ export default function CLSongDetailsPage({
             )}
             </div>
 
-            {/* 15 Oct — white double line before Explore */}
+            {/* Poems wave divider (full-bleed) before Explore */}
             <div className="cld-double-rule" aria-hidden="true" />
 
             {/* ===== Explore section — Poems-style explore (shared clp-related skin) ===== */}

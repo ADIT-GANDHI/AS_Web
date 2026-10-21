@@ -38,7 +38,7 @@ export default function ScriptToggleButtons({ script, onChange, className }: Pro
       </button>
       <button
         type="button"
-        className={`cld-lang-btn${script === 'english' ? ' active' : ''}`}
+        className={`cld-lang-btn cld-lang-btn--latin${script === 'english' ? ' active' : ''}`}
         onClick={() => onChange('english')}
         aria-label="Latin / English"
         aria-selected={script === 'english'}
