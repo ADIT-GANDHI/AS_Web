@@ -312,8 +312,9 @@
   width: 100%;
   max-width: 100%;
   margin: 0 0 var(--cld-gap-header-video);
-  /* Push title line inside the white YT frame (border 6px + extra inset) */
-  padding: 0 12px;
+  /* PREV: padding 0 12px — title sat 6px inside the picture.
+     The white frame is the 6px border; the line matches the video edges. */
+  padding: 0 6px;
   box-sizing: border-box;
 }
 
@@ -448,12 +449,52 @@
   margin: 0;
 }
 
+/* MORE/LESS window. Not used while the scroller below is on.
+   Same box: 15px type, line-height 1.6 (24px), 3 lines = 72px. */
 .cld-description-body--clamped {
   line-height: 1.6em;
   min-height: calc(1.6em * 3);
   max-height: calc(1.6em * 3);
   overflow: hidden;
   white-space: normal;
+}
+
+/* SCROLLER — live. Shows 3 lines, 72px, same height as --clamped.
+   Switch: comment this out and uncomment SongAboutClamp MORE/LESS in CLSongDetailsPage.tsx.
+   PREV: overflow-y: auto with only scrollbar-color. On Windows that is an overlay
+   thumb: it sits on the last word and fades once scrolling stops.
+   The classic bar below stays in its own track and stays visible. */
+.cld-description-body--scroll {
+  line-height: 1.6em;
+  height: calc(1.6em * 3);
+  max-height: calc(1.6em * 3);
+  overflow-x: hidden;
+  overflow-y: scroll;
+  /* Do not set scrollbar-width or scrollbar-color here.
+     Chrome then keeps the native bar, which overlays the last word and fades after scroll.
+     The classic rules below stay in their own track and stay visible. */
+}
+
+.cld-description-body--scroll::-webkit-scrollbar {
+  width: 8px;
+  display: block;
+}
+
+.cld-description-body--scroll::-webkit-scrollbar-button {
+  display: none;
+  width: 0;
+  height: 0;
+}
+
+.cld-description-body--scroll::-webkit-scrollbar-track {
+  background: #dedede;
+  border-radius: 4px;
+}
+
+.cld-description-body--scroll::-webkit-scrollbar-thumb {
+  background: #818181;
+  border-radius: 4px;
+  min-height: 28px;
 }
 
 .cld-description-body--clamped .cld-description-more {
@@ -556,6 +597,8 @@
    Typography + stanza rhythm are locked; only outer block margin may shift. ── */
 /* Lyrics stay centered; notes card bottom sits on the NOTES|GLOSSARY rule (PDF). */
 .cld-lyrics-notes-wrap {
+  /* Script changes resize the lyrics. Do not let the browser drag the page to follow. */
+  overflow-anchor: none;
   position: relative;
   width: 100%;
 }
@@ -719,10 +762,13 @@
   max-width: 100vw;
   margin-left: calc(50% - 50vw);
   margin-right: calc(50% - 50vw);
-  margin-top: 28px;
-  margin-bottom: 24px;
+  /* PREV: margin-top 28px; margin-bottom 24px. 23 Oct — more space, same wave. */
+  margin-top: 40px;
+  margin-bottom: 36px;
   height: 30px;
-  background: url(/poems-wave-divider.png) center / 100% 100% no-repeat;
+  /* PREV: url(/poems-wave-divider.png). Source: New_UI/poems-wave-line.png.
+     Served from public/ so postbuild copies it into out/ for production. */
+  background: url(/poems-wave-line.png) center / 100% 100% no-repeat;
   box-sizing: border-box;
   pointer-events: none;
 }

@@ -264,6 +264,24 @@ function normalizeExplorePlain(raw: string): string {
     .trim();
 }
 
+/**
+ * Reflection card body. Related rows only carry `meta_description` (escaped
+ * quotes); the usable copy is `reflection_excerpt` / `thumbnail_excerpt`.
+ * Thumbnail is a shorter cut of the same text, so the longer plain value wins.
+ */
+export function pickReflectionExploreExcerpt(item: any): string {
+  let best = '';
+  for (const value of [
+    item?.reflection_excerpt,
+    item?.thumbnail_excerpt,
+    item?.thumbnailexcerpt,
+  ]) {
+    const text = normalizeExplorePlain(String(value || ''));
+    if (text.length > best.length) best = text;
+  }
+  return best;
+}
+
 export function getExploreItemDescription(item: any, bucket: ExploreListEntry['bucket']): string {
   if (bucket === 'poems') {
     const raw =
@@ -275,6 +293,10 @@ export function getExploreItemDescription(item: any, bucket: ExploreListEntry['b
     return normalizeExplorePlain(String(raw)) || LOREM_DESC;
   }
 
+  if (bucket === 'reflections') {
+    return pickReflectionExploreExcerpt(item) || LOREM_DESC;
+  }
+
   const raw =
     item?.about ||
     item?.description ||
@@ -282,7 +304,6 @@ export function getExploreItemDescription(item: any, bucket: ExploreListEntry['b
     item?.metaDescription ||
     item?.thumbnail_excerpt ||
     item?.thumbnailexcerpt ||
-    item?.reflection_excerpt ||
     '';
   return normalizeExplorePlain(String(raw)) || LOREM_DESC;
 }

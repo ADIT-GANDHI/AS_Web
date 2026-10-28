@@ -33,6 +33,9 @@ type ExploreSectionProps = {
    * Omit to keep the default expand-all / collapse behaviour.
    */
   seeMoreStep?: number;
+  /** Song detail says "explore". Other pages keep SEE MORE / SEE LESS. */
+  moreLabel?: string;
+  lessLabel?: string;
 };
 
 function entryKey(entry: ExploreListEntry, index: number): string {
@@ -49,6 +52,8 @@ export default function ExploreSection({
   initialCount = EXPLORE_INITIAL_COUNT,
   descriptionLines,
   seeMoreStep,
+  moreLabel = 'SEE MORE',
+  lessLabel = 'SEE LESS',
 }: ExploreSectionProps) {
   const clampLines = descriptionLines && descriptionLines > 0 ? descriptionLines : 0;
   const step = seeMoreStep && seeMoreStep > 0 ? seeMoreStep : 0;
@@ -90,11 +95,11 @@ export default function ExploreSection({
     : hasMore;
   const seeMoreLabel = step
     ? displayed.length < entries.length
-      ? 'SEE MORE'
-      : 'SEE LESS'
+      ? moreLabel
+      : lessLabel
     : listExpanded
-      ? 'SEE LESS'
-      : 'SEE MORE';
+      ? lessLabel
+      : moreLabel;
 
   const allEntries = useMemo(() => buildExploreEntries(data, 'all'), [data]);
   if (!keywords.length && !allEntries.length) return null;

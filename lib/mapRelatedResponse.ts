@@ -263,16 +263,40 @@ function reflectionNeedsFormat(item: any): boolean {
   return !String(item?.format || item?.reflection_type || item?.format_name || '').trim();
 }
 
-function enrichReflectionRow(item: any, byId: Map<string, any>): any {
-  if (!reflectionNeedsFormat(item)) return item;
-  const full = byId.get(String(item?.id ?? ''));
-  if (!full) return item;
-  const format = String(full.format || full.reflection_type || full.format_name || '').trim();
-  if (!format) return item;
-  return { ...item, format };
+function reflectionExcerptMissing(item: any): boolean {
+  const excerpt = String(item?.reflection_excerpt || '').trim();
+  const thumb = String(item?.thumbnail_excerpt || item?.thumbnailexcerpt || '').trim();
+  return !excerpt && !thumb;
 }
 
-/** Related API omits reflection `format` — merge from the reflections listing index. */
+function reflectionNeedsEnrichment(item: any): boolean {
+  return reflectionNeedsFormat(item) || reflectionExcerptMissing(item);
+}
+
+function enrichReflectionRow(item: any, byId: Map<string, any>): any {
+  const needsFormat = reflectionNeedsFormat(item);
+  const needsExcerpt = reflectionExcerptMissing(item);
+  if (!needsFormat && !needsExcerpt) return item;
+  const full = byId.get(String(item?.id ?? ''));
+  if (!full) return item;
+  const next = { ...item };
+  if (needsFormat) {
+    const format = String(full.format || full.reflection_type || full.format_name || '').trim();
+    if (format) next.format = format;
+  }
+  if (needsExcerpt) {
+    const excerpt = String(full.reflection_excerpt || '').trim();
+    const thumb = String(full.thumbnail_excerpt || full.thumbnailexcerpt || '').trim();
+    if (excerpt) next.reflection_excerpt = excerpt;
+    if (thumb) {
+      next.thumbnail_excerpt = thumb;
+      next.thumbnailexcerpt = thumb;
+    }
+  }
+  return next;
+}
+
+/** Related API omits reflection format and excerpts — merge from the listing index. */
 export async function enrichRelatedReflections(
   content: RelatedContent
 ): Promise<RelatedContent> {
@@ -281,8 +305,8 @@ export async function enrichRelatedReflections(
     Array.isArray(kw?.reflections) ? kw.reflections : []
   );
   const needsWork =
-    reflections.some(reflectionNeedsFormat) ||
-    keywordReflections.some(reflectionNeedsFormat);
+    reflections.some(reflectionNeedsEnrichment) ||
+    keywordReflections.some(reflectionNeedsEnrichment);
   if (!needsWork) return content;
 
   try {

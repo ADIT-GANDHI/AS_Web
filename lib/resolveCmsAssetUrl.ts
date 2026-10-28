@@ -11,8 +11,18 @@ export function withAppBasePath(path: string): string {
 /** Shown when CMS omits a thumb or offline mocks use empty strings. */
 export const CMS_IMAGE_PLACEHOLDER = withAppBasePath('/placeholder.svg');
 
-/** Wavy right edge for Songs / Poems / Radio filter drawers. */
+/** Wavy right edge for Poems / Radio filter drawers, and the previous Songs curtain. */
 export const FILTER_PANEL_SHAPE = withAppBasePath('/songs-assets/song_filter_opaque.svg');
+
+/**
+ * Songs filter parda — vector shape from "White parda asset 480x1660.ai".
+ * Fitted into the 360px drawer. A raster PNG of the same art looked pixelated.
+ * PREV raster: `/songs-assets/song_filter_white_480x1660.png`
+ * PREV Songs curtain: FILTER_PANEL_SHAPE (`/songs-assets/song_filter_opaque.svg`).
+ */
+export const SONGS_FILTER_WHITE_PARDA = withAppBasePath(
+  '/songs-assets/song_filter_white_vector.svg'
+);
 
 /** Radio page static assets (module-level paths avoid /new + /asset concat in JS bundles). */
 export const RADIO_PLAYER_CONTROLS = withAppBasePath('/radio-player-controls.svg');

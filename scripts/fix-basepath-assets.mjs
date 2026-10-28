@@ -74,6 +74,7 @@ const ASSET_PREFIXES = [
   'poems_newbg-tile.png',
   'poems_newbg-original.png',
   'poems-wave-divider.png',
+  'poems-wave-line.png',
   'poem-detail-bg.png',
   'poem-notes-glossary.png',
   'related-poem-handwritten.png',

@@ -297,10 +297,11 @@ body:has(.cl-home-page-root) footer.footer-bg .footer-inner {
    * cut sits 5px below the grey — lip does not paint cream.
    */
   bottom: -5px;
+  /* PREV: #dcdcdc solid. On-scroll band is 5% more transparent. */
   background: linear-gradient(
     to bottom,
-    #dcdcdc 0,
-    #dcdcdc calc(100% - 5px),
+    rgba(220, 220, 220, 0.95) 0,
+    rgba(220, 220, 220, 0.95) calc(100% - 5px),
     transparent calc(100% - 5px)
   );
 }
@@ -597,6 +598,33 @@ body:has(.cl-home-page-root) footer.footer-bg .footer-inner {
   margin: 30px auto 64px;
 }
 
+/* 23 Oct — songs count only. Reflections, people, radio, and glossary keep 0. */
+.cl-songs-listing-page .cl-songs-count {
+  /* PREV: letter-spacing 0. Stretches "218 Songs" to the width of "Filters | All". */
+  letter-spacing: 0.55px;
+}
+
+/* Songs listing only. Reflections keep the shared row layout.
+   Side gap stays 60px at 1440. Cards stack down each column, not across a row.
+   The 72px is between the card boxes in a column. The wave hangs inside that space. */
+.cl-songs-listing-page .cl-song-grid {
+  display: flex;
+  flex-direction: row;
+  align-items: flex-start;
+  justify-content: center;
+  column-gap: var(--ajab-grid-col-gap);
+  row-gap: 0;
+}
+
+.cl-songs-listing-page .cl-song-col {
+  display: flex;
+  flex-direction: column;
+  /* PREV: gap 20px, only enough to show the wave. */
+  gap: 72px;
+  width: var(--ajab-card-w);
+  flex: 0 0 var(--ajab-card-w);
+}
+
 .cl-song-grid-item {
   max-width: var(--ajab-card-w);
   width: 100%;
@@ -640,8 +668,10 @@ body:has(.cl-home-page-root) footer.footer-bg .footer-inner {
    Card height follows content (9 Oct). Lines pack top→bottom with no reserved empty slots. */
 .cl-song-card {
   --wc-width: var(--ajab-card-w);
-  /* @1440 card is 240px. Thumb height scales with artboard. */
-  --wc-thumb-h: clamp(90px, calc(100vw * 120 / var(--ajab-artboard-w, 1440)), 160px);
+  /* @1440 card is 240px and the picture stays 120px.
+     PREV clamp (90 / vw*120 / 160) changed the picture shape outside ~1080–1920px,
+     so the same photo cropped differently on other laptops. */
+  --wc-thumb-h: calc(var(--ajab-card-w) * 120 / 240);
   /* drop-shadow so #a2a2a8 follows the full silhouette, including under the wave. */
   --wc-shadow: none;
   --wc-radius: var(--ajab-card-radius);
@@ -685,7 +715,8 @@ body:has(.cl-home-page-root) footer.footer-bg .footer-inner {
   word-break: normal;
   overflow-wrap: break-word;
   margin: 0 0 3px;
-  line-height: 1.15em;
+  /* PREV: 1.15em — line-clamp cut off g, y, p. */
+  line-height: 1.35em;
   display: flex;
   align-items: flex-start;
 }
@@ -695,6 +726,7 @@ body:has(.cl-home-page-root) footer.footer-bg .footer-inner {
   -webkit-line-clamp: 2;
   -webkit-box-orient: vertical;
   overflow: hidden;
+  line-height: 1.35em;
   width: 100%;
   word-break: normal;
   overflow-wrap: break-word;

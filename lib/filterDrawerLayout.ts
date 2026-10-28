@@ -19,14 +19,14 @@ export const FILTER_DRAWER_BG_OPACITY = 1;
 /** Songs listing parda — client 13 Oct: ~95% for readability over page. */
 export const FILTER_DRAWER_SONGS_BG_OPACITY = 0.95;
 
-/** Songs: scrollbar `right` inset — pushed in from the wavy edge (was 10). */
-export const FILTER_DRAWER_SONGS_SCROLL_RIGHT_PX = 18;
+/** Songs: scrollbar `right` inset. Live site is 18px, then +3, +5, +5, and +3 more (Theme still clears the ×). */
+export const FILTER_DRAWER_SONGS_SCROLL_RIGHT_PX = 34;
 /** Songs scrollbar track width — keep in sync with CLFilterPanel track. */
 export const FILTER_DRAWER_SONGS_SCROLL_TRACK_PX = 6;
 
 /**
  * Shared default for Reflections / People / Poems / Radio.
- * Songs listing overrides to 360 via `drawerWidth` (9 Oct).
+ * Songs listing overrides to 360 via `drawerWidth`. The white parda art is fitted into that width.
  */
 export const FILTER_DRAWER_DEFAULT_WIDTH = 380;
 

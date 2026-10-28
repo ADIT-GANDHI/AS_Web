@@ -282,7 +282,8 @@
   margin-top: 52px;
   margin-bottom: 64px;
   height: 30px;
-  background: url(/poems-wave-divider.png) center / 100% 100% no-repeat;
+  /* PREV: url(/poems-wave-divider.png). Same public asset as the song-detail wave. */
+  background: url(/poems-wave-line.png) center / 100% 100% no-repeat;
   pointer-events: none;
 }
 
@@ -343,7 +344,36 @@
 }
 
 .clp-related .explore-item:not(:last-child) {
-  border-bottom: 1px dotted #b9b9b9;
+  position: relative;
+  /* PREV: border-bottom: 1px dotted #b9b9b9.
+     The file stroke is drawn below, not a browser dotted border. */
+  border-bottom: 0;
+}
+
+/* Explore separator — Poems_13July2026 stroke, look only.
+   Dot size and pitch stay: 1.5px, #808080, 7px center to center at 1440, scaled with the page.
+   PREV width was the artboard line, 1032.649px at 1440, which ran past the content column.
+   The stroke now stays inside that column. */
+.clp-related .explore-item:not(:last-child)::after {
+  content: '';
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  width: 100%;
+  height: calc(100vw * 1.5 / 1440);
+  pointer-events: none;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='7' height='1.5' viewBox='0 0 7 1.5'%3E%3Ccircle cx='3.5' cy='0.75' r='0.75' fill='%23808080'/%3E%3C/svg%3E");
+  background-repeat: repeat-x;
+  background-size: calc(100vw * 7 / 1440) calc(100vw * 1.5 / 1440);
+  background-position: left center;
+}
+
+/* Song detail: the highlighted column is .cld-detail-body-align (856px).
+   The explore block is 48px narrower than that column, so the stroke stretches
+   back out to the column edges and stops there. */
+.cld-page .clp-related .explore-item:not(:last-child)::after {
+  left: -24px;
+  width: calc(100% + 48px);
 }
 
 .clp-related .explore-item:not(:last-child) .explore-body {
@@ -445,9 +475,9 @@
   padding-top: 0;
 }
 
-/* PDF grey dotted line between cards (15 Oct — match PDF, not solid) */
+/* PREV: border-bottom 1px dotted #b9b9b9. Song detail uses the shared stroke above. */
 .cld-page .clp-related .explore-item:not(:last-child) {
-  border-bottom: 1px dotted #b9b9b9;
+  border-bottom: 0;
 }
 
 .cld-page .clp-related .explore-item:not(:last-child) .explore-body {
@@ -458,4 +488,11 @@
 .cld-page .clp-related .explore-seemore {
   margin-top: 8px;
   margin-bottom: 40px;
+  text-transform: none;
+}
+
+/* 23 Oct — song detail only. Shared theme size stays 22px on poems and reflections. */
+.cld-page .clp-related .explore-theme,
+.cld-page .clp-related .explore-theme--chip::before {
+  font-size: 20px;
 }

@@ -24,9 +24,11 @@ export type FilterSelectionChip = {
 type Props = {
   items: FilterSelectionChip[];
   onRemove: (type: string, value: string) => void;
+  /** Songs parda: theme translation on the next line, lighter than the word. */
+  stackTranslation?: boolean;
 };
 
-export default function FilterSelectionChips({ items, onRemove }: Props) {
+export default function FilterSelectionChips({ items, onRemove, stackTranslation = false }: Props) {
   if (!items.length) return null;
 
   return (
@@ -38,7 +40,7 @@ export default function FilterSelectionChips({ items, onRemove }: Props) {
         alignItems: 'flex-start',
         gap: 0,
         marginBottom: '6px',
-        maxHeight: `${MAX_VISIBLE_ROWS * FILTER_DRAWER_SELECTION_ROW_PX}px`,
+        maxHeight: `${MAX_VISIBLE_ROWS * (stackTranslation ? 52 : FILTER_DRAWER_SELECTION_ROW_PX)}px`,
         overflowY: 'auto',
         overflowX: 'hidden',
         paddingTop: '3px',
@@ -77,15 +79,29 @@ export default function FilterSelectionChips({ items, onRemove }: Props) {
             lineHeight: 1.3,
           }}
         >
-          <span style={{ minWidth: 0 }}>
+          <span style={{ minWidth: 0, display: stackTranslation ? 'block' : undefined }}>
             {chip.label}
             {chip.translation ? (
-              <>
-                {'  '}
-                <em style={{ fontStyle: 'italic', fontWeight: 300, whiteSpace: 'nowrap' }}>
+              stackTranslation ? (
+                <em
+                  style={{
+                    display: 'block',
+                    fontStyle: 'italic',
+                    fontWeight: 300,
+                    color: '#9A9A9C',
+                    marginTop: '2px',
+                  }}
+                >
                   {chip.translation}
                 </em>
-              </>
+              ) : (
+                <>
+                  {'  '}
+                  <em style={{ fontStyle: 'italic', fontWeight: 300, whiteSpace: 'nowrap' }}>
+                    {chip.translation}
+                  </em>
+                </>
+              )
             ) : null}
           </span>
           <span

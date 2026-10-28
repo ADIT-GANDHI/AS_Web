@@ -2,7 +2,7 @@
 
 import Loader from '@/components/Loader';
 import Header from '@/components/Header';
-import { useCallback, useContext, useEffect, useMemo, useRef, useState } from 'react';
+import { useCallback, useContext, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
 import RepeatingPageBackground from '@/components/shared/RepeatingPageBackground';
 import { SONGS_LISTING_BG } from '@/lib/pageBackgroundTiles';
 import { MOCK_SONGS, SONGS_FILTER, SONGS_INTRO } from './CLconstants';
@@ -23,6 +23,13 @@ type FilterType = 'Singer' | 'Poet' | 'Theme';
 type FilterDim = 'singer' | 'poet' | 'theme';
 
 const SONGS_PER_PAGE = 9;
+
+/** Matches the .cl-song-grid breakpoints in CLSongs.css. */
+function songGridColumnCount(width: number): number {
+  if (width <= 767) return 1;
+  if (width <= 1024) return 2;
+  return 3;
+}
 
 const DIM_FROM_TYPE: Record<FilterType, FilterDim> = {
   Singer: 'singer',
@@ -584,9 +591,25 @@ export default function CLSongsIndex() {
     return result;
   }, [allSongs, filterSongs, hasActiveFilters, activeLetter]);
 
+  const [songCols, setSongCols] = useState(3);
+  useLayoutEffect(() => {
+    const apply = () => setSongCols(songGridColumnCount(window.innerWidth));
+    apply();
+    window.addEventListener('resize', apply);
+    return () => window.removeEventListener('resize', apply);
+  }, []);
+
   const displayedSongs = useMemo(() => {
     return filteredSongs.slice(0, visibleCount);
   }, [filteredSongs, visibleCount]);
+
+  const songColumns = useMemo(() => {
+    const columns: (typeof displayedSongs)[] = Array.from({ length: songCols }, () => []);
+    displayedSongs.forEach((song, index) => {
+      columns[index % songCols].push(song);
+    });
+    return columns;
+  }, [displayedSongs, songCols]);
 
   const hasMore = hasActiveFilters
     ? visibleCount < filteredSongs.length
@@ -677,7 +700,7 @@ export default function CLSongsIndex() {
                 availableSingers: panelSingers,
                 availablePoets: panelPoets,
                 availableThemes: panelThemes,
-                /* 9 Oct — Songs-only parda width + chrome (360 / left 20) */
+                /* Width stays 360, same as the previous curtain. The 480 art is fitted inside it. */
                 drawerWidth: 360,
                 songsPardaLayout: true,
               }}
@@ -698,9 +721,13 @@ export default function CLSongsIndex() {
 
             <div className="cl-song-grid">
               {displayedSongs.length > 0 ? (
-                displayedSongs.map((song) => (
-                  <div key={song.id} className="cl-song-grid-item">
-                    <CLSongCard {...song} />
+                songColumns.map((column, columnIndex) => (
+                  <div className="cl-song-col" key={columnIndex}>
+                    {column.map((song) => (
+                      <div key={song.id} className="cl-song-grid-item">
+                        <CLSongCard {...song} />
+                      </div>
+                    ))}
                   </div>
                 ))
               ) : filterLoading ? (

@@ -1,7 +1,7 @@
 'use client';
 
 import { AnimatePresence, motion } from 'framer-motion';
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
 import type {
   ListingFilterCategory,
@@ -22,7 +22,7 @@ import {
   measureFilterDrawerFooterOverlapPx,
 } from '@/lib/filterDrawerLayout';
 import { dedupeOrderedStrings } from '@/lib/dedupeStrings';
-import { FILTER_PANEL_SHAPE } from '@/lib/resolveCmsAssetUrl';
+import { FILTER_PANEL_SHAPE, SONGS_FILTER_WHITE_PARDA } from '@/lib/resolveCmsAssetUrl';
 import FilterSelectionChips from '@/components/Fillter/FilterSelectionChips';
 
 export type { ListingFilterCategory, ListingFilterPanelProps };
@@ -59,8 +59,35 @@ function normalizeFilterOptions(list: ListingFilterOptionInput[] | undefined): L
   return out;
 }
 
-function FilterOptionLabel({ label, translation }: { label: string; translation?: string }) {
+function FilterOptionLabel({
+  label,
+  translation,
+  stacked = false,
+}: {
+  label: string;
+  translation?: string;
+  stacked?: boolean;
+}) {
   if (!translation) return <span>{label}</span>;
+  /* Songs parda: translation on the next line, lighter than the word. */
+  if (stacked) {
+    return (
+      <span style={{ display: 'block' }}>
+        <span style={{ display: 'block' }}>{label}</span>
+        <em
+          style={{
+            display: 'block',
+            fontStyle: 'italic',
+            fontWeight: 300,
+            color: '#9A9A9C',
+            marginTop: '2px',
+          }}
+        >
+          {translation}
+        </em>
+      </span>
+    );
+  }
   return (
     <span style={{ display: 'inline' }}>
       <span>{label}</span>
@@ -150,8 +177,8 @@ export default function CLFilterPanel({
   songsPardaLayout = false,
 }: ListingFilterPanelProps) {
   const panelWidthPx = `${drawerWidth}px`;
-  /* Songs: left 28; × + scrollbar inset from wavy edge; Filter-by keeps Theme visible. */
-  const pardaPadL = songsPardaLayout ? 28 : 20;
+  /* Songs: left 25 (PREV 28 — shift the list 3px left so Filter by / × balance). */
+  const pardaPadL = songsPardaLayout ? 25 : 20;
   const pardaPadR = songsPardaLayout ? 20 : 20;
   const pardaTopPad = songsPardaLayout ? 20 : 24;
   const scrollRight = songsPardaLayout ? FILTER_DRAWER_SONGS_SCROLL_RIGHT_PX : 20;
@@ -173,6 +200,11 @@ export default function CLFilterPanel({
   const songsRuleWidth = songsPardaLayout
     ? `calc(100% - ${scrollCenter}px - ${ruleInset}px)`
     : '100%';
+  /* Clear-all sits in a box that also has right padding, so add that padding back
+     or this rule ends short of the two rules above it. */
+  const songsFooterRuleWidth = songsPardaLayout
+    ? `calc(100% + ${pardaPadR}px - ${scrollCenter}px - ${ruleInset}px)`
+    : '100%';
   const songsRuleMarginLeft = songsPardaLayout ? `${ruleInset}px` : 0;
   /* List top clear so first word isn’t clipped (client: 6–8px). */
   const listTopClearPx = songsPardaLayout ? 7 : 3;
@@ -187,6 +219,14 @@ export default function CLFilterPanel({
   const triggerPink = hasActiveFilters;
   const [openUncontrolled, setOpenUncontrolled] = useState(false);
   const open = openProp ?? openUncontrolled;
+  const openRef = useRef(open);
+  openRef.current = open;
+  /* Songs: after the slide finishes, drop its transform so the 1px rules
+     stay on the pixel grid while the list or page scrolls. */
+  const [rulesCrisp, setRulesCrisp] = useState(false);
+  useLayoutEffect(() => {
+    if (!open) setRulesCrisp(false);
+  }, [open]);
   const setOpen = useCallback(
     (value: boolean | ((prev: boolean) => boolean)) => {
       const next = typeof value === 'function' ? value(open) : value;
@@ -467,6 +507,28 @@ export default function CLFilterPanel({
       ? categoryOrder
       : ['Singer', 'Poet', 'Theme'];
   const labelFor = (cat: FilterType) => categoryLabels[cat] ?? cat;
+  /* Songs rules: 1px border on white, same #c0c0c0 and same width.
+     PREV: height 1px; background sepColor — that fill darkened and lightened while scrolling. */
+  const hairlineRule = (width: string, extra?: Record<string, string | number>) =>
+    songsPardaLayout
+      ? {
+          height: 0,
+          borderTop: `1px solid ${sepColor}`,
+          backgroundColor: '#FFFFFF',
+          boxShadow: '0 -1px 0 #FFFFFF, 0 1px 0 #FFFFFF',
+          width,
+          marginLeft: songsRuleMarginLeft,
+          flexShrink: 0,
+          ...extra,
+        }
+      : {
+          height: '1px',
+          background: sepColor,
+          width,
+          marginLeft: songsRuleMarginLeft,
+          flexShrink: 0,
+          ...extra,
+        };
 
   useEffect(() => {
     if (!categories.includes(activeCategory)) {
@@ -508,6 +570,7 @@ export default function CLFilterPanel({
           .ajab-filter-list { -ms-overflow-style: none; scrollbar-width: none; }
           .ajab-filter-selections::-webkit-scrollbar { display: none; }
           .ajab-filter-selections { -ms-overflow-style: none; scrollbar-width: none; }
+          .ajab-filter-drawer--rest { transform: none !important; }
         `}</style>
             <AnimatePresence>
               {open && (
@@ -529,7 +592,11 @@ export default function CLFilterPanel({
                   {/* Portaled drawer — full-height curtain; footer wave paints on top when in view. */}
                   <motion.div
                   // LOCKED_SCROLL: ref={panelRef}
-                  className="ajab-filter-drawer"
+                  className={
+                    songsPardaLayout && rulesCrisp
+                      ? 'ajab-filter-drawer ajab-filter-drawer--rest'
+                      : 'ajab-filter-drawer'
+                  }
                   style={{
                     position: 'fixed',
                     top: FILTER_DRAWER_TOP,
@@ -545,13 +612,18 @@ export default function CLFilterPanel({
                     overflow: 'hidden',
                     pointerEvents: 'auto',
                     overscrollBehavior: 'contain',
-                    backgroundColor: '#FFFFFF',
+                    /* Songs white parda is a transparent PNG. A white box here squares off the wave.
+                       PREV (opaque svg): backgroundColor '#FFFFFF'. */
+                    backgroundColor: songsPardaLayout ? 'transparent' : '#FFFFFF',
                   }}
                   initial={{ x: '-100%', opacity: 0 }}
                   animate={{ x: 0, opacity: 1 }}
                   exit={{ x: '-100%', opacity: 0 }}
                   transition={{ type: 'spring', stiffness: 140, damping: 22 }}
-                  onAnimationComplete={recalcThumb}
+                  onAnimationComplete={() => {
+                    recalcThumb();
+                    if (songsPardaLayout && openRef.current) setRulesCrisp(true);
+                  }}
                 >
                   {/* Wavy panel bg — opaque so page text (counts / Filters | All) does not bleed through */}
                   <div
@@ -559,21 +631,31 @@ export default function CLFilterPanel({
                     style={{
                       position: 'absolute',
                       inset: 0,
-                      opacity: panelBgOpacity,
+                      /* PREV songs: FILTER_DRAWER_SONGS_BG_OPACITY (0.95) over the opaque svg.
+                         The new PNG already carries its own white alpha. */
+                      opacity: songsPardaLayout ? 1 : panelBgOpacity,
                       pointerEvents: 'none',
                     }}
                   >
-                    <div
-                      style={{
-                        position: 'absolute',
-                        inset: 0,
-                        background: '#FFFFFF',
-                      }}
-                    />
+                    {/* PREV songs underlay + curtain (revert with src={FILTER_PANEL_SHAPE}):
+                    <div style={{ position: 'absolute', inset: 0, background: '#FFFFFF' }} />
+                    <img src={FILTER_PANEL_SHAPE} alt="" style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'cover', objectPosition: 'right center' }} />
+                    */}
+                    {!songsPardaLayout && (
+                      <div
+                        style={{
+                          position: 'absolute',
+                          inset: 0,
+                          background: '#FFFFFF',
+                        }}
+                      />
+                    )}
                     {/* PREV objectFit:'fill' stretched X/Y independently → flatter/longer waves.
-                        cover + right anchor = uniform scale (SVG 422×1424), keep wavy right edge. */}
+                        cover + right anchor = uniform scale, keep wavy right edge.
+                        Songs src PREV raster (pixelated): /songs-assets/song_filter_white_480x1660.png
+                        Songs src PREV curtain: FILTER_PANEL_SHAPE (/songs-assets/song_filter_opaque.svg). */}
                     <img
-                      src={FILTER_PANEL_SHAPE}
+                      src={songsPardaLayout ? SONGS_FILTER_WHITE_PARDA : FILTER_PANEL_SHAPE}
                       alt=""
                       style={{
                         position: 'absolute',
@@ -614,15 +696,7 @@ export default function CLFilterPanel({
                     }}
                   >
                     {/* Rules: ~4px left inset, same width for all — end at × (15 Oct) */}
-                    <div
-                      style={{
-                        height: '1px',
-                        background: sepColor,
-                        width: songsRuleWidth,
-                        marginLeft: songsRuleMarginLeft,
-                        flexShrink: 0,
-                      }}
-                    />
+                    <div aria-hidden="true" style={hairlineRule(songsRuleWidth)} />
                     <div
                       style={{
                         position: 'relative',
@@ -728,15 +802,7 @@ export default function CLFilterPanel({
                         </button>
                       )}
                     </div>
-                    <div
-                      style={{
-                        height: '1px',
-                        background: sepColor,
-                        width: songsRuleWidth,
-                        marginLeft: songsRuleMarginLeft,
-                        flexShrink: 0,
-                      }}
-                    />
+                    <div aria-hidden="true" style={hairlineRule(songsRuleWidth)} />
 
                     {/* Songs: × with no side padding; center aligned to scrollbar track */}
                     {songsPardaLayout && (
@@ -891,6 +957,7 @@ export default function CLFilterPanel({
                               <FilterOptionLabel
                                 label={item.label}
                                 translation={item.translation}
+                                stacked={songsPardaLayout}
                               />
                             </li>
                           );
@@ -954,13 +1021,7 @@ export default function CLFilterPanel({
                       {songsPardaLayout && (
                         <div
                           aria-hidden="true"
-                          style={{
-                            height: '1px',
-                            background: sepColor,
-                            width: songsRuleWidth,
-                            marginLeft: songsRuleMarginLeft,
-                            marginBottom: '10px',
-                          }}
+                          style={hairlineRule(songsFooterRuleWidth, { marginBottom: '10px' })}
                         />
                       )}
                       {!songsPardaLayout && (
@@ -979,6 +1040,7 @@ export default function CLFilterPanel({
                         <FilterSelectionChips
                           items={selectedFilters}
                           onRemove={onRemoveFilter}
+                          stackTranslation={songsPardaLayout}
                         />
                       )}
 
@@ -987,7 +1049,8 @@ export default function CLFilterPanel({
                         type="button"
                         onClick={() => {
                           onClearAll();
-                          setOpen(false);
+                          /* Songs: clear tags only. PREV: setOpen(false) closed the parda. */
+                          if (!songsPardaLayout) setOpen(false);
                         }}
                         style={{
                           fontFamily: FONT,

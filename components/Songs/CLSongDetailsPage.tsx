@@ -13,9 +13,9 @@ import ScriptToggleButtons, { type Script } from '@/components/shared/ScriptTogg
 import './CLSongs.css'; // for the root marble bg + floating button overrides
 import './CLSongDetails.css';
 import SongDetailBackground from '@/components/Songs/SongDetailBackground';
-import { truncateAtWord, truncateToFitLines } from '@/lib/truncateAtWord';
 import { resolveCmsAssetUrl, withAppBasePath } from '@/lib/resolveCmsAssetUrl';
 import { resolveSongSingsLabel } from '@/lib/resolveSongSingsLabel';
+/* MORE/LESS (commented out): import { truncateAtWord, truncateToFitLines } from '@/lib/truncateAtWord'; */
 
 function firstExploreSongsText(data: Record<string, unknown> | undefined, keys: string[]): string {
   if (!data) return '';
@@ -82,78 +82,70 @@ function getAboutHtml(data: any): string {
   return SONG_ABOUT_LOREM;
 }
 
-/** PDF/Figma: 3 lines when collapsed; "...more" inline right after the last word. */
-const ABOUT_MIN_LINES_CHARS = 220;
-const ABOUT_CLAMP_LINES = 3;
 /** PDF: side chevrons only when the carousel can actually scroll (4+ cards). */
 const VERSIONS_NAV_MIN = 4;
 
+/*
+ * MORE/LESS — commented out. To bring it back:
+ * 1. Uncomment the truncateAtWord import above.
+ * 2. Uncomment this block and remove the scroller SongAboutClamp below.
+ * 3. In CLSongDetails.css, comment .cld-description-body--scroll and use --clamped.
+ *
+ * const ABOUT_MIN_LINES_CHARS = 220;
+ * const ABOUT_CLAMP_LINES = 3;
+ * function SongAboutClamp({ html }: { html: string }) {
+ *   const plain = useMemo(() => htmlToPlainText(html).replace(/\s+/g, ' ').trim(), [html]);
+ *   const [expanded, setExpanded] = useState(false);
+ *   const [clipped, setClipped] = useState(() => truncateAtWord(plain, ABOUT_MIN_LINES_CHARS));
+ *   const bodyRef = useRef<HTMLDivElement>(null);
+ *   const isLong = plain.length > ABOUT_MIN_LINES_CHARS;
+ *   useLayoutEffect(() => {
+ *     const node = bodyRef.current;
+ *     if (!node || expanded || !isLong) return;
+ *     const fit = () => setClipped(truncateToFitLines(node, plain, ABOUT_CLAMP_LINES, '...more'));
+ *     fit();
+ *     const observer = new ResizeObserver(fit);
+ *     observer.observe(node);
+ *     return () => observer.disconnect();
+ *   }, [plain, expanded, isLong]);
+ *   if (!html.trim()) return null;
+ *   const showHtml = expanded && /<[a-z][\s\S]*>/i.test(html);
+ *   const toggle = isLong ? (
+ *     <button type="button" className="cld-description-more" onClick={() => setExpanded((v) => !v)}>
+ *       {expanded ? '...less' : '...more'}
+ *     </button>
+ *   ) : null;
+ *   return (
+ *     <div className="cld-description">
+ *       {showHtml ? (
+ *         <div className="cld-description-body"><div dangerouslySetInnerHTML={{ __html: html }} /> {toggle}</div>
+ *       ) : (
+ *         <div ref={bodyRef} className={`cld-description-body${isLong && !expanded ? ' cld-description-body--clamped' : ''}`}>
+ *           {isLong && !expanded ? clipped : plain} {toggle}
+ *         </div>
+ *       )}
+ *     </div>
+ *   );
+ * }
+ */
+
+/** About under the player: 3-line scroller, same 72px window as the …more / …less clamp.
+ *  To switch back, follow the MORE/LESS comment above. */
 function SongAboutClamp({ html }: { html: string }) {
-  const [expanded, setExpanded] = useState(false);
   const plain = useMemo(() => htmlToPlainText(html).replace(/\s+/g, ' ').trim(), [html]);
-  const clampRef = useRef<HTMLParagraphElement>(null);
-  const [clipped, setClipped] = useState(() => truncateAtWord(plain, ABOUT_MIN_LINES_CHARS));
-
-  const isLong = plain.length > ABOUT_MIN_LINES_CHARS;
-
-  useLayoutEffect(() => {
-    if (expanded || !isLong) return;
-
-    const measure = () => {
-      const node = clampRef.current;
-      if (!node) return;
-      setClipped(truncateToFitLines(node, plain, ABOUT_CLAMP_LINES, '...more'));
-    };
-
-    measure();
-    const node = clampRef.current;
-    if (!node) return;
-    const observer = new ResizeObserver(measure);
-    observer.observe(node);
-    return () => observer.disconnect();
-  }, [plain, expanded, isLong]);
-
   if (!html.trim()) return null;
-
-  if (expanded) {
-    return (
-      <div className="cld-description">
-        <div className="cld-description-body">
-          <div dangerouslySetInnerHTML={{ __html: html }} />
-          {' '}
-          <button
-            type="button"
-            className="cld-description-more"
-            onClick={() => setExpanded(false)}
-          >
-            ...less
-          </button>
-        </div>
-      </div>
-    );
-  }
-
-  if (!isLong) {
-    return (
-      <div className="cld-description">
-        <p className="cld-description-body">{plain}</p>
-      </div>
-    );
-  }
+  const showHtml = /<[a-z][\s\S]*>/i.test(html);
 
   return (
     <div className="cld-description">
-      <p ref={clampRef} className="cld-description-body cld-description-body--clamped">
-        {clipped}
-        {' '}
-        <button
-          type="button"
-          className="cld-description-more"
-          onClick={() => setExpanded(true)}
-        >
-          ...more
-        </button>
-      </p>
+      {showHtml ? (
+        <div
+          className="cld-description-body cld-description-body--scroll"
+          dangerouslySetInnerHTML={{ __html: html }}
+        />
+      ) : (
+        <div className="cld-description-body cld-description-body--scroll">{plain}</div>
+      )}
     </div>
   );
 }
@@ -219,9 +211,26 @@ export default function CLSongDetailsPage({
   related = null,
 }: CLSongDetailsPageProps) {
   const sliderRef = useRef<HTMLDivElement | null>(null);
+  const lyricsStageRef = useRef<HTMLDivElement | null>(null);
+  const scriptScrollY = useRef<number | null>(null);
   const [script, setScript] = useState<Script>('transliteration');
   const [showNotes, setShowNotes] = useState(false);
   const [showGlossary, setShowGlossary] = useState(false);
+  const changeScript = (next: Script) => {
+    scriptScrollY.current = window.scrollY;
+    setScript(next);
+  };
+  /* PREV: minHeight locked to the tallest script. English is taller, so
+     coming back to transliteration left a blank gap under the poem.
+     The stage now follows the script on screen. Scroll position is restored
+     so the page does not jump. */
+  useLayoutEffect(() => {
+    const node = lyricsStageRef.current;
+    if (node) node.style.minHeight = '';
+    const y = scriptScrollY.current;
+    scriptScrollY.current = null;
+    if (y != null && window.scrollY !== y) window.scrollTo(0, y);
+  }, [script]);
 
   const scrollVersions = (direction: 'left' | 'right') => {
     if (!sliderRef.current) return;
@@ -234,7 +243,20 @@ export default function CLSongDetailsPage({
     });
   };
 
-  const title = useMemo(() => {
+  /** Header stays the transliteration. Switching script must not move the page (23 Oct). */
+  const headerTitle = useMemo(() => {
+    return (
+      getText(data?.Songtitle_transliteration) ||
+      getText(data?.songTitleTransliteration) ||
+      getText(data?.song_title_transliteration) ||
+      getText(data?.umbrellaTitleText) ||
+      getText(data?.umbrellaTitle) ||
+      'Untitled'
+    );
+  }, [data]);
+
+  /** Lyrics heading follows the script toggle. */
+  const lyricsTitle = useMemo(() => {
     if (script === 'devanagari') {
       return (
         getText(data?.songTitleOriginal) ||
@@ -251,15 +273,8 @@ export default function CLSongDetailsPage({
         'Untitled'
       );
     }
-    return (
-    getText(data?.Songtitle_transliteration) ||
-    getText(data?.songTitleTransliteration) ||
-      getText(data?.song_title_transliteration) ||
-      getText(data?.umbrellaTitleText) ||
-    getText(data?.umbrellaTitle) ||
-      'Untitled'
-    );
-  }, [data, script]);
+    return headerTitle;
+  }, [data, script, headerTitle]);
 
   const singer = (
     getText(data?.singer_display) ||
@@ -288,7 +303,7 @@ export default function CLSongDetailsPage({
   const location = getText(data?.location) || getText(data?.song_location) || '';
   const aboutHtml = useMemo(() => getAboutHtml(data), [data]);
 
-  const lyricsSource = useMemo(() => {
+  const lyricSources = useMemo(() => {
     const original = firstLyricsField(
       data?.songLyricsOriginal,
       data?.songLyrics,
@@ -305,15 +320,23 @@ export default function CLSongDetailsPage({
       data?.song_lyrics_transliteration,
       data?.songLyricsNotes
     );
+    return {
+      devanagari: original,
+      english: translated,
+      transliteration: translit || original,
+    };
+  }, [data]);
 
-    if (script === 'english') {
-      return translated;
-    }
-    if (script === 'devanagari') {
-      return original;
-    }
-    return translit || original;
-  }, [data, script]);
+  const lyricsSource = lyricSources[script];
+  const disabledScripts = useMemo(() => {
+    const hasPoem = (source: string) =>
+      htmlToPlainText(source).replace(/\s+/g, ' ').trim().length > 0;
+    return {
+      devanagari: !hasPoem(lyricSources.devanagari),
+      transliteration: !hasPoem(lyricSources.transliteration),
+      english: !hasPoem(lyricSources.english),
+    };
+  }, [lyricSources]);
 
   const lyricsHtml =
     typeof lyricsSource === 'string' && /<[a-z][\s\S]*>/i.test(lyricsSource)
@@ -482,7 +505,7 @@ export default function CLSongDetailsPage({
             <div className="cld-song-header">
                 <div className="cld-song-header-top">
                   <div className="cld-song-header-left">
-                    <span className="cld-song-header-title-name">{title}</span>
+                    <span className="cld-song-header-title-name">{headerTitle}</span>
                     {singer && (
                       <span className="cld-song-header-credits">
                         <span className="cld-song-header-sings">{singsLabel}</span>
@@ -512,7 +535,7 @@ export default function CLSongDetailsPage({
             {/* ===== Video ===== */}
             <div className="cld-video-wrap">
               {videoId ? (
-                <YouTubeEmbedFrame videoId={videoId} title={title} />
+                <YouTubeEmbedFrame videoId={videoId} title={headerTitle} />
               ) : (
                 <div className="cld-video-placeholder">Video unavailable (API offline)</div>
               )}
@@ -528,6 +551,7 @@ export default function CLSongDetailsPage({
             {/* ===== Lyrics column: title + poem + notes/glossary (PDF) ===== */}
             <div className="cld-lyrics-notes-wrap">
             <div
+              ref={lyricsStageRef}
               className="cld-lyrics-stage"
               data-script={script}
               style={
@@ -545,10 +569,10 @@ export default function CLSongDetailsPage({
               }
             >
               <div className="cld-song-title-block">
-                <h1 className="cld-song-title">{title}</h1>
+                <h1 className="cld-song-title">{lyricsTitle}</h1>
                 {poet && (
                   <div>
-                    <span className="cld-song-poet-label cld-song-poet">– poet </span>
+                    <span className="cld-song-poet-label cld-song-poet">poet </span>
                     <Link href={poetHref} className="cld-song-poet cld-song-poet-link">
                       {poet}
                     </Link>
@@ -611,7 +635,11 @@ export default function CLSongDetailsPage({
               ) : null}
             </div>
 
-            <ScriptToggleButtons script={script} onChange={setScript} />
+            <ScriptToggleButtons
+              script={script}
+              onChange={changeScript}
+              disabledScripts={disabledScripts}
+            />
 
             {/* ===== NOTES | GLOSSARY links ===== */}
             {(hasNotes || hasGlossary) && (
@@ -658,6 +686,8 @@ export default function CLSongDetailsPage({
                 initialCount={3}
                 seeMoreStep={3}
                 descriptionLines={3}
+                moreLabel="explore"
+                lessLabel="explore less"
               />
             </div>
           </div>

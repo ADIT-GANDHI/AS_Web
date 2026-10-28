@@ -1,3 +1,4 @@
+import { pickReflectionExploreExcerpt } from '@/lib/exploreRelated';
 import { htmlToPlainText } from '@/lib/mapPoemListItem';
 
 function unescapeNewlines(raw: string): string {
@@ -79,6 +80,10 @@ export function getRelatedCardDescription(item: any, bucket: string): string {
     let text = unescapeNewlines(htmlToPlainText(String(raw)));
     text = stripPoemListingFootnote(text);
     return poemVerseExcerpt(text);
+  }
+
+  if (bucket === 'reflections') {
+    return pickReflectionExploreExcerpt(item);
   }
 
   const raw =

@@ -58,3 +58,14 @@
 .cld-lang-btn.active:hover {
   opacity: 1;
 }
+
+/* No poem for this script. Grey, not pink, and not clickable. */
+.cld-lang-btn:disabled {
+  color: #b0b0b0;
+  cursor: default;
+  box-shadow: none;
+}
+
+.cld-lang-btn:disabled:hover {
+  opacity: 1;
+}

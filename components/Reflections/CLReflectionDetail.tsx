@@ -94,7 +94,7 @@ function mapApiItem(it: any, speakerNames: Record<string, string>): ReflectionDe
   const aboutHtml = pickAboutHtml(it);
   return {
     id: String(it.id || ''),
-    title: it.meta_title || it.title || '',
+    title: it.title || it.meta_title || '',
     saysBy: speakerNames[String(it.speaker_id || '').trim()] || '',
     location: it.interview_place || '',
     year: it.interview_year || '',
