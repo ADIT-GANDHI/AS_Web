@@ -36,6 +36,11 @@ type ExploreSectionProps = {
   /** Song detail says "explore". Other pages keep SEE MORE / SEE LESS. */
   moreLabel?: string;
   lessLabel?: string;
+  /**
+   * Song detail footer: All → SEE ALL (caps, 300); theme tab → Explore {name}
+   * italic + link to search. Other pages keep moreLabel / lessLabel.
+   */
+  songDetailFooter?: boolean;
 };
 
 function entryKey(entry: ExploreListEntry, index: number): string {
@@ -54,6 +59,7 @@ export default function ExploreSection({
   seeMoreStep,
   moreLabel = 'SEE MORE',
   lessLabel = 'SEE LESS',
+  songDetailFooter = false,
 }: ExploreSectionProps) {
   const clampLines = descriptionLines && descriptionLines > 0 ? descriptionLines : 0;
   const step = seeMoreStep && seeMoreStep > 0 ? seeMoreStep : 0;
@@ -93,6 +99,13 @@ export default function ExploreSection({
   const showSeeMore = step
     ? displayed.length < entries.length || visibleCount > initialCount
     : hasMore;
+  const activeKeyword = useMemo(
+    () => keywords.find((kw) => kw.id === activeKeywordId) || null,
+    [keywords, activeKeywordId]
+  );
+  const themeFooterName = activeKeyword
+    ? [activeKeyword.transliteration, activeKeyword.translation].filter(Boolean).join(' ')
+    : '';
   const seeMoreLabel = step
     ? displayed.length < entries.length
       ? moreLabel
@@ -100,6 +113,11 @@ export default function ExploreSection({
     : listExpanded
       ? lessLabel
       : moreLabel;
+  /* 26 Oct song detail: All → SEE ALL; other tab → Explore {theme} + redirect. */
+  const songDetailFooterHref =
+    songDetailFooter && activeKeywordId !== 'all' && themeFooterName
+      ? withAppBasePath(`/searche?search=${encodeURIComponent(themeFooterName)}`)
+      : null;
 
   const allEntries = useMemo(() => buildExploreEntries(data, 'all'), [data]);
   if (!keywords.length && !allEntries.length) return null;
@@ -198,7 +216,13 @@ export default function ExploreSection({
                       ) : null}
                     </p>
                   )}
-                  <div className="explore-format">{formatTag}</div>
+                  <div
+                    className={`explore-format${
+                      bucket === 'reflections' ? ' explore-format--reflection' : ''
+                    }`}
+                  >
+                    {formatTag}
+                  </div>
                 </div>
               </>
             );
@@ -222,26 +246,32 @@ export default function ExploreSection({
         )}
       </div>
 
-      {showSeeMore ? (
-        <button
-          type="button"
-          className="explore-seemore"
-          onClick={() => {
-            if (step) {
-              if (displayed.length < entries.length) {
-                setVisibleCount((count) =>
-                  Math.min(count + step, Math.max(entries.length, initialCount))
-                );
-              } else {
-                setVisibleCount(initialCount);
+      {showSeeMore || songDetailFooterHref ? (
+        songDetailFooterHref ? (
+          <Link href={songDetailFooterHref} className="explore-seemore explore-seemore--theme">
+            Explore <em>{themeFooterName}</em>
+          </Link>
+        ) : (
+          <button
+            type="button"
+            className="explore-seemore"
+            onClick={() => {
+              if (step) {
+                if (displayed.length < entries.length) {
+                  setVisibleCount((count) =>
+                    Math.min(count + step, Math.max(entries.length, initialCount))
+                  );
+                } else {
+                  setVisibleCount(initialCount);
+                }
+                return;
               }
-              return;
-            }
-            setListExpanded((v) => !v);
-          }}
-        >
-          {seeMoreLabel}
-        </button>
+              setListExpanded((v) => !v);
+            }}
+          >
+            {songDetailFooter && activeKeywordId === 'all' ? 'SEE ALL' : seeMoreLabel}
+          </button>
+        )
       ) : null}
     </section>
   );

@@ -686,8 +686,9 @@ export default function CLSongDetailsPage({
                 initialCount={3}
                 seeMoreStep={3}
                 descriptionLines={3}
-                moreLabel="explore"
-                lessLabel="explore less"
+                moreLabel="SEE ALL"
+                lessLabel="SEE ALL"
+                songDetailFooter
               />
             </div>
           </div>

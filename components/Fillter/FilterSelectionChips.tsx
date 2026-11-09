@@ -60,7 +60,8 @@ export default function FilterSelectionChips({ items, onRemove, stackTranslation
             fontFamily: FONT,
             fontSize: '17px',
             fontWeight: 300,
-            color: '#6F6F72',
+            /* 26 Oct songs chips: words #333333. PREV: #6F6F72. */
+            color: stackTranslation ? '#333333' : '#6F6F72',
             background: 'none',
             border: 'none',
             cursor: 'pointer',
@@ -88,7 +89,8 @@ export default function FilterSelectionChips({ items, onRemove, stackTranslation
                     display: 'block',
                     fontStyle: 'italic',
                     fontWeight: 300,
-                    color: '#9A9A9C',
+                    /* 26 Oct — Self etc. PREV: #9A9A9C. */
+                    color: '#818181',
                     marginTop: '2px',
                   }}
                 >

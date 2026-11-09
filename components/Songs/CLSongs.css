@@ -297,11 +297,13 @@ body:has(.cl-home-page-root) footer.footer-bg .footer-inner {
    * cut sits 5px below the grey — lip does not paint cream.
    */
   bottom: -5px;
-  /* PREV: #dcdcdc solid. On-scroll band is 5% more transparent. */
+  /* 26 Oct — softer band, match listing grey (#e8e8e8), round corners.
+     PREV: rgba(220,220,220,0.95), square; then 8px. 2 Nov — 16px. */
+  border-radius: 16px;
   background: linear-gradient(
     to bottom,
-    rgba(220, 220, 220, 0.95) 0,
-    rgba(220, 220, 220, 0.95) calc(100% - 5px),
+    rgba(232, 232, 232, 0.8) 0,
+    rgba(232, 232, 232, 0.8) calc(100% - 5px),
     transparent calc(100% - 5px)
   );
 }
@@ -345,7 +347,10 @@ body:has(.cl-home-page-root) footer.footer-bg .footer-inner {
 .cl-songs-count-row {
   position: relative;
   padding: 0 clamp(80px, 16vw, 307px);
-  margin: 0 0 14px;
+  /* 2 Nov — Songs → A–Z rule matches letters → cards
+     (filter-bar pad-bottom 8px + margin-bottom 25px = 33px).
+     PREV: 45px (26 Oct equal above/below count vs intro). */
+  margin: 0 0 33px;
   text-align: left;
 }
 
@@ -465,6 +470,23 @@ body:has(.cl-home-page-root) footer.footer-bg .footer-inner {
 .cl-az-btn--all.active {
   color: var(--ajab-pink-primary) !important;
   font-weight: 600 !important;
+}
+
+/* 26 Oct — songs listing A–Z only.
+   Filters is pink (trigger). All + selected letter: dark, weight 600 (not pink).
+   Letter hover stays pink, then settles to dark when selected. */
+.cl-songs-listing-page .cl-az-btn.active {
+  color: var(--ajab-ink-900);
+  font-weight: 600;
+}
+
+.cl-songs-listing-page .cl-az-btn--all.active {
+  color: var(--ajab-ink-900) !important;
+  font-weight: 600 !important;
+}
+
+.cl-songs-listing-page .cl-az-btn:hover:not(:disabled):not(.is-empty):not(.active) {
+  color: var(--ajab-pink-primary);
 }
 
 /* Reflections/People: All stays grey until filters are selected — keep bold. */
@@ -694,6 +716,34 @@ body:has(.cl-home-page-root) footer.footer-bg .footer-inner {
   /* Idle shadow only — no hover grow / deepen (client). */
   box-shadow: none;
   filter: drop-shadow(0 0 4.5px rgba(162, 162, 168, 0.88));
+}
+
+/* 26 Oct — song listing waves only (shared WavyCard stays for Reflections).
+   SVG art is 288×20.81 (seam) and 288×22.2 (bottom).
+   PREV: fixed 22px / 24px height + background-size 100% 100% → the wave
+   stretched at every card width, so Mac / other aspect ratios looked off.
+   Height and overlap now scale with --ajab-card-w so the shape expands and
+   collapses from the centre. Top seam merges into the thumb; bottom into the
+   white body. */
+.cl-songs-listing-page .cl-song-card .wc-body::before {
+  width: 100%;
+  left: 0;
+  height: calc(var(--ajab-card-w) * 20.81 / 288);
+  top: calc(var(--ajab-card-w) * -12 / 288);
+  background-size: 100% 100%;
+  background-position: center top;
+  transform-origin: center top;
+}
+
+.cl-songs-listing-page .cl-song-card::after {
+  width: 100%;
+  left: 0;
+  height: calc(var(--ajab-card-w) * 22.2 / 288);
+  /* Same hang ratio as the old -20px at the 288-wide art. */
+  bottom: calc(var(--ajab-card-w) * -20 / 288);
+  background-size: 100% 100%;
+  background-position: center bottom;
+  transform-origin: center bottom;
 }
 
 /* PREV equal-row floor (commented 9 Oct — cards shrink with short content):

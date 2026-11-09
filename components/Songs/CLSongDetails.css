@@ -77,9 +77,10 @@
   --cld-rail-margin-left: calc(var(--cld-col-center-nudge) + var(--cld-rail-shift));
   /* PDF vertical rhythm (artboard px → scaled) — lyrics stanza rules unchanged */
   --cld-gap-versions-header: min(86px, calc(100vw * 114 / var(--cld-artboard-w)));
-  /* 15 Oct — header → YT 4px; YT → about ~half of prior 43 */
-  --cld-gap-header-video: 4px;
-  --cld-gap-video-about: min(22px, calc(100vw * 22 / var(--cld-artboard-w)));
+  /* 26 Oct — 8px above and below the YT player.
+     PREV: header→YT 4px; YT→about ~22px. */
+  --cld-gap-header-video: 8px;
+  --cld-gap-video-about: 8px;
   --cld-gap-about-lang: min(64px, calc(100vw * 86 / var(--cld-artboard-w)));
   --cld-gap-lang-title: min(44px, calc(100vw * 58 / var(--cld-artboard-w)));
   --cld-gap-title-lyrics: min(32px, calc(100vw * 42 / var(--cld-artboard-w)));
@@ -217,10 +218,11 @@
   scroll-behavior: smooth;
   scrollbar-width: none;
   width: 100%;
-  padding: 0 0 24px;
+  /* Room for hanging bottom wave + listing-matched drop-shadow glow. */
+  padding: 0 0 32px;
 }
 
-/* REVERT: gap 66px; padding 8px 0 48px */
+/* REVERT: gap 66px; padding 8px 0 48px / 24px */
 
 .cld-versions-slider::-webkit-scrollbar {
   display: none;
@@ -230,6 +232,36 @@
   --wc-width: var(--cld-version-card-w);
   --wc-thumb-h: var(--cld-version-thumb-h);
   flex: 0 0 250px;
+  /* Match All Songs listing: glow follows the wavy silhouette (incl. lower wave). */
+  --wc-shadow: none;
+  box-shadow: none;
+  filter: drop-shadow(0 0 4.5px rgba(162, 162, 168, 0.88));
+}
+
+.cld-version-card:hover {
+  box-shadow: none;
+  filter: drop-shadow(0 0 4.5px rgba(162, 162, 168, 0.88));
+}
+
+/* Same SVG aspect as listing (288×20.81 seam / 288×22.2 bottom), scaled to 250px card. */
+.cld-version-card .wc-body::before {
+  width: 100%;
+  left: 0;
+  height: calc(var(--cld-version-card-w) * 20.81 / 288);
+  top: calc(var(--cld-version-card-w) * -12 / 288);
+  background-size: 100% 100%;
+  background-position: center top;
+  transform-origin: center top;
+}
+
+.cld-version-card::after {
+  width: 100%;
+  left: 0;
+  height: calc(var(--cld-version-card-w) * 22.2 / 288);
+  bottom: calc(var(--cld-version-card-w) * -20 / 288);
+  background-size: 100% 100%;
+  background-position: center bottom;
+  transform-origin: center bottom;
 }
 
 /* REVERT: --wc-width var(--ajab-card-w); --wc-thumb-h 156px; flex 0 0 var(--ajab-card-w) */
@@ -459,15 +491,15 @@
   white-space: normal;
 }
 
-/* SCROLLER — live. Shows 3 lines, 72px, same height as --clamped.
+/* SCROLLER — live. 26 Oct: about window 150px (PREV: 3 lines / 72px).
    Switch: comment this out and uncomment SongAboutClamp MORE/LESS in CLSongDetailsPage.tsx.
    PREV: overflow-y: auto with only scrollbar-color. On Windows that is an overlay
    thumb: it sits on the last word and fades once scrolling stops.
    The classic bar below stays in its own track and stays visible. */
 .cld-description-body--scroll {
   line-height: 1.6em;
-  height: calc(1.6em * 3);
-  max-height: calc(1.6em * 3);
+  height: 150px;
+  max-height: 150px;
   overflow-x: hidden;
   overflow-y: scroll;
   /* Do not set scrollbar-width or scrollbar-color here.

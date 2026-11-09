@@ -79,7 +79,8 @@ function FilterOptionLabel({
             display: 'block',
             fontStyle: 'italic',
             fontWeight: 300,
-            color: '#9A9A9C',
+            /* 26 Oct — theme translation e.g. Self. PREV: #9A9A9C. */
+            color: '#818181',
             marginTop: '2px',
           }}
         >
@@ -192,18 +193,26 @@ export default function CLFilterPanel({
   const sepColor = songsPardaLayout ? '#c0c0c0' : '#B1B1B1';
   /* 15 Oct — all filter words 17px (Songs + others in this panel). */
   const listFontPx = '17px';
-  const listPadY = songsPardaLayout ? '12px' : undefined;
+  /* 26 Oct — list row spacing 8px between items (4px pad each side). PREV: 12px. */
+  const listPadY = songsPardaLayout ? '4px' : undefined;
   /* Keep increased Singer | Poet | Theme gaps (do not lose). */
   const catBtnPadX = songsPardaLayout ? 3 : 0;
-  const ruleInset = songsPardaLayout ? 4 : 0;
-  /* All 3 grey rules share this width — end at × column (15 Oct). */
+  /* 26 Oct — rules start at Filter by (PREV 4px inset).
+     PREV right end: scrollCenter (= mid of ×). 2 Nov — extend through the full ×
+     (28px glyph ≈ 14px past center) so all 3 rules cover letter column + ×. */
+  const ruleInset = 0;
+  const closeGlyphHalfPx = songsPardaLayout ? 14 : 0;
+  const ruleRightInset = songsPardaLayout
+    ? Math.max(0, scrollCenter - closeGlyphHalfPx)
+    : 0;
+  /* All 3 grey rules share this width — same start, same end through ×. */
   const songsRuleWidth = songsPardaLayout
-    ? `calc(100% - ${scrollCenter}px - ${ruleInset}px)`
+    ? `calc(100% - ${ruleRightInset}px - ${ruleInset}px)`
     : '100%';
   /* Clear-all sits in a box that also has right padding, so add that padding back
      or this rule ends short of the two rules above it. */
   const songsFooterRuleWidth = songsPardaLayout
-    ? `calc(100% + ${pardaPadR}px - ${scrollCenter}px - ${ruleInset}px)`
+    ? `calc(100% + ${pardaPadR}px - ${ruleRightInset}px - ${ruleInset}px)`
     : '100%';
   const songsRuleMarginLeft = songsPardaLayout ? `${ruleInset}px` : 0;
   /* List top clear so first word isn’t clipped (client: 6–8px). */
@@ -539,12 +548,13 @@ export default function CLFilterPanel({
   return (
     <div className="relative inline-block">
       {/* ── Trigger button ── */}
-      {/* Idle black; pink (#E31E79) only when filters are selected. */}
+      {/* 26 Oct songs: Filters always pink, weight 400.
+          Other listings: idle black; pink only when filters are selected. */}
       {!hideTrigger && (
       <button
         onClick={() => setOpen((v) => !v)}
         style={{
-          color: triggerPink ? '#E31E79' : '#1a1a1a',
+          color: songsPardaLayout || triggerPink ? '#E31E79' : '#1a1a1a',
           fontFamily: FONT,
           fontWeight: 400,
           fontSize: '18px',   /* --ajab-fs-button = 21px per design tokens */
@@ -886,7 +896,11 @@ export default function CLFilterPanel({
                                   fontWeight: isActive ? 400 : 300,
                                   fontSize: listFontPx,
                                   lineHeight: '1.3',
-                                  color: isActive ? '#E31E79' : '#6F6F72',
+                                  color: isActive
+                                    ? '#E31E79'
+                                    : songsPardaLayout
+                                      ? '#333333'
+                                      : '#6F6F72',
                                   cursor: 'pointer',
                                   padding: listPadY ? `${listPadY} 0` : '11px 0',
                                   /* Wrap long titles onto next line at word boundaries — never mid-word */
@@ -903,7 +917,7 @@ export default function CLFilterPanel({
                                       display: 'block',
                                       fontStyle: 'italic',
                                       fontSize: '14px',
-                                      color: '#9A9A9C',
+                                      color: songsPardaLayout ? '#818181' : '#9A9A9C',
                                       marginTop: '2px',
                                       whiteSpace: 'normal',
                                       overflowWrap: 'normal',
@@ -941,7 +955,12 @@ export default function CLFilterPanel({
                                 fontWeight: isSelected ? 400 : 300,
                                 fontSize: listFontPx,
                                 lineHeight: '1.3',
-                                color: isSelected ? '#E31E79' : '#6F6F72',
+                                /* 26 Oct songs: idle words #333333 (e.g. aap). PREV: #6F6F72. */
+                                color: isSelected
+                                  ? '#E31E79'
+                                  : songsPardaLayout
+                                    ? '#333333'
+                                    : '#6F6F72',
                                 cursor: 'pointer',
                                 padding: listPadY ? `${listPadY} 0` : '13px 0',
                                 display: 'flex',

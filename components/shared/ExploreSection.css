@@ -429,11 +429,78 @@
   text-transform: uppercase;
 }
 
-/* ── Songs detail Explore (15 Oct client) ── */
+/* ── Songs detail Explore (15 Oct + 26 Oct client) ── */
+
+/* | stays on the end of line 1 — never leads a wrapped keyword row.
+   PREV: .explore-theme--chip::before put | before each chip. */
+.cld-page .clp-related .explore-theme--chip::before {
+  content: none;
+  margin: 0;
+}
+
+.cld-page .clp-related .explore-theme:not(:last-child)::after {
+  content: '|';
+  margin-left: 12px;
+  color: var(--ajab-ink-200);
+  font-family: var(--ajab-font-serif);
+  font-weight: 300;
+  font-size: inherit;
+  user-select: none;
+}
+
+/* All underline ≠ header. Keyword chips keep the header dotted pitch below. */
+.cld-page .clp-related .explore-theme.active:not(.explore-theme--chip) .explore-theme-mark {
+  background-image: none;
+  border-bottom: 1px solid var(--ajab-pink-primary);
+  padding-bottom: 2px;
+}
+
+/* Keyword active underline — same as header nav (6px pitch, 1.25px dots). */
+.cld-page .clp-related .explore-theme--chip.active .explore-theme-mark {
+  background-image: radial-gradient(circle, var(--ajab-pink-primary) 1.25px, transparent 1.3px);
+  background-size: 6px 3px;
+  background-position: left bottom;
+  background-repeat: space no-repeat;
+}
+
+/* Align Explore + keywords to the inner edge of the thumb (thumb -11 + 6 border). */
+.cld-page .clp-related .explore-title,
+.cld-page .clp-related .explore-themes {
+  margin-left: calc(-11px + 6px);
+}
+
+/* Explore → line 8px; line → keywords 10px. PREV title mb 12 / themes pt 12. */
+.cld-page .clp-related .explore-title {
+  margin-bottom: 8px;
+}
+
+.cld-page .clp-related .explore-themes {
+  padding-top: 10px;
+  margin-bottom: 43px;
+}
+
+/* Song detail Explore — client 190/20 (confirmed in DevTools 2 Nov):
+   item min-height 190px; list gap 20px (space between cards around the separator).
+   PREV shared: min-height 207 + gap 37. PREV misread: gap 0 + padding-bottom 20. */
+.cld-page .clp-related .explore-list {
+  gap: 20px;
+}
+
+.cld-page .clp-related .explore-item {
+  min-height: 190px;
+  box-sizing: border-box;
+}
+
 .cld-page .clp-related .explore-format {
   font-size: 16px;
   letter-spacing: 0.04em;
   color: var(--ajab-ink-300);
+}
+
+.cld-page .clp-related .explore-format--reflection {
+  font-style: italic;
+  text-transform: none;
+  letter-spacing: 0;
 }
 
 .cld-page .clp-related .explore-itemtitle {
@@ -484,11 +551,27 @@
   border-bottom: 0;
 }
 
-/* See more — sit a bit higher; extra space below for breathing room */
+/* SEE ALL — all caps, weight 300. Theme tab uses .explore-seemore--theme. */
 .cld-page .clp-related .explore-seemore {
   margin-top: 8px;
   margin-bottom: 40px;
+  text-transform: uppercase;
+  font-weight: 300;
+  color: var(--ajab-pink-primary);
+  text-decoration: none;
+}
+
+.cld-page .clp-related .explore-seemore--theme {
   text-transform: none;
+  font-family: var(--ajab-font-serif);
+  font-weight: 400;
+  font-size: 20px;
+  letter-spacing: 0;
+}
+
+.cld-page .clp-related .explore-seemore--theme em {
+  font-style: italic;
+  font-weight: 400;
 }
 
 /* 23 Oct — song detail only. Shared theme size stays 22px on poems and reflections. */

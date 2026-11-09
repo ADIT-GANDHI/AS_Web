@@ -99,12 +99,18 @@ function inferBucket(item: any): ExploreListEntry['bucket'] | null {
   return null;
 }
 
+function titleCaseFirst(value: string): string {
+  const t = norm(value);
+  if (!t) return '';
+  return t.charAt(0).toUpperCase() + t.slice(1).toLowerCase();
+}
+
 function formatTagFor(bucket: ExploreListEntry['bucket'], item: any): string {
   if (bucket === 'songs') return 'SONG';
   if (bucket === 'poems') return 'POEM';
-  const format = norm(item?.format || item?.reflection_type);
-  if (format) return `REFLECTION ${format}`;
-  return 'REFLECTION Essay';
+  /* 26 Oct — Reflections subtype only, title case (first letter). Italics in CSS. */
+  const format = titleCaseFirst(item?.format || item?.reflection_type);
+  return format || 'Essay';
 }
 
 function pushBucketItems(
