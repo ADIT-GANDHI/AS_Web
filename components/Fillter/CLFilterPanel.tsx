@@ -217,7 +217,8 @@ export default function CLFilterPanel({
   const songsRuleMarginLeft = songsPardaLayout ? `${ruleInset}px` : 0;
   /* List top clear so first word isn’t clipped (client: 6–8px). */
   const listTopClearPx = songsPardaLayout ? 7 : 3;
-  const scrollTrack = songsPardaLayout ? '#dedede' : '#e0e0e0';
+  /* 11 Nov greys — songs track #dedede → #e8e8e8 (agreed); thumb stays #818181. */
+  const scrollTrack = songsPardaLayout ? '#e8e8e8' : '#e0e0e0';
   const scrollThumb = songsPardaLayout ? '#818181' : '#999999';
   const panelBgOpacity = songsPardaLayout
     ? FILTER_DRAWER_SONGS_BG_OPACITY
@@ -660,10 +661,10 @@ export default function CLFilterPanel({
                         }}
                       />
                     )}
-                    {/* PREV objectFit:'fill' stretched X/Y independently → flatter/longer waves.
-                        cover + right anchor = uniform scale, keep wavy right edge.
-                        Songs src PREV raster (pixelated): /songs-assets/song_filter_white_480x1660.png
-                        Songs src PREV curtain: FILTER_PANEL_SHAPE (/songs-assets/song_filter_opaque.svg). */}
+                    {/* Songs: same as live — cover + right (uniform scale, wave on right).
+                        11 Nov — scaleY(1.3) stretches the edge so fewer wave cycles show
+                        (reduce curves without a left gap; scaleX was wrong).
+                        PREV: preserveAspectRatio none / fill packed more curves into the height. */}
                     <img
                       src={songsPardaLayout ? SONGS_FILTER_WHITE_PARDA : FILTER_PANEL_SHAPE}
                       alt=""
@@ -675,6 +676,12 @@ export default function CLFilterPanel({
                         objectFit: 'cover',
                         objectPosition: 'right center',
                         userSelect: 'none',
+                        ...(songsPardaLayout
+                          ? {
+                              transform: 'scaleY(1.3)',
+                              transformOrigin: 'center right',
+                            }
+                          : {}),
                       }}
                     />
                   </div>
@@ -687,9 +694,14 @@ export default function CLFilterPanel({
                       flex: '1 1 auto',
                       minHeight: 0,
                       paddingTop: `${headerBottom}px`,
-                      /* Keep list / chips above the footer wave while artwork fills the screen */
-                      paddingBottom: footerOverlapPx > 0 ? `${footerOverlapPx}px` : undefined,
+                      /* Keep Filter by / list / Clear all above the site-footer wave.
+                         Extra buffer so chrome isn’t smashed when scrolled to the bottom. */
+                      paddingBottom:
+                        footerOverlapPx > 0
+                          ? `${footerOverlapPx + (songsPardaLayout ? 32 : 0)}px`
+                          : undefined,
                       boxSizing: 'border-box',
+                      overflow: 'hidden',
                     }}
                   >
                   <div
@@ -1027,14 +1039,19 @@ export default function CLFilterPanel({
                   {(showClearAllAlways || selectedFilters.length > 0) && onClearAll && (
                     <div
                       style={{
-                        /* 15 Oct — no extra bottom pad; top rule same width as header rules (till ×) */
+                        /* 15 Oct — no extra bottom pad; top rule same width as header rules (till ×).
+                           11 Nov — Clear all left-aligned (not mid); chips scroll above it. */
                         padding: songsPardaLayout
-                          ? `10px ${pardaPadR}px 4px ${pardaPadL}px`
+                          ? `10px ${pardaPadR}px 8px ${pardaPadL}px`
                           : `14px ${pardaPadR}px 28px ${pardaPadL}px`,
                         borderTop: 'none',
                         flex: '0 0 auto',
                         width: '100%',
                         boxSizing: 'border-box',
+                        display: 'flex',
+                        flexDirection: 'column',
+                        alignItems: 'flex-start',
+                        minHeight: 0,
                       }}
                     >
                       {songsPardaLayout && (
@@ -1054,16 +1071,30 @@ export default function CLFilterPanel({
                           }}
                         />
                       )}
-                      {/* Selected items — one per row (14 Oct) */}
+                      {/* Selected items — one per row (14 Oct). Songs: scroll; Clear all stays below. */}
                       {selectedFilters.length > 0 && (
-                        <FilterSelectionChips
-                          items={selectedFilters}
-                          onRemove={onRemoveFilter}
-                          stackTranslation={songsPardaLayout}
-                        />
+                        <div
+                          className={songsPardaLayout ? 'ajab-filter-selections' : undefined}
+                          style={
+                            songsPardaLayout
+                              ? {
+                                  maxHeight: 'min(168px, 22vh)',
+                                  overflowY: 'auto',
+                                  minHeight: 0,
+                                  width: '100%',
+                                }
+                              : undefined
+                          }
+                        >
+                          <FilterSelectionChips
+                            items={selectedFilters}
+                            onRemove={onRemoveFilter}
+                            stackTranslation={songsPardaLayout}
+                          />
+                        </div>
                       )}
 
-                      {/* CLEAR ALL */}
+                      {/* CLEAR ALL — left-aligned like before */}
                       <button
                         type="button"
                         onClick={() => {
@@ -1083,6 +1114,9 @@ export default function CLFilterPanel({
                           textTransform: 'uppercase',
                           padding: '4px 0 0',
                           display: 'block',
+                          textAlign: 'left',
+                          alignSelf: 'flex-start',
+                          flexShrink: 0,
                         }}
                       >
                         Clear all

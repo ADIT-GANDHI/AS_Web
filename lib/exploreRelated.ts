@@ -108,9 +108,9 @@ function titleCaseFirst(value: string): string {
 function formatTagFor(bucket: ExploreListEntry['bucket'], item: any): string {
   if (bucket === 'songs') return 'SONG';
   if (bucket === 'poems') return 'POEM';
-  /* 26 Oct — Reflections subtype only, title case (first letter). Italics in CSS. */
+  /* 11 Nov — “REFLECTION Interview” (prefix + subtype). PREV: subtype only. */
   const format = titleCaseFirst(item?.format || item?.reflection_type);
-  return format || 'Essay';
+  return `REFLECTION ${format || 'Essay'}`;
 }
 
 function pushBucketItems(

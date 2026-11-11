@@ -19,8 +19,9 @@ export default function RootLayout({
 }: Readonly<{
   children: React.ReactNode;
 }>) {
+  // suppressHydrationWarning: extensions (e.g. cz-shortcut-listen) mutate html/body pre-hydrate.
   return (
-    <html lang="en" className="">
+    <html lang="en" className="" suppressHydrationWarning>
       <head>
         {/* 15 Oct — Alegreya for Explore body (AI / PDF) */}
         <link rel="preconnect" href="https://fonts.googleapis.com" />
@@ -30,7 +31,7 @@ export default function RootLayout({
           rel="stylesheet"
         />
       </head>
-      <body className="font-sans antialiased">
+      <body className="font-sans antialiased" suppressHydrationWarning>
         {children}
         <Footer />
         <FloatingActions />
