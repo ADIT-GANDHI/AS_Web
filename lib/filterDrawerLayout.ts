@@ -20,7 +20,9 @@ export const FILTER_DRAWER_BG_OPACITY = 1;
 export const FILTER_DRAWER_SONGS_BG_OPACITY = 0.95;
 
 /** Songs: scrollbar `right` inset. Live site is 18px, then +3, +5, +5, and +3 more (Theme still clears the ×). */
-export const FILTER_DRAWER_SONGS_SCROLL_RIGHT_PX = 34;
+/* 12 Nov — +2px inset so the track sits inside the wave edge (hides the
+   thin “point” / double-line against the parda right edge). PREV: 34. */
+export const FILTER_DRAWER_SONGS_SCROLL_RIGHT_PX = 36;
 /** Songs scrollbar track width — keep in sync with CLFilterPanel track. */
 export const FILTER_DRAWER_SONGS_SCROLL_TRACK_PX = 6;
 

@@ -193,8 +193,12 @@ export default function CLFilterPanel({
   const sepColor = songsPardaLayout ? '#c0c0c0' : '#B1B1B1';
   /* 15 Oct — all filter words 17px (Songs + others in this panel). */
   const listFontPx = '17px';
-  /* 26 Oct — list row spacing 8px between items (4px pad each side). PREV: 12px. */
-  const listPadY = songsPardaLayout ? '4px' : undefined;
+  /* 26 Oct — list row spacing 8px between items (4px pad each side). PREV: 12px.
+     12 Nov — list row pad 4 → 8 above/below (kept; other parda experiments reverted). */
+  const listPadY = songsPardaLayout ? '8px' : undefined;
+  /* Wave stretch — size img to 100%/scale so drawer can stay overflow:visible
+     (needed for card-matching drop-shadow on the right) without chopping ends. */
+  const songsPardaScaleY = 2;
   /* Keep increased Singer | Poet | Theme gaps (do not lose). */
   const catBtnPadX = songsPardaLayout ? 3 : 0;
   /* 26 Oct — rules start at Filter by (PREV 4px inset).
@@ -620,6 +624,7 @@ export default function CLFilterPanel({
                     flexDirection: 'column',
                     fontFamily: FONT,
                     zIndex: FILTER_DRAWER_Z_PANEL,
+                    /* Shadow removed — clip again so scaleY stretch can’t spill. */
                     overflow: 'hidden',
                     pointerEvents: 'auto',
                     overscrollBehavior: 'contain',
@@ -661,27 +666,32 @@ export default function CLFilterPanel({
                         }}
                       />
                     )}
-                    {/* Songs: same as live — cover + right (uniform scale, wave on right).
-                        11 Nov — scaleY(1.3) stretches the edge so fewer wave cycles show
-                        (reduce curves without a left gap; scaleX was wrong).
-                        PREV: preserveAspectRatio none / fill packed more curves into the height. */}
+                    {/* 12 Nov — no right-edge white plug (read as a hard white line next
+                        to the scrollbar). CSS drop-shadow also removed. Asset untouched. */}
                     <img
                       src={songsPardaLayout ? SONGS_FILTER_WHITE_PARDA : FILTER_PANEL_SHAPE}
                       alt=""
                       style={{
                         position: 'absolute',
-                        inset: 0,
+                        left: 0,
+                        right: 0,
                         width: '100%',
-                        height: '100%',
                         objectFit: 'cover',
                         objectPosition: 'right center',
                         userSelect: 'none',
                         ...(songsPardaLayout
                           ? {
-                              transform: 'scaleY(1.3)',
+                              top: `${((songsPardaScaleY - 1) / (2 * songsPardaScaleY)) * 100}%`,
+                              height: `${100 / songsPardaScaleY}%`,
+                              bottom: 'auto',
+                              transform: `scaleY(${songsPardaScaleY})`,
                               transformOrigin: 'center right',
                             }
-                          : {}),
+                          : {
+                              top: 0,
+                              bottom: 0,
+                              height: '100%',
+                            }),
                       }}
                     />
                   </div>
@@ -695,10 +705,13 @@ export default function CLFilterPanel({
                       minHeight: 0,
                       paddingTop: `${headerBottom}px`,
                       /* Keep Filter by / list / Clear all above the site-footer wave.
-                         Extra buffer so chrome isn’t smashed when scrolled to the bottom. */
-                      paddingBottom:
-                        footerOverlapPx > 0
-                          ? `${footerOverlapPx + (songsPardaLayout ? 32 : 0)}px`
+                         Extra buffer so chrome isn’t smashed when scrolled to the bottom.
+                         12 Nov — Songs always keep 15px floor clear so the last name
+                         sits up from the bottom edge (not flush to the floor). */
+                      paddingBottom: songsPardaLayout
+                        ? `${Math.max(15, footerOverlapPx > 0 ? footerOverlapPx + 32 : 15)}px`
+                        : footerOverlapPx > 0
+                          ? `${footerOverlapPx}px`
                           : undefined,
                       boxSizing: 'border-box',
                       overflow: 'hidden',
@@ -868,6 +881,8 @@ export default function CLFilterPanel({
                       position: 'relative',
                       paddingLeft: `${pardaPadL}px`,
                       paddingRight: `${listPadR}px`,
+                      /* 12 Nov — 15px clear under the list box itself (above Clear all / floor). */
+                      paddingBottom: songsPardaLayout ? 15 : 0,
                       flex: '1 1 0%',
                       minHeight: 0,
                       display: 'flex',
@@ -885,7 +900,8 @@ export default function CLFilterPanel({
                         flex: '1 1 0%',
                         minHeight: 0,
                         paddingTop: '11px',
-                        paddingBottom: '24px',
+                        /* Songs: 15px after the last name when scrolled to the end. */
+                        paddingBottom: songsPardaLayout ? '15px' : '24px',
                         width: '100%',
                         maxWidth: '100%',
                         boxSizing: 'border-box',

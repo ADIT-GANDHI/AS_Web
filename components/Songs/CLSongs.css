@@ -347,9 +347,9 @@ body:has(.cl-home-page-root) footer.footer-bg .footer-inner {
 .cl-songs-count-row {
   position: relative;
   padding: 0 clamp(80px, 16vw, 307px);
-  /* 11 Nov — count → A–Z 33 → 25 (client: “218 Songs” sitting too high).
-     PREV: 33px (2 Nov); 45px (26 Oct equal above/below). */
-  margin: 0 0 25px;
+  /* 12 Nov — count → A–Z 25 → 13.
+     PREV: 25px (11 Nov); 33px (2 Nov); 45px (26 Oct). */
+  margin: 0 0 13px;
   text-align: left;
 }
 

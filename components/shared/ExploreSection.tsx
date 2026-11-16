@@ -37,7 +37,7 @@ type ExploreSectionProps = {
   moreLabel?: string;
   lessLabel?: string;
   /**
-   * Song detail footer: All → SEE ALL (caps, 300); theme tab → Explore {name}
+   * Song detail footer: All → SEE MORE (caps, 300); theme tab → Explore {name}
    * italic + link to search. Other pages keep moreLabel / lessLabel.
    */
   songDetailFooter?: boolean;
@@ -113,7 +113,7 @@ export default function ExploreSection({
     : listExpanded
       ? lessLabel
       : moreLabel;
-  /* 26 Oct song detail: All → SEE ALL; other tab → Explore {theme} + redirect. */
+  /* 26 Oct / 12 Nov song detail: All → SEE MORE; other tab → Explore {theme} + redirect. */
   const songDetailFooterHref =
     songDetailFooter && activeKeywordId !== 'all' && themeFooterName
       ? withAppBasePath(`/searche?search=${encodeURIComponent(themeFooterName)}`)
@@ -221,7 +221,13 @@ export default function ExploreSection({
                       bucket === 'reflections' ? ' explore-format--reflection' : ''
                     }`}
                   >
-                    {formatTag}
+                    {bucket === 'reflections' && formatTag.startsWith('REFLECTION ') ? (
+                      <>
+                        REFLECTION <em>{formatTag.slice('REFLECTION '.length)}</em>
+                      </>
+                    ) : (
+                      formatTag
+                    )}
                   </div>
                 </div>
               </>
@@ -269,7 +275,7 @@ export default function ExploreSection({
               setListExpanded((v) => !v);
             }}
           >
-            {songDetailFooter && activeKeywordId === 'all' ? 'SEE ALL' : seeMoreLabel}
+            {songDetailFooter && activeKeywordId === 'all' ? 'SEE MORE' : seeMoreLabel}
           </button>
         )
       ) : null}

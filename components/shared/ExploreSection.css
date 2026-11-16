@@ -449,15 +449,21 @@
   user-select: none;
 }
 
-/* 11 Nov — All + keyword chips share the same pink dotted underline
-   (header pitch: 6px / 1.25px dots). PREV: All used a solid 1px border. */
+/* 12 Nov — All + chips use the same dotted underline under the full label.
+   Stable padding so selecting All/chips doesn’t grow or jump the row.
+   PREV: All capped to max-width 18px (3 sparse dots) + active pad 2px (layout jump). */
+.cld-page .clp-related .explore-theme-mark {
+  padding-bottom: 4px;
+}
+
 .cld-page .clp-related .explore-theme.active .explore-theme-mark {
   background-image: radial-gradient(circle, var(--ajab-pink-primary) 1.25px, transparent 1.3px);
   background-size: 6px 3px;
   background-position: left bottom;
-  background-repeat: space no-repeat;
+  background-repeat: repeat-x;
   border-bottom: 0;
-  padding-bottom: 2px;
+  padding-bottom: 4px;
+  max-width: none;
 }
 
 /* Align Explore + keywords to the inner edge of the thumb (thumb -11 + 6 border). */
@@ -476,20 +482,25 @@
   margin-bottom: 43px;
 }
 
-/* 11 Nov — song detail Explore thumb corners 10 → 6 (poems/reflections stay 10). */
+/* 12 Nov — Explore thumb corners 6 → 4 (poems/reflections stay 10). PREV: 6 (11 Nov). */
 .cld-page .clp-related .explore-thumb {
-  border-radius: 6px;
+  border-radius: 4px;
 }
 
-/* Song detail Explore — gap 20 → 25 (11 Nov). Item min-height 190.
-   PREV: gap 20 (2 Nov 190/20); shared was 207 + gap 37. */
+/* 12 Nov — dotted divider exactly 20px below content and 20px above next.
+   padding-bottom puts the ::after line 20px under the row; gap adds 20px after.
+   PREV: gap 25 with line on the box edge (11 Nov). */
 .cld-page .clp-related .explore-list {
-  gap: 25px;
+  gap: 20px;
 }
 
 .cld-page .clp-related .explore-item {
   min-height: 190px;
   box-sizing: border-box;
+}
+
+.cld-page .clp-related .explore-item:not(:last-child) {
+  padding-bottom: 20px;
 }
 
 .cld-page .clp-related .explore-format {
@@ -499,14 +510,21 @@
 }
 
 .cld-page .clp-related .explore-format--reflection {
-  /* 11 Nov — match SONG/POEM label weight (not italic-only subtype). */
+  /* 11 Nov — match SONG/POEM label weight.
+     12 Nov — only the subtype (e.g. Interview) is italic via <em>. */
   font-style: normal;
   text-transform: none;
   letter-spacing: 0.04em;
 }
 
+.cld-page .clp-related .explore-format--reflection em {
+  font-style: italic;
+  font-weight: inherit;
+}
+
 .cld-page .clp-related .explore-itemtitle {
-  font-size: 24px;
+  /* 12 Nov — 24 → 23. */
+  font-size: 23px;
   max-width: none;
   white-space: normal;
   overflow: visible;
@@ -516,7 +534,8 @@
 }
 
 .cld-page .clp-related .explore-itemsubtitle {
-  font-size: 20px;
+  /* 12 Nov — 20 → 19. */
+  font-size: 19px;
   white-space: normal;
   overflow: visible;
   text-overflow: unset;
@@ -553,7 +572,7 @@
   border-bottom: 0;
 }
 
-/* SEE ALL — all caps, weight 300. Theme tab uses .explore-seemore--theme. */
+/* SEE MORE — all caps, weight 300. Theme tab uses .explore-seemore--theme. */
 .cld-page .clp-related .explore-seemore {
   margin-top: 8px;
   margin-bottom: 40px;

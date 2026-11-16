@@ -108,7 +108,8 @@ function titleCaseFirst(value: string): string {
 function formatTagFor(bucket: ExploreListEntry['bucket'], item: any): string {
   if (bucket === 'songs') return 'SONG';
   if (bucket === 'poems') return 'POEM';
-  /* 11 Nov — “REFLECTION Interview” (prefix + subtype). PREV: subtype only. */
+  /* 11 Nov — “REFLECTION Interview” (prefix + subtype). PREV: subtype only.
+     12 Nov — subtype rendered italic in ExploreSection (<em>). */
   const format = titleCaseFirst(item?.format || item?.reflection_type);
   return `REFLECTION ${format || 'Essay'}`;
 }

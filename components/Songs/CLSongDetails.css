@@ -80,8 +80,8 @@
   /* 26 Oct — 8px above and below the YT player.
      PREV: header→YT 4px; YT→about ~22px. */
   --cld-gap-header-video: 8px;
-  /* 11 Nov — player → about 8 → 15. PREV: 8px (26 Oct). */
-  --cld-gap-video-about: 15px;
+  /* 12 Nov — player → about 15 → 20. PREV: 15px (11 Nov); 8px (26 Oct). */
+  --cld-gap-video-about: 20px;
   --cld-gap-about-lang: min(64px, calc(100vw * 86 / var(--cld-artboard-w)));
   --cld-gap-lang-title: min(44px, calc(100vw * 58 / var(--cld-artboard-w)));
   --cld-gap-title-lyrics: min(32px, calc(100vw * 42 / var(--cld-artboard-w)));
@@ -369,10 +369,10 @@
   flex-wrap: wrap;
 }
 
-/* 15 Oct — heading 24px */
+/* 12 Nov — heading 26px. PREV: 24px (15 Oct). */
 .cld-song-header-title-name {
   font-family: var(--ajab-font-serif);
-  font-size: 24px;
+  font-size: 26px;
   font-weight: 400;
   color: var(--ajab-ink-700);
   line-height: 1.2;
@@ -501,9 +501,9 @@
    The classic bar below stays in its own track and stays visible. */
 .cld-description-body--scroll {
   line-height: 1.6em;
-  /* 11 Nov — about window 150 → 200. PREV: 150px (26 Oct). */
-  height: 200px;
-  max-height: 200px;
+  /* 12 Nov — about window 200 → 250. PREV: 200px (11 Nov); 150px (26 Oct). */
+  height: 250px;
+  max-height: 250px;
   overflow-x: hidden;
   overflow-y: scroll;
   /* Do not set scrollbar-width or scrollbar-color here.
@@ -801,9 +801,9 @@
   max-width: 100vw;
   margin-left: calc(50% - 50vw);
   margin-right: calc(50% - 50vw);
-  /* 11 Nov — +5px above/below white double curve. PREV: 40 / 36 (23 Oct). */
-  margin-top: 45px;
-  margin-bottom: 41px;
+  /* 12 Nov — 60px above/below white double curve. PREV: 45 / 41 (11 Nov); 40 / 36 (23 Oct). */
+  margin-top: 60px;
+  margin-bottom: 60px;
   height: 30px;
   /* PREV: url(/poems-wave-divider.png). Source: New_UI/poems-wave-line.png.
      Served from public/ so postbuild copies it into out/ for production. */
