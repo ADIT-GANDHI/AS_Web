@@ -1,18 +1,23 @@
 /**
- * Build song detail marble background — vertically mirrored for seamless repeat-y.
- * Same flip-and-stitch pattern as scripts/build-songs-listing-bg.mjs.
+ * Song detail marble background tile → `song_detail_3-mirror.png`.
  *
- * The Figma export includes dark/grey edge rows (y=0–1 top, y=7139–7140 bottom).
- * Those must be trimmed before mirroring or they paint a visible grey seam line.
+ * Prefer a designer-provided tile when present:
+ *   1) `song_detail_3-mirror.jpg`  (new designer export)
+ *   2) else build from `song_detail_3.png` (module + vertical flip for repeat-y)
+ *
+ * The Figma `song_detail_3.png` export includes dark/grey edge rows (y=0–1 top,
+ * y=7139–7140 bottom). Those must be trimmed before mirroring or they paint a
+ * visible grey seam line.
  */
 
-import { mkdirSync } from 'fs';
+import { existsSync, mkdirSync } from 'fs';
 import { join } from 'path';
 import sharp from 'sharp';
 
 const ROOT = process.cwd();
 const OUT_DIR = join(ROOT, 'public/songs-assets');
 
+const DESIGNER_JPG = join(OUT_DIR, 'song_detail_3-mirror.jpg');
 const SRC = join(OUT_DIR, 'song_detail_3.png');
 const OUT = join(OUT_DIR, 'song_detail_3-mirror.png');
 
@@ -23,6 +28,15 @@ const CROP_TOP = 2;
 const CROP_BOTTOM = 3;
 
 mkdirSync(OUT_DIR, { recursive: true });
+
+if (existsSync(DESIGNER_JPG)) {
+  await sharp(DESIGNER_JPG).png({ compressionLevel: 9 }).toFile(OUT);
+  const meta = await sharp(OUT).metadata();
+  console.log('✅ song detail bg (designer jpg → png)');
+  console.log(`   source:  ${DESIGNER_JPG}`);
+  console.log(`   mirror:  ${OUT} (${meta.width}×${meta.height})`);
+  process.exit(0);
+}
 
 const meta = await sharp(SRC).metadata();
 const W = meta.width;
