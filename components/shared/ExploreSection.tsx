@@ -113,7 +113,8 @@ export default function ExploreSection({
     : listExpanded
       ? lessLabel
       : moreLabel;
-  /* 26 Oct / 12 Nov song detail: All → SEE MORE; other tab → Explore {theme} + redirect. */
+  /* 26 Oct / 12 Nov song detail: All → SEE MORE; other tab → Explore {theme} + redirect.
+     18 Nov — footer match top chips: translit roman, translation italic only. */
   const songDetailFooterHref =
     songDetailFooter && activeKeywordId !== 'all' && themeFooterName
       ? withAppBasePath(`/searche?search=${encodeURIComponent(themeFooterName)}`)
@@ -255,7 +256,16 @@ export default function ExploreSection({
       {showSeeMore || songDetailFooterHref ? (
         songDetailFooterHref ? (
           <Link href={songDetailFooterHref} className="explore-seemore explore-seemore--theme">
-            Explore <em>{themeFooterName}</em>
+            Explore{' '}
+            {activeKeyword?.transliteration ? (
+              <span className="explore-seemore-translit">{activeKeyword.transliteration}</span>
+            ) : null}
+            {activeKeyword?.translation ? (
+              <>
+                {' '}
+                <em className="explore-seemore-translation">{activeKeyword.translation}</em>
+              </>
+            ) : null}
           </Link>
         ) : (
           <button

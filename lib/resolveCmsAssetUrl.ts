@@ -11,18 +11,24 @@ export function withAppBasePath(path: string): string {
 /** Shown when CMS omits a thumb or offline mocks use empty strings. */
 export const CMS_IMAGE_PLACEHOLDER = withAppBasePath('/placeholder.svg');
 
-/** Wavy right edge for Poems / Radio filter drawers, and the previous Songs curtain. */
-export const FILTER_PANEL_SHAPE = withAppBasePath('/songs-assets/song_filter_opaque.svg');
-
 /**
- * Songs filter parda — vector shape from "White parda asset 480x1660.ai".
- * Fitted into the 360px drawer. A raster PNG of the same art looked pixelated.
- * PREV raster: `/songs-assets/song_filter_white_480x1660.png`
- * PREV Songs curtain: FILTER_PANEL_SHAPE (`/songs-assets/song_filter_opaque.svg`).
+ * Shared white filter parda (Songs / Poems / Reflections / People / Radio).
+ *
+ * PREV opaque vector (keep for revert): `/songs-assets/song_filter_opaque.svg`
+ * PREV Songs white vector: `/songs-assets/song_filter_white_vector.svg`
+ *
+ * 16 Nov — updated AI (`White_parda_asset_480x1660_updated.ai`), designer soft fringe as-is:
+ *   Master @300%: `song_filter_white_480x1660_updated.png`
+ *     (white body opaque only; soft fringe NOT boosted; no CSS drop-shadow)
+ *   Untouched soft export: `song_filter_white_480x1660_updated_semitransparent-backup.png`
+ *   Drawer @2x used in UI: `song_filter_white_parda_drawer@2x.png`
  */
-export const SONGS_FILTER_WHITE_PARDA = withAppBasePath(
-  '/songs-assets/song_filter_white_vector.svg'
+export const FILTER_PANEL_SHAPE = withAppBasePath(
+  '/songs-assets/song_filter_white_parda_drawer@2x.png'
 );
+
+/** Alias — same asset as FILTER_PANEL_SHAPE (kept so Songs call sites stay readable). */
+export const SONGS_FILTER_WHITE_PARDA = FILTER_PANEL_SHAPE;
 
 /** Radio page static assets (module-level paths avoid /new + /asset concat in JS bundles). */
 export const RADIO_PLAYER_CONTROLS = withAppBasePath('/radio-player-controls.svg');

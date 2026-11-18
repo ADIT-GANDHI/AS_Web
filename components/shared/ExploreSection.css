@@ -588,8 +588,16 @@
   font-weight: 400;
   font-size: 20px;
   letter-spacing: 0;
+  font-style: normal;
 }
 
+/* Match top Explore chips: translit roman; only translation italic. */
+.cld-page .clp-related .explore-seemore--theme .explore-seemore-translit {
+  font-style: normal;
+  font-weight: 400;
+}
+
+.cld-page .clp-related .explore-seemore--theme .explore-seemore-translation,
 .cld-page .clp-related .explore-seemore--theme em {
   font-style: italic;
   font-weight: 400;

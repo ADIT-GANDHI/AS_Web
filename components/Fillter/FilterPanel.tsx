@@ -155,7 +155,9 @@ export default function FilterPanel({
                   left: '8.21px',
                   width: '470px',
                   height: '1430.07px',
-                  opacity: 0.95,
+                  opacity: 1,
+                  objectFit: 'cover',
+                  objectPosition: 'right center',
                   pointerEvents: 'none',
                   zIndex: 0,
                 }}

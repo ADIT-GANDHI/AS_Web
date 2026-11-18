@@ -5,8 +5,9 @@
 
 /* ── Root wrapper — song detail marble (mirrored repeat-y, same seam trick as listing).
 
-   Tile: `/songs-assets/song_detail_3-mirror.png` (1931 × 14282) built from
-   `song_detail_3.png` — module + vertical flip stitched below for seamless repeat-y. */
+   Tile: `/songs-assets/song_detail_3-mirror.png` (1931 × 14272).
+   18 Nov — new designer tile (from .jpg → .png); previous kept as
+   `song_detail_3-mirror_old.png`. */
 .cl-songs-page-root:has(.cld-page) {
   background: #ede8df;
   position: relative;

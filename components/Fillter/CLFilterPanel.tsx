@@ -11,9 +11,7 @@ import type {
 } from '@/components/shared/listingFilterTypes';
 import {
   FILTER_DRAWER_BACKDROP_TOP,
-  FILTER_DRAWER_BG_OPACITY,
   FILTER_DRAWER_DEFAULT_WIDTH,
-  FILTER_DRAWER_SONGS_BG_OPACITY,
   FILTER_DRAWER_SONGS_SCROLL_RIGHT_PX,
   FILTER_DRAWER_SONGS_SCROLL_TRACK_PX,
   FILTER_DRAWER_TOP,
@@ -22,7 +20,7 @@ import {
   measureFilterDrawerFooterOverlapPx,
 } from '@/lib/filterDrawerLayout';
 import { dedupeOrderedStrings } from '@/lib/dedupeStrings';
-import { FILTER_PANEL_SHAPE, SONGS_FILTER_WHITE_PARDA } from '@/lib/resolveCmsAssetUrl';
+import { FILTER_PANEL_SHAPE } from '@/lib/resolveCmsAssetUrl';
 import FilterSelectionChips from '@/components/Fillter/FilterSelectionChips';
 
 export type { ListingFilterCategory, ListingFilterPanelProps };
@@ -196,9 +194,9 @@ export default function CLFilterPanel({
   /* 26 Oct — list row spacing 8px between items (4px pad each side). PREV: 12px.
      12 Nov — list row pad 4 → 8 above/below (kept; other parda experiments reverted). */
   const listPadY = songsPardaLayout ? '8px' : undefined;
-  /* Wave stretch — size img to 100%/scale so drawer can stay overflow:visible
-     (needed for card-matching drop-shadow on the right) without chopping ends. */
-  const songsPardaScaleY = 2;
+  /* 16 Nov — drawer PNG is Lanczos-pre-stretched (sy≈1.25 in prepare-songs-parda.mjs).
+     Keep CSS scaleY at 1 — stretching in the browser pixelates. */
+  const songsPardaScaleY = 1;
   /* Keep increased Singer | Poet | Theme gaps (do not lose). */
   const catBtnPadX = songsPardaLayout ? 3 : 0;
   /* 26 Oct — rules start at Filter by (PREV 4px inset).
@@ -224,9 +222,6 @@ export default function CLFilterPanel({
   /* 11 Nov greys — songs track #dedede → #e8e8e8 (agreed); thumb stays #818181. */
   const scrollTrack = songsPardaLayout ? '#e8e8e8' : '#e0e0e0';
   const scrollThumb = songsPardaLayout ? '#818181' : '#999999';
-  const panelBgOpacity = songsPardaLayout
-    ? FILTER_DRAWER_SONGS_BG_OPACITY
-    : FILTER_DRAWER_BG_OPACITY;
   // Derives whether any filter is currently active — used for trigger colour
   const hasActiveFilters = selectedSingers.length > 0 || selectedPoets.length > 0 || selectedThemes.length > 0;
   /* Idle = black; pink only while one or more filters are selected. */
@@ -624,13 +619,12 @@ export default function CLFilterPanel({
                     flexDirection: 'column',
                     fontFamily: FONT,
                     zIndex: FILTER_DRAWER_Z_PANEL,
-                    /* Shadow removed — clip again so scaleY stretch can’t spill. */
-                    overflow: 'hidden',
+                    /* Visible so the designer soft right fringe isn’t clipped. */
+                    overflow: 'visible',
                     pointerEvents: 'auto',
                     overscrollBehavior: 'contain',
-                    /* Songs white parda is a transparent PNG. A white box here squares off the wave.
-                       PREV (opaque svg): backgroundColor '#FFFFFF'. */
-                    backgroundColor: songsPardaLayout ? 'transparent' : '#FFFFFF',
+                    /* Transparent panel so PNG fringe can show; body in asset is opaque. */
+                    backgroundColor: 'transparent',
                   }}
                   initial={{ x: '-100%', opacity: 0 }}
                   animate={{ x: 0, opacity: 1 }}
@@ -641,35 +635,24 @@ export default function CLFilterPanel({
                     if (songsPardaLayout && openRef.current) setRulesCrisp(true);
                   }}
                 >
-                  {/* Wavy panel bg — opaque so page text (counts / Filters | All) does not bleed through */}
+                  {/* Shared white parda — same designer asset on Songs / Poems /
+                      Reflections / People / Radio. No white underlay (that squares the wave). */}
                   <div
                     aria-hidden="true"
                     style={{
                       position: 'absolute',
                       inset: 0,
-                      /* PREV songs: FILTER_DRAWER_SONGS_BG_OPACITY (0.95) over the opaque svg.
-                         The new PNG already carries its own white alpha. */
-                      opacity: songsPardaLayout ? 1 : panelBgOpacity,
+                      opacity: 1,
                       pointerEvents: 'none',
                     }}
                   >
-                    {/* PREV songs underlay + curtain (revert with src={FILTER_PANEL_SHAPE}):
+                    {/* PREV underlay + opaque.svg curtain — squared the soft edge.
                     <div style={{ position: 'absolute', inset: 0, background: '#FFFFFF' }} />
-                    <img src={FILTER_PANEL_SHAPE} alt="" style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'cover', objectPosition: 'right center' }} />
                     */}
-                    {!songsPardaLayout && (
-                      <div
-                        style={{
-                          position: 'absolute',
-                          inset: 0,
-                          background: '#FFFFFF',
-                        }}
-                      />
-                    )}
-                    {/* 12 Nov — no right-edge white plug (read as a hard white line next
-                        to the scrollbar). CSS drop-shadow also removed. Asset untouched. */}
+                    {/* 16 Nov — designer AI export only: opaque white body, original fringe,
+                        no CSS drop-shadow. Same src for all modules. */}
                     <img
-                      src={songsPardaLayout ? SONGS_FILTER_WHITE_PARDA : FILTER_PANEL_SHAPE}
+                      src={FILTER_PANEL_SHAPE}
                       alt=""
                       style={{
                         position: 'absolute',
@@ -679,19 +662,12 @@ export default function CLFilterPanel({
                         objectFit: 'cover',
                         objectPosition: 'right center',
                         userSelect: 'none',
-                        ...(songsPardaLayout
-                          ? {
-                              top: `${((songsPardaScaleY - 1) / (2 * songsPardaScaleY)) * 100}%`,
-                              height: `${100 / songsPardaScaleY}%`,
-                              bottom: 'auto',
-                              transform: `scaleY(${songsPardaScaleY})`,
-                              transformOrigin: 'center right',
-                            }
-                          : {
-                              top: 0,
-                              bottom: 0,
-                              height: '100%',
-                            }),
+                        imageRendering: 'auto',
+                        top: `${((songsPardaScaleY - 1) / (2 * songsPardaScaleY)) * 100}%`,
+                        height: `${100 / songsPardaScaleY}%`,
+                        bottom: 'auto',
+                        transform: `scaleY(${songsPardaScaleY})`,
+                        transformOrigin: 'center right',
                       }}
                     />
                   </div>
